@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# For each region, extract GEMs which #intersect fragments>=2
+
 # In[58]:
 
 
@@ -13,14 +15,14 @@ import pandas as pd
 import argparse
 
 # These two lines let the pybedtool know where to put the temp files.
-# cleanup() will remove all the temp file create from this session in temp file folder 
+# cleanup() will remove all the temp file create from this session in temp file folder
 # Thread = '0'
 
 # Process the given region, retrive all valid GEMs
 def ProcessRegion(RawGEMs):
     Temp = RawGEMs.groupby(g=[1,2,3,5], c=[5,6,7,8], o=['count','collapse','collapse','collapse'])
     RefineGEMs = Temp.filter(lambda F: int(F[4]) > 1)
-    # Need this to keep the result of filter! All these files can be manually removed after the job 
+    # Need this to keep the result of filter! All these files can be manually removed after the job
     Test = BedTool(RefineGEMs).saveas()
     Tempstr = ''
     for i in range(Test.count()):
@@ -37,9 +39,10 @@ def ProcessRegion(RawGEMs):
                 Tempstr += str(Start[j])+','+str(End[j])+','
             elif j == (len(Start)-1):
                 Tempstr += str('-1,-1')+' ' + str(Start[j]) + ' ' + str(End[j]) + '\n'
-                
+
     FinalGEMs = BedTool(Tempstr,from_string=True)
     return FinalGEMs
+
 
 # Check for the left/right/both/none condition
 def Checkintersect(s1,s2,e1,e2):
@@ -68,8 +71,10 @@ def inInterval(FF,Temp,Type,Length,CHR):
             return not (Checkintersect(interval[0],Start[0],interval[1],Start[1])) and not (Checkintersect(interval[2],End[0],interval[3],End[1]))
     else:
         return False
-# Classify FinalGEMs based on Type (left/right/both) in Region. 
-# left: start_min to start_min+Length; right: end_max-Length to end_max 
+
+
+# Classify FinalGEMs based on Type (left/right/both) in Region.
+# left: start_min to start_min+Length; right: end_max-Length to end_max
 # Also save the result automatically. Can change path.
 def SortGEM(FinalGEMs, Region,Type,Length,savebedpath):
     Temp = list(map(int, Region[4:6]))
@@ -84,7 +89,7 @@ def SortGEM(FinalGEMs, Region,Type,Length,savebedpath):
         Flag = 0
     else:
         Flag = 1
-    
+
     Count = 0
     Tot = TypeGEMs.count()
 #     Check if any fragments intersect with middle motif
@@ -93,6 +98,7 @@ def SortGEM(FinalGEMs, Region,Type,Length,savebedpath):
         if Mcount> Flag:
             Count = Count+1
     return Tot-Count, Count
+
 
 def mainfunc(path1,path2,savebedpath,savecsvpath,tmpfilepath,RegInterval,Thread,Length = 4000):
 # path1: path for GEMs (i.e. ___ALL.region.PEanno)
@@ -107,7 +113,7 @@ def mainfunc(path1,path2,savebedpath,savecsvpath,tmpfilepath,RegInterval,Thread,
     # Specify for the path of ___ALL.region.PEanno and import it (GEMs)
 #     path1 = 'Minji_data/SHG0180-181-182NR_hg38_cohesin_FDR_0.1_ALL_motifext4kbboth.region.PEanno'
     ChIA_Drop = BedTool(path1)
-    
+
     # Specify for the path of ____PETcnt_G9.motifannot and import it (anchors, regions)
 #     path2 = 'Minji_data/LHG0052H.e500.clusters.cis.bothanchint_G250.PETcnt_G9.motifannot.sorted.domains'
     Region = BedTool(path2)
@@ -136,7 +142,7 @@ def mainfunc(path1,path2,savebedpath,savecsvpath,tmpfilepath,RegInterval,Thread,
         Intersection = Intersection.sort(chrThenScoreA = True)
         # Extract the valid GEMs
         FinalGEMs = ProcessRegion(Intersection)
-        # Classify+sort+save 
+        # Classify+sort+save
         Count_L0,Count_L1 = SortGEM(FinalGEMs, NowRegion[0],'Left',Length,savebedpath)
         Count_R0,Count_R1 = SortGEM(FinalGEMs, NowRegion[0],'Right',Length,savebedpath)
         Count_B0,Count_B1 = SortGEM(FinalGEMs, NowRegion[0],'Both',Length,savebedpath)
@@ -167,6 +173,7 @@ def mainfunc(path1,path2,savebedpath,savecsvpath,tmpfilepath,RegInterval,Thread,
     # savecsvpath = 'Minji_data/Cohesin_results/01ALL/4kbext_dm/'
     DF.to_csv(savecsvpath+'LRBNstats_'+Thread+'.csv',index=False)
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--path1',type = str)
@@ -174,13 +181,13 @@ if __name__ == '__main__':
     parser.add_argument('--savebedpath',type = str)
     parser.add_argument('--savecsvpath',type = str)
     parser.add_argument('--tmpfilepath',type = str)
-    
+
     parser.add_argument('--Start_pos',type = int)
     parser.add_argument('--End_pos',type = int)
     parser.add_argument('--Length',type = int)
     parser.add_argument('--Thread',type = str)
     args = parser.parse_args()
-    
+
     path1 = args.path1
     path2 = args.path2
     savebedpath = args.savebedpath
@@ -190,16 +197,16 @@ if __name__ == '__main__':
     End_pos = args.End_pos
     Thread = args.Thread
     Length = args.Length
-    
-    RegInterval = range(Start_pos,End_pos) 
-    # Note that it is 0-based. 
+
+    RegInterval = range(Start_pos, End_pos)
+    # Note that it is 0-based.
     # It will process through exactly Start_pos to End_pos-1 (i.e. range(Start_pos,End_pos))
-# path1: path for GEMs (i.e. ___ALL.region.PEanno)
-# path2: path for Region (i.e. ____PETcnt_G9.motifannot)
-# savebedpath: path for saving extracted GEMs in .bed
-# savecsvpath: path for saving summary table in .csv
-# tmpfilepath: path for saving tmpfiles produced by pybedtool, a directory
-# Thread: for naming the csv file. (i.e. '0')
-# Length: Length of extension. Default = 4000 (int)
+    # path1: path for GEMs (i.e. ___ALL.region.PEanno)
+    # path2: path for Region (i.e. ____PETcnt_G9.motifannot)
+    # savebedpath: path for saving extracted GEMs in .bed
+    # savecsvpath: path for saving summary table in .csv
+    # tmpfilepath: path for saving tmpfiles produced by pybedtool, a directory
+    # Thread: for naming the csv file. (i.e. '0')
+    # Length: Length of extension. Default = 4000 (int)
     mainfunc(path1,path2,savebedpath,savecsvpath,tmpfilepath,RegInterval,Thread,Length)
 

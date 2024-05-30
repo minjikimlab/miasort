@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# Calculate the Fragment annotation. 
+
 # In[13]:
 
 
@@ -18,10 +20,10 @@ def get_list_of_fragsmp(df_region,i):
 
     frag_left_start = df_region.loc[i]['Lm_frag_start']
     frag_right_end = df_region.loc[i]['Rm_frag_end']
-    
+
     Mcount = df_region.loc[i]['FragNum']
     Num_mid_frags = Mcount - 2
-    
+
     Lst_of_frags = [(int(df_region.loc[i]['Lm_frag_start'])+int(df_region.loc[i]['Lm_frag_end']))/2]
     if Num_mid_frags > 0:
         list_of_frag_coord = list(map(int, df_region.loc[i]['Mid_frags'].split(',')))
@@ -47,10 +49,10 @@ def get_list_of_frags(df_region,i):
 
     frag_left_start = df_region.loc[i]['Lm_frag_start']
     frag_right_end = df_region.loc[i]['Rm_frag_end']
-    
+
     Mcount = df_region.loc[i]['FragNum']
     Num_mid_frags = Mcount - 2
-    
+
     Lst_of_frags = [[int(df_region.loc[i]['Lm_frag_start']),int(df_region.loc[i]['Lm_frag_end'])]]
     if Num_mid_frags > 0:
         list_of_frag_coord = list(map(int, df_region.loc[i]['Mid_frags'].split(',')))
@@ -77,8 +79,8 @@ def mainfunc(pathR,pathM,pathM2,RegInterval,pathB,saveFragannopath):
     # saveFragannopath: path for saving the Frags_anno table (i.e. Minji_data/Cohesin_results/01ALL/4kbext_dm/Tables/Frags_anno.csv)
     # Note that if you want to parallel this process, give different name for .csv files of each Thread.
     # Then use MergeCSV.py to merge them (each directory should contain only 1 type of .csv file)
-    
-    
+
+
     # Region_short = BedTool('Region_short_dm.bed')
 
     # pathR = 'Minji_data/LHG0052H.e500.clusters.cis.bothanchint_G250.PETcnt_G9.motifannot'
@@ -118,7 +120,7 @@ def mainfunc(pathR,pathM,pathM2,RegInterval,pathB,saveFragannopath):
 
         R_start = int(Region_short[i][1])
         R_end = int(Region_short[i][2])
-    # ===========================================================================================================    
+    # ===========================================================================================================
         for direction in ['Left','Right','Both','None']:
 #             path = 'Minji_data/Final_data_results/CTCF_NR_results/01PASS_dm/Bedfiles/{}_{}.bed'.format(lpID,direction)
             pathB_all = pathB+'{}_{}.bed'.format(lpID,direction)
@@ -184,7 +186,7 @@ def mainfunc(pathR,pathM,pathM2,RegInterval,pathB,saveFragannopath):
                 if sublist[len(sublist)-1]:
                     SubStr += sublist[len(sublist)-1]
                 else:
-                    SubStr += '0'     
+                    SubStr += '0'
 
                 List_new.append([Region_short[i][3],direction,SubStr,Bfile.loc[k,'GEMID']])
     Frags_anno = pd.DataFrame(List_new,columns = ['Domain ID','Category','Fragment_annotation','GEM_ID'])
@@ -198,11 +200,11 @@ if __name__ == '__main__':
     parser.add_argument('--pathM2',type = str)
     parser.add_argument('--pathB',type = str)
     parser.add_argument('--saveFragannopath',type = str)
-    
+
     parser.add_argument('--Start_pos',type = int)
     parser.add_argument('--End_pos',type = int)
     args = parser.parse_args()
-    
+
     pathR = args.pathR
     pathM = args.pathM
     pathM2 = args.pathM2
@@ -218,9 +220,9 @@ if __name__ == '__main__':
 
 # saveFragannopath: path for saving the Frags_anno table (i.e. Minji_data/Cohesin_results/01ALL/4kbext_dm/Tables/Frags_anno.csv)
 # Note that if you want to parallel this process, give different name for .csv files of each Thread.
-# Then use MergeCSV.py to merge them (each directory should contain only 1 type of .csv file)    
+# Then use MergeCSV.py to merge them (each directory should contain only 1 type of .csv file)
     RegInterval = range(Start_pos,End_pos)
-    
+
     mainfunc(pathR,pathM,pathM2,RegInterval,pathB,saveFragannopath)
 
 

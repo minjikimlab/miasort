@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# Merge all .cvs files in a folder 
+
 # In[ ]:
 
 
@@ -8,6 +10,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import glob
+import argparse
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -15,10 +18,10 @@ if __name__ == '__main__':
     parser.add_argument('--savepath',type = str)
 
     args = parser.parse_args()
-    
+
     Dir_org = args.Dir_org # path to parse all .csv files (i.e. ./directory1/)
     savepath = args.savepath # path to save results, including the file name (i.e. ./directory1/AllResults.csv)
-    
+
     extension = 'csv'
     all_filenames = [i for i in glob.glob(Dir_org+'*.{}'.format(extension))]
 #     print(all_filenames)

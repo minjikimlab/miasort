@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# Calculate the slope for each region and directions
+# Need results from Extract_GEMs_for_regions.py 
+
 # In[28]:
 
 
@@ -18,10 +21,10 @@ def get_list_of_fragsmp(df_region,i):
 
     frag_left_start = df_region.loc[i]['Lm_frag_start']
     frag_right_end = df_region.loc[i]['Rm_frag_end']
-    
+
     Mcount = df_region.loc[i]['FragNum']
     Num_mid_frags = Mcount - 2
-    
+
     Lst_of_frags = [(int(df_region.loc[i]['Lm_frag_start'])+int(df_region.loc[i]['Lm_frag_end']))/2]
     if Num_mid_frags > 0:
         list_of_frag_coord = list(map(int, df_region.loc[i]['Mid_frags'].split(',')))
@@ -69,11 +72,11 @@ def mainfunc(pathR,pathM,pathM2,RegInterval,pathB,saveBGratepath,saveMTratepath)
     Mfile = pd.read_csv(pathM, sep = '\t',names = ['chr','M_start','M_end','Sign','M_name',
                                                   'dmID','Side',
                                                   'CTCF_Pet_int','CTCF_Drop_int','Coh_Pet_int','Coh_Drop_int'])
-    
+
 #     pathM2 = 'Minji_data/CTCF_motifs_STORM_hg38_Ext4kbBoth.sorted.id.bed'
     M2file = pd.read_csv(pathM2, sep = '\t',names = ['chr','M_start','M_end','Sign','M_name'])
-    
-    
+
+
     List = []
     List_mt = []
     window_size = 8000
@@ -92,7 +95,7 @@ def mainfunc(pathR,pathM,pathM2,RegInterval,pathB,saveBGratepath,saveMTratepath)
         R_end = int(Region_short[i][2])
 
         for direction in ['Left','Right']:
-            
+
 #             pathB = 'Minji_data/Cohesin_results/01ALL/4kbext_dm/Bedfiles/'
             pathB_all = pathB+'{}_{}.bed'.format(lpID,direction)
             Bfile = pd.read_csv(pathB_all, sep = '\t',names = ['chr','Lm_frag_start','Lm_frag_end','GEMID','FragNum',
@@ -230,7 +233,7 @@ def mainfunc(pathR,pathM,pathM2,RegInterval,pathB,saveBGratepath,saveMTratepath)
                                                  'GEM count', 'Direction'])
     saveMTratepath = 'Minji_data/Cohesin_results/01ALL/4kbext_dm/Slope/Motif_rate.csv'
     Motif_rate.to_csv(saveMTratepath,index=False)
-    
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--pathR',type = str)
@@ -239,11 +242,11 @@ if __name__ == '__main__':
     parser.add_argument('--pathB',type = str)
     parser.add_argument('--saveBGratepath',type = str)
     parser.add_argument('--saveMTratepath',type = str)
-    
+
     parser.add_argument('--Start_pos',type = int)
     parser.add_argument('--End_pos',type = int)
     args = parser.parse_args()
-    
+
     pathR = args.pathR
     pathM = args.pathM
     pathM2 = args.pathM2
@@ -261,8 +264,8 @@ if __name__ == '__main__':
 # saveBGratepath: path for saving the background_rate table (i.e. Minji_data/Cohesin_results/01ALL/4kbext_dm/Slope/Background_rate.csv)
 # saveMTratepath: path for saving the Motif_rate table (i.e. Minji_data/Cohesin_results/01ALL/4kbext_dm/Slope/Motif_rate.csv)
 # Note that if you want to parallel this process, give different name for .csv files of each Thread.
-# Then use MergeCSV.py to merge them (each directory should contain only 1 type of .csv file)    
+# Then use MergeCSV.py to merge them (each directory should contain only 1 type of .csv file)
     RegInterval = range(Start_pos,End_pos)
-    
+
     mainfunc(pathR,pathM,pathM2,RegInterval,pathB,saveBGratepath,saveMTratepath)
 
