@@ -1,2 +1,3 @@
 env
-CDH0002NR9L_hg38_CTCF_filt_comp_FDR_0.1_ALL_motifext4kbboth.region.PEanno
+*.PEanno
+*.pptx
