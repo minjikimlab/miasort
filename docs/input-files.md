@@ -15,7 +15,7 @@ chr1	9266080	9270035	chr1	9489154	9495246	1	484	530	9267276	9491249	dm9	chr1	926
 
 Every line is independent from each other. We will only do one line at a time. Each line will be conducted in only 1 second.
 
-The first three columns indicate the **left anchor** (left reference) and the following three columns indicate the right anchor.
+Column 1 and 2 (0-indexed) indicate the range of **left anchor** (left reference) and Column 4 and 5 indicate the **right anchor**.
 
 We will need right anchor even when we do left anchor because we only want to rank GEMs that meet the left anchor and also with the rightmost fragment that is less than the right anchor region.
 
@@ -34,11 +34,11 @@ chr10	114112356	114112984	2	SHG8033-100000650-AAACACCCACTCACCTBX8033-HEA-4-0-sub
 chr10	114217837	114218465	2	SHG8033-100000650-AAACACCCACTCACCTBX8033-HEA-4-0-sub-1-1	E
 ```
 
-**Every line represents a fragment**.
+**Every line represents a fragment**. Column 1 (0-indexed) represents the left point and Column 2 represents the right point of the fragment.
 
-The fourth column, in this case `2`, indicates **the number of fragments in one GEM/chromatin complex**.
+Column 3 (0-indexed), in this case `2`, indicates **the number of fragments in one GEM/chromatin complex**.
 
-**Each GEM has a unique id**, so you can see that line 1 and 2 have the same 5th column since they are the two fragments in the same GEM.
+**Each GEM has a unique id** (Column 4), so you can see that line 1 and 2 have the same Column 4 since they are the two fragments in the same GEM.
 
 Ignore the 6th column.
 
