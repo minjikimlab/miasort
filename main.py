@@ -3,6 +3,7 @@ from pybedtools import BedTool
 import argparse
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from matplotlib.lines import Line2D
 
 def process_left(ChIA_Drop, left_anchor, right_anchor):
     results = []
@@ -13,7 +14,7 @@ def process_left(ChIA_Drop, left_anchor, right_anchor):
     # Group fragments by GEM ID
     gem_fragments = {}
     for fragment in ChIA_Drop:
-        gem_id = fragment[4]  # Assuming the unique ID is at position 4 (0-indexed 3)
+        gem_id = fragment[4]  # Correct column for the unique ID (5th column, 0-indexed 4)
         if gem_id not in gem_fragments:
             gem_fragments[gem_id] = []
         gem_fragments[gem_id].append(fragment)
@@ -51,17 +52,29 @@ def plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor):
     # Plotting the GEMs
     current_y = 0
     gem_positions = {}
+    gem_fragments = {}
+
     for index, gem in enumerate(ranked_gems):
         chrom, start, end = gem.chrom, int(gem.start), int(gem.end)
-        label = gem.fields[3]  # Assuming the unique ID is at position 4 (0-indexed 3)
+        label = gem.fields[4]  # Correct column for the unique ID (5th column, 0-indexed 4)
 
         if label not in gem_positions:
             current_y += 1
             gem_positions[label] = current_y
+            gem_fragments[label] = []
 
         y_pos = gem_positions[label]
         ax.plot([start, end], [y_pos, y_pos], marker='|', color='blue')
-        ax.text((start + end) // 2, y_pos + 0.1, label, fontsize=8, ha='center')
+        gem_fragments[label].append((start, end, y_pos))
+
+    # Connect fragments of the same GEM with lines
+    for gem_id, fragments in gem_fragments.items():
+        fragments.sort()  # Sort fragments by their start position
+        for i in range(len(fragments) - 1):
+            start1, end1, y1 = fragments[i]
+            start2, end2, y2 = fragments[i + 1]
+            line = Line2D([end1, start2], [y1, y2], color='gray', linestyle='--')
+            ax.add_line(line)
 
     # Adding the left and right anchor regions
     left_start, left_end = int(left_anchor.split('\t')[1]), int(left_anchor.split('\t')[2])
