@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.lines import Line2D
 import sys
+import time
 
 def process_left(ChIA_Drop, left_anchor, right_anchor):
     left_anchor_bed = BedTool(left_anchor, from_string=True)
@@ -42,8 +43,11 @@ def process_left(ChIA_Drop, left_anchor, right_anchor):
 
     return valid_gems
 
+def process_right(ChIA_Drop, left_anchor, right_anchor):
+    pass
+
 def plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor):
-    fig, ax = plt.subplots(figsize=(15, 20))
+    fig, ax = plt.subplots(figsize=(15, 14))
 
     # Plotting the GEMs
     current_y = 0
@@ -88,7 +92,6 @@ def plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor):
     ax.set_xlim(left_start - 1000, right_end + 1000)
 
     plt.savefig(output_file)
-    plt.show()
 
 def main(path1, path2, type, output_file):
     pybedtools.helpers.cleanup()
@@ -105,22 +108,40 @@ def main(path1, path2, type, output_file):
     right_anchor = f"{first_region.fields[3]}\t{first_region.fields[4]}\t{first_region.fields[5]}"
 
     if type == "left":
+        sort_start_time = time.time()
         ranked_gems = process_left(ChIA_Drop, left_anchor, right_anchor)
+        print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
+
+        plot_start_time = time.time()
         plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor)
+        print(f"It took {time.time() - plot_start_time} secs in total to plot the GEMs")
+
+    elif type == "right":
+        sort_start_time = time.time()
+        ranked_gems = process_right(ChIA_Drop, left_anchor, right_anchor)
+        print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
+
+        plot_start_time = time.time()
+        plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor)
+        print(f"It took {time.time() - plot_start_time} secs in total to plot the GEMs")
+
     else:
-        print(f"Type '{type}' is not supported yet.")
+        print(f"Type '{type}' is not supported.")
 
 if __name__ == '__main__':
+    start_time = time.time()  # record execution time
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--path1', type=str, required=True, help='Path to the GEMs file (.PEanno)')
     parser.add_argument('--path2', type=str, required=True, help='Path to the regions file (.domains)')
     parser.add_argument('--type', type=str, required=True, help='Type of processing: left, right, or middle')
     parser.add_argument('--output_file', type=str, required=True, help='Output file for the plot')
     args = parser.parse_args()
-
     path1 = args.path1
     path2 = args.path2
     type = args.type
     output_file = args.output_file
 
     main(path1, path2, type, output_file)
+
+    print(f"It took {time.time() - start_time} secs in total to finish this program")
