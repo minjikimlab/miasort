@@ -4,10 +4,9 @@ import argparse
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.lines import Line2D
+import sys
 
 def process_left(ChIA_Drop, left_anchor, right_anchor):
-    results = []
-
     left_anchor_bed = BedTool(left_anchor, from_string=True)
     right_anchor_end = int(right_anchor.split('\t')[2])
 
@@ -25,55 +24,50 @@ def process_left(ChIA_Drop, left_anchor, right_anchor):
         meets_left_anchor = False
         rightmost_end = 0
 
+        fragment_start = sys.maxsize
         for fragment in fragments:
-            fragment_start = int(fragment[1])
-            fragment_end = int(fragment[2])
-            if fragment_start >= int(left_anchor.split('\t')[1]) and fragment_end <= int(left_anchor.split('\t')[2]):
-                meets_left_anchor = True
-            rightmost_end = max(rightmost_end, fragment_end)
+            if int(fragment[1]) < fragment_start:
+                fragment_start = int(fragment[1])
+                fragment_end = int(fragment[2])
+            rightmost_end = max(rightmost_end, int(fragment[2]))
+
+        if fragment_start >= int(left_anchor.split('\t')[1]) and fragment_end <= int(left_anchor.split('\t')[2]):
+            meets_left_anchor = True
 
         if meets_left_anchor and rightmost_end <= right_anchor_end:
-            valid_gems.extend(fragments)
+            valid_gems.append((gem_id, fragments))
 
-    # Convert valid_gems to BedTool object
-    if valid_gems:
-        valid_gems_bed = BedTool(valid_gems)
+    # Sort GEMs by their length
+    valid_gems.sort(key=lambda x: max(int(frag[2]) for frag in x[1]) - min(int(frag[1]) for frag in x[1]))
 
-        # Sort the valid_gems by length using pybedtools sort
-        sorted_gems = valid_gems_bed.sort(sizeA=True)
-
-        results.extend(sorted_gems)
-
-    return results
+    return valid_gems
 
 def plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor):
-    fig, ax = plt.subplots(figsize=(15, 8))
+    fig, ax = plt.subplots(figsize=(15, 20))
 
     # Plotting the GEMs
     current_y = 0
     gem_positions = {}
     gem_fragments = {}
 
-    for index, gem in enumerate(ranked_gems):
-        chrom, start, end = gem.chrom, int(gem.start), int(gem.end)
-        label = gem.fields[4]  # Correct column for the unique ID (5th column, 0-indexed 4)
+    for gem_id, fragments in ranked_gems:
+        current_y += 1
+        gem_positions[gem_id] = current_y
+        gem_fragments[gem_id] = fragments
 
-        if label not in gem_positions:
-            current_y += 1
-            gem_positions[label] = current_y
-            gem_fragments[label] = []
-
-        y_pos = gem_positions[label]
-        ax.plot([start, end], [y_pos, y_pos], marker='|', color='blue')
-        gem_fragments[label].append((start, end, y_pos))
+        for fragment in fragments:
+            chrom, start, end = fragment.chrom, int(fragment.start), int(fragment.end)
+            y_pos = current_y
+            ax.plot([start, end], [y_pos, y_pos], marker='|', color='blue')
 
     # Connect fragments of the same GEM with lines
     for gem_id, fragments in gem_fragments.items():
-        fragments.sort()  # Sort fragments by their start position
+        fragments.sort(key=lambda x: int(x.start))  # Sort fragments by their start position
         for i in range(len(fragments) - 1):
-            start1, end1, y1 = fragments[i]
-            start2, end2, y2 = fragments[i + 1]
-            line = Line2D([end1, start2], [y1, y2], color='gray', linestyle='--')
+            start1, end1 = int(fragments[i].start), int(fragments[i].end)
+            start2, end2 = int(fragments[i + 1].start), int(fragments[i + 1].end)
+            y_pos = gem_positions[gem_id]
+            line = Line2D([end1, start2], [y_pos, y_pos], color='gray', linestyle='--')
             ax.add_line(line)
 
     # Adding the left and right anchor regions
