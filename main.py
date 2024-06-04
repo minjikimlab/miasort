@@ -4,42 +4,54 @@ import argparse
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.lines import Line2D
-import sys
 import time
 
 def process_left(ChIA_Drop, left_anchor, right_anchor):
-    left_anchor_bed = BedTool(left_anchor, from_string=True)
+    left_anchor_start = int(left_anchor.split('\t')[1])
+    left_anchor_end = int(left_anchor.split('\t')[2])
     right_anchor_end = int(right_anchor.split('\t')[2])
 
-    # Group fragments by GEM ID and calculate lengths
+    # Create BedTool object for the left anchor
+    left_anchor_bed = BedTool(left_anchor, from_string=True)
+
+    # Intersect ChIA_Drop with left_anchor to get candidate GEMs
+    candidate_gems = ChIA_Drop.intersect(left_anchor_bed, wa=True)
+
+    # Get unique GEM IDs from candidate GEMs
+    candidate_gem_ids = set(fragment[4] for fragment in candidate_gems)
+
+    # Filter ChIA_Drop to retain only GEMs with IDs in candidate_gem_ids
+    valid_gems = []
     gem_fragments = {}
     gem_lengths = {}
+
     for fragment in ChIA_Drop:
-        gem_id = fragment[4]  # Correct column for the unique ID (5th column, 0-indexed 4)
-        if gem_id not in gem_fragments:
-            gem_fragments[gem_id] = []
-        gem_fragments[gem_id].append(fragment)
+        gem_id = fragment[4]
+        if gem_id in candidate_gem_ids:
+            if gem_id not in gem_fragments:
+                gem_fragments[gem_id] = []
+            gem_fragments[gem_id].append(fragment)
 
-        start = int(fragment[1])
-        end = int(fragment[2])
-        if gem_id in gem_lengths:
-            gem_lengths[gem_id] = (min(gem_lengths[gem_id][0], start), max(gem_lengths[gem_id][1], end))
-        else:
-            gem_lengths[gem_id] = (start, end)
+            start = int(fragment[1])
+            end = int(fragment[2])
+            if gem_id in gem_lengths:
+                gem_lengths[gem_id] = (min(gem_lengths[gem_id][0], start), max(gem_lengths[gem_id][1], end))
+            else:
+                gem_lengths[gem_id] = (start, end)
 
-    valid_gems = []
+    # Further filter valid GEMs based on the leftmost fragment and right anchor
     for gem_id, fragments in gem_fragments.items():
-        start, end = gem_lengths[gem_id]
-        if start >= int(left_anchor.split('\t')[1]) and start <= int(left_anchor.split('\t')[2]) and end <= right_anchor_end:
-            valid_gems.append((gem_id, fragments, end - start))
+        leftmost_fragment_start = int(fragments[0][1])
+        leftmost_fragment_end = int(fragments[0][2])
+        _, end = gem_lengths[gem_id]
+
+        if leftmost_fragment_start >= left_anchor_start and leftmost_fragment_end <= left_anchor_end and end <= right_anchor_end:
+            valid_gems.append((gem_id, fragments, end - leftmost_fragment_start))
 
     # Sort GEMs by their length
     valid_gems.sort(key=lambda x: x[2])
 
     return valid_gems
-
-def process_right(ChIA_Drop, left_anchor, right_anchor):
-    pass
 
 def plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor):
     fig, ax = plt.subplots(figsize=(15, 14))
