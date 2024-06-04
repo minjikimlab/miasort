@@ -15,8 +15,12 @@ def process_left(ChIA_Drop, left_anchor, right_anchor):
     # Create BedTool object for the left anchor
     left_anchor_bed = BedTool(left_anchor, from_string=True)
 
-    # Intersect ChIA_Drop with left_anchor to get candidate GEMs
-    candidate_gems = ChIA_Drop.intersect(left_anchor_bed, wa=True)
+    # Get the GEM IDs that intersect with the left anchor
+    intersecting_gems = ChIA_Drop.intersect(left_anchor_bed, wa=True, wb=True)
+    intersecting_gem_ids = set(gem.fields[4] for gem in intersecting_gems)
+
+    # Filter ChIA_Drop to only include GEMs with intersecting IDs
+    candidate_gems = ChIA_Drop.filter(lambda x: x.fields[4] in intersecting_gem_ids)
 
     # Filter candidate GEMs to only include those on the same chromosome as the left anchor
     candidate_gems = candidate_gems.filter(lambda x: x.chrom == left_anchor_chrom)
@@ -32,13 +36,20 @@ def process_left(ChIA_Drop, left_anchor, right_anchor):
         end = int(gem[2])
 
         if gem_id not in grouped_gems:
-            grouped_gems[gem_id] = [start, end]
+            grouped_gems[gem_id] = {
+                'min_start': start,
+                'max_end': end,
+                'fragments': [gem]
+            }
         else:
-            grouped_gems[gem_id][0] = min(grouped_gems[gem_id][0], start)
-            grouped_gems[gem_id][1] = max(grouped_gems[gem_id][1], end)
+            grouped_gems[gem_id]['min_start'] = min(grouped_gems[gem_id]['min_start'], start)
+            grouped_gems[gem_id]['max_end'] = max(grouped_gems[gem_id]['max_end'], end)
+            grouped_gems[gem_id]['fragments'].append(gem)
 
     valid_gems = []
-    for gem_id, (leftmost_fragment_start, rightmost_fragment_end) in grouped_gems.items():
+    for gem_id, gem_info in grouped_gems.items():
+        leftmost_fragment_start = gem_info['min_start']
+        rightmost_fragment_end = gem_info['max_end']
         gem_length = rightmost_fragment_end - leftmost_fragment_start
 
         if (
@@ -46,17 +57,15 @@ def process_left(ChIA_Drop, left_anchor, right_anchor):
             and leftmost_fragment_start <= left_anchor_end
             and rightmost_fragment_end <= right_anchor_end
         ):
-            # Get the fragments of the valid GEM
+            # Get all fragments of the valid GEM
             fragments = [
-                pybedtools.create_interval_from_list(gem)
-                for gem in candidate_gems_list
-                if gem[4] == gem_id
+                pybedtools.create_interval_from_list(fragment)
+                for fragment in gem_info['fragments']
             ]
             valid_gems.append((gem_id, fragments, gem_length))
 
     # Sort the valid GEMs by their length
     valid_gems.sort(key=lambda x: x[2])
-    print(valid_gems)
 
     return valid_gems
 
