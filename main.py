@@ -11,35 +11,30 @@ def process_left(ChIA_Drop, left_anchor, right_anchor):
     left_anchor_bed = BedTool(left_anchor, from_string=True)
     right_anchor_end = int(right_anchor.split('\t')[2])
 
-    # Group fragments by GEM ID
+    # Group fragments by GEM ID and calculate lengths
     gem_fragments = {}
+    gem_lengths = {}
     for fragment in ChIA_Drop:
         gem_id = fragment[4]  # Correct column for the unique ID (5th column, 0-indexed 4)
         if gem_id not in gem_fragments:
             gem_fragments[gem_id] = []
         gem_fragments[gem_id].append(fragment)
 
+        start = int(fragment[1])
+        end = int(fragment[2])
+        if gem_id in gem_lengths:
+            gem_lengths[gem_id] = (min(gem_lengths[gem_id][0], start), max(gem_lengths[gem_id][1], end))
+        else:
+            gem_lengths[gem_id] = (start, end)
+
     valid_gems = []
     for gem_id, fragments in gem_fragments.items():
-        # Check if any fragment meets the left anchor condition
-        meets_left_anchor = False
-        rightmost_end = 0
-
-        fragment_start = sys.maxsize
-        for fragment in fragments:
-            if int(fragment[1]) < fragment_start:
-                fragment_start = int(fragment[1])
-                fragment_end = int(fragment[2])
-            rightmost_end = max(rightmost_end, int(fragment[2]))
-
-        if fragment_start >= int(left_anchor.split('\t')[1]) and fragment_end <= int(left_anchor.split('\t')[2]):
-            meets_left_anchor = True
-
-        if meets_left_anchor and rightmost_end <= right_anchor_end:
-            valid_gems.append((gem_id, fragments))
+        start, end = gem_lengths[gem_id]
+        if start >= int(left_anchor.split('\t')[1]) and start <= int(left_anchor.split('\t')[2]) and end <= right_anchor_end:
+            valid_gems.append((gem_id, fragments, end - start))
 
     # Sort GEMs by their length
-    valid_gems.sort(key=lambda x: max(int(frag[2]) for frag in x[1]) - min(int(frag[1]) for frag in x[1]))
+    valid_gems.sort(key=lambda x: x[2])
 
     return valid_gems
 
@@ -54,7 +49,7 @@ def plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor):
     gem_positions = {}
     gem_fragments = {}
 
-    for gem_id, fragments in ranked_gems:
+    for gem_id, fragments, length in ranked_gems:
         current_y += 1
         gem_positions[gem_id] = current_y
         gem_fragments[gem_id] = fragments
@@ -66,7 +61,6 @@ def plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor):
 
     # Connect fragments of the same GEM with lines
     for gem_id, fragments in gem_fragments.items():
-        fragments.sort(key=lambda x: int(x.start))  # Sort fragments by their start position
         for i in range(len(fragments) - 1):
             start1, end1 = int(fragments[i].start), int(fragments[i].end)
             start2, end2 = int(fragments[i + 1].start), int(fragments[i + 1].end)
