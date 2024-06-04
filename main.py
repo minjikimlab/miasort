@@ -7,6 +7,7 @@ from matplotlib.lines import Line2D
 import time
 
 def process_left(ChIA_Drop, left_anchor, right_anchor):
+    left_anchor_chrom = left_anchor.split('\t')[0]
     left_anchor_start = int(left_anchor.split('\t')[1])
     left_anchor_end = int(left_anchor.split('\t')[2])
     right_anchor_end = int(right_anchor.split('\t')[2])
@@ -17,39 +18,45 @@ def process_left(ChIA_Drop, left_anchor, right_anchor):
     # Intersect ChIA_Drop with left_anchor to get candidate GEMs
     candidate_gems = ChIA_Drop.intersect(left_anchor_bed, wa=True)
 
-    # Get unique GEM IDs from candidate GEMs
-    candidate_gem_ids = set(fragment[4] for fragment in candidate_gems)
+    # Filter candidate GEMs to only include those on the same chromosome as the left anchor
+    candidate_gems = candidate_gems.filter(lambda x: x.chrom == left_anchor_chrom)
 
-    # Filter ChIA_Drop to retain only GEMs with IDs in candidate_gem_ids
+    # Convert candidate_gems to a list of lists
+    candidate_gems_list = [gem.fields for gem in candidate_gems]
+
+    # Group GEM fragments by their GEM ID and get the minimum start and maximum end positions
+    grouped_gems = {}
+    for gem in candidate_gems_list:
+        gem_id = gem[4]
+        start = int(gem[1])
+        end = int(gem[2])
+
+        if gem_id not in grouped_gems:
+            grouped_gems[gem_id] = [start, end]
+        else:
+            grouped_gems[gem_id][0] = min(grouped_gems[gem_id][0], start)
+            grouped_gems[gem_id][1] = max(grouped_gems[gem_id][1], end)
+
     valid_gems = []
-    gem_fragments = {}
-    gem_lengths = {}
+    for gem_id, (leftmost_fragment_start, rightmost_fragment_end) in grouped_gems.items():
+        gem_length = rightmost_fragment_end - leftmost_fragment_start
 
-    for fragment in ChIA_Drop:
-        gem_id = fragment[4]
-        if gem_id in candidate_gem_ids:
-            if gem_id not in gem_fragments:
-                gem_fragments[gem_id] = []
-            gem_fragments[gem_id].append(fragment)
+        if (
+            leftmost_fragment_start >= left_anchor_start
+            and leftmost_fragment_start <= left_anchor_end
+            and rightmost_fragment_end <= right_anchor_end
+        ):
+            # Get the fragments of the valid GEM
+            fragments = [
+                pybedtools.create_interval_from_list(gem)
+                for gem in candidate_gems_list
+                if gem[4] == gem_id
+            ]
+            valid_gems.append((gem_id, fragments, gem_length))
 
-            start = int(fragment[1])
-            end = int(fragment[2])
-            if gem_id in gem_lengths:
-                gem_lengths[gem_id] = (min(gem_lengths[gem_id][0], start), max(gem_lengths[gem_id][1], end))
-            else:
-                gem_lengths[gem_id] = (start, end)
-
-    # Further filter valid GEMs based on the leftmost fragment and right anchor
-    for gem_id, fragments in gem_fragments.items():
-        leftmost_fragment_start = int(fragments[0][1])
-        leftmost_fragment_end = int(fragments[0][2])
-        _, end = gem_lengths[gem_id]
-
-        if leftmost_fragment_start >= left_anchor_start and leftmost_fragment_end <= left_anchor_end and end <= right_anchor_end:
-            valid_gems.append((gem_id, fragments, end - leftmost_fragment_start))
-
-    # Sort GEMs by their length
+    # Sort the valid GEMs by their length
     valid_gems.sort(key=lambda x: x[2])
+    print(valid_gems)
 
     return valid_gems
 
@@ -67,15 +74,15 @@ def plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor):
         gem_fragments[gem_id] = fragments
 
         for fragment in fragments:
-            chrom, start, end = fragment.chrom, int(fragment.start), int(fragment.end)
+            chrom, start, end = fragment.chrom, fragment.start, fragment.end
             y_pos = current_y
             ax.plot([start, end], [y_pos, y_pos], marker='|', color='blue')
 
     # Connect fragments of the same GEM with lines
     for gem_id, fragments in gem_fragments.items():
         for i in range(len(fragments) - 1):
-            start1, end1 = int(fragments[i].start), int(fragments[i].end)
-            start2, end2 = int(fragments[i + 1].start), int(fragments[i + 1].end)
+            start1, end1 = fragments[i].start, fragments[i].end
+            start2, end2 = fragments[i + 1].start, fragments[i + 1].end
             y_pos = gem_positions[gem_id]
             line = Line2D([end1, start2], [y_pos, y_pos], color='gray', linestyle='--')
             ax.add_line(line)
