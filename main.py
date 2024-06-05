@@ -74,18 +74,16 @@ def plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor):
     fig, ax = plt.subplots(figsize=(15, 14))
 
     # Plotting the GEMs
-    current_y = 0
     gem_positions = {}
     gem_fragments = {}
 
-    for gem_id, fragments, length in ranked_gems:
-        current_y += 1
-        gem_positions[gem_id] = current_y
+    for i, (gem_id, fragments, length) in enumerate(ranked_gems):
+        y_pos = i + 1
+        gem_positions[gem_id] = y_pos
         gem_fragments[gem_id] = fragments
 
         for fragment in fragments:
             chrom, start, end = fragment.chrom, fragment.start, fragment.end
-            y_pos = current_y
             ax.plot([start, end], [y_pos, y_pos], marker='|', color='blue')
 
     # Connect fragments of the same GEM with lines
@@ -101,8 +99,8 @@ def plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor):
     left_start, left_end = int(left_anchor.split('\t')[1]), int(left_anchor.split('\t')[2])
     right_start, right_end = int(right_anchor.split('\t')[1]), int(right_anchor.split('\t')[2])
 
-    rect_left = patches.Rectangle((left_start, 0), left_end - left_start, current_y + 1, linewidth=1, edgecolor='r', facecolor='r', alpha=0.2)
-    rect_right = patches.Rectangle((right_start, 0), right_end - right_start, current_y + 1, linewidth=1, edgecolor='r', facecolor='r', alpha=0.2)
+    rect_left = patches.Rectangle((left_start, 0), left_end - left_start, len(ranked_gems) + 1, linewidth=1, edgecolor='r', facecolor='r', alpha=0.2)
+    rect_right = patches.Rectangle((right_start, 0), right_end - right_start, len(ranked_gems) + 1, linewidth=1, edgecolor='r', facecolor='r', alpha=0.2)
 
     ax.add_patch(rect_left)
     ax.add_patch(rect_right)
@@ -110,9 +108,10 @@ def plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor):
     ax.set_title(f"Ranked GEMs Plot - {left_anchor.split('\t')[0]}")
     ax.set_xlabel("Genomic Position")
     ax.set_ylabel("GEMs")
-    ax.set_yticks(range(1, current_y + 1))
-    ax.set_yticklabels(range(1, current_y + 1))
+    ax.set_yticks(range(1, len(ranked_gems) + 1))
+    ax.set_yticklabels(range(1, len(ranked_gems) + 1))
     ax.set_xlim(left_start - 1000, right_end + 1000)
+    ax.invert_yaxis()
 
     plt.savefig(output_file)
 
