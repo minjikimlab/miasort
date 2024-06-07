@@ -7,11 +7,13 @@ from matplotlib.lines import Line2D
 import pandas as pd
 import time
 
-def process_left(ChIA_Drop, left_anchor, right_anchor):
+def process_left(ChIA_Drop_old, left_anchor, right_anchor, region):
     left_anchor_chrom = left_anchor.split('\t')[0]
     left_anchor_start = int(left_anchor.split('\t')[1])
     left_anchor_end = int(left_anchor.split('\t')[2])
     right_anchor_end = int(right_anchor.split('\t')[2])
+
+    ChIA_Drop = ChIA_Drop_old.intersect(BedTool(region, from_string=True), wa=True, wb=True)
 
     print("Create BedTool object for the left anchor")
     left_anchor_bed = BedTool(left_anchor, from_string=True)
@@ -128,10 +130,11 @@ def main(path1, path2, type, output_file):
     first_region = list(Region)[0]
     left_anchor = f"{first_region.chrom}\t{first_region.start}\t{first_region.end}"
     right_anchor = f"{first_region.fields[3]}\t{first_region.fields[4]}\t{first_region.fields[5]}"
+    region = f"{first_region.chrom}\t{first_region.start}\t{first_region.fields[5]}"
 
     if type == "left":
         sort_start_time = time.time()
-        ranked_gems = process_left(ChIA_Drop, left_anchor, right_anchor)
+        ranked_gems = process_left(ChIA_Drop, left_anchor, right_anchor, region)
         print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
 
         plot_start_time = time.time()
