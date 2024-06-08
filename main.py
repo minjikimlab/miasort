@@ -13,7 +13,14 @@ def process_left(ChIA_Drop_old, left_anchor, right_anchor, region):
     left_anchor_end = int(left_anchor.split('\t')[2])
     right_anchor_end = int(right_anchor.split('\t')[2])
 
+    s1 = time.time()
+    print("Filter GEMs to only include those on the same chromosome and in the region")
+    ChIA_Drop = ChIA_Drop_old.filter(lambda x: x.chrom == left_anchor_chrom).intersect(BedTool(region, from_string=True), wa=True, wb=True)
+    s2 = time.time()
+    print("Filter GEMs to only include those in the region")
     ChIA_Drop = ChIA_Drop_old.intersect(BedTool(region, from_string=True), wa=True, wb=True)
+    s3 = time.time()
+    print(s2-s1, s3-s2)
 
     print("Create BedTool object for the left anchor")
     left_anchor_bed = BedTool(left_anchor, from_string=True)
@@ -23,10 +30,7 @@ def process_left(ChIA_Drop_old, left_anchor, right_anchor, region):
     intersecting_gem_ids = set(gem.fields[4] for gem in intersecting_gems)
 
     print("Filter ChIA_Drop to only include GEMs with intersecting IDs")
-    candidate_gems = ChIA_Drop.filter(lambda x: x.fields[4] in intersecting_gem_ids)
-
-    print("Filter candidate GEMs to only include those on the same chromosome as the left anchor")
-    candidate_gems_list = candidate_gems.filter(lambda x: x.chrom == left_anchor_chrom)
+    candidate_gems_list = ChIA_Drop.filter(lambda x: x.fields[4] in intersecting_gem_ids)
 
     print("Group GEM fragments by their GEM ID and get the min start and max end positions")
     grouped_gems = {}
