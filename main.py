@@ -22,26 +22,27 @@ def process_left(ChIA_Drop_old, left_anchor, right_anchor, region):
     print("Get the GEM IDs that intersect with the left anchor")
     intersecting_fragments = ChIA_Drop.intersect(left_anchor_bed, wa=True, wb=True)
     intersecting_gem_ids = set(fragment.fields[4] for fragment in intersecting_fragments)
-
     print("Filter ChIA_Drop to only include GEMs with intersecting IDs")
     ChIA_Drop = ChIA_Drop.filter(lambda x: x.fields[4] in intersecting_gem_ids)
 
+    print("Filter ChIA_Drop to only include GEMs with the correct chrom id")
     ChIA_Drop = ChIA_Drop.filter(lambda x: x.chrom == left_anchor_chrom)
 
     print("Group GEM fragments by their GEM ID and get the min start and max end positions")
     grouped_gems = {}
-
     for fragment_interval in ChIA_Drop:
         fragment = fragment_interval.fields
         gem_id = fragment[4]
+        gem_size = int(fragment[3])
         start = int(fragment[1])
         end = int(fragment[2])
 
-        if gem_id not in grouped_gems:
+        if gem_id not in grouped_gems.keys():
             grouped_gems[gem_id] = {
                 'min_start': start,
                 'max_end': end,
-                'fragments': [fragment]
+                'fragments': [fragment],
+                'gem_size': gem_size
             }
         else:
             grouped_gems[gem_id]['min_start'] = min(grouped_gems[gem_id]['min_start'], start)
@@ -53,12 +54,14 @@ def process_left(ChIA_Drop_old, left_anchor, right_anchor, region):
     for gem_id, gem_info in grouped_gems.items():
         leftmost_fragment_start = gem_info['min_start']
         rightmost_fragment_end = gem_info['max_end']
+        gem_size = gem_info['gem_size']
         gem_length = rightmost_fragment_end - leftmost_fragment_start
 
         if (
             leftmost_fragment_start >= left_anchor_start
             and leftmost_fragment_start <= left_anchor_end
             and rightmost_fragment_end <= right_anchor_end
+            and len(gem_info['fragments']) == gem_size
         ):
             # Get all fragments of the valid GEM
             fragments = [
@@ -69,7 +72,7 @@ def process_left(ChIA_Drop_old, left_anchor, right_anchor, region):
 
     print("Sort the valid GEMs by their length")
     valid_gems.sort(key=lambda x: x[2])
-
+    print(valid_gems)
     return valid_gems
 
 def plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor):
