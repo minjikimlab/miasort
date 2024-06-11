@@ -2,3 +2,5 @@ env
 *.PEanno
 *.pptx
 *out*
+*__pycache__*
+*.DS_Store*
