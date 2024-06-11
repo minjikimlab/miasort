@@ -126,6 +126,8 @@ def plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor):
     ax.set_xlim(left_start - 1000, right_end + 1000)
     ax.invert_yaxis()
 
+    plt.show()
+
     plt.savefig(output_file)
 
 def main(path1, path2, type, output_file):
