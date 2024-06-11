@@ -73,7 +73,7 @@ def process_left(ChIA_Drop_old, left_anchor, right_anchor, region):
     return valid_gems
 
 def plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor):
-    fig, ax = plt.subplots(figsize=(15, 14))
+    fig, ax = plt.subplots(figsize=(15, 18))
 
     # Plotting the GEMs
     gem_positions = {}
@@ -86,15 +86,16 @@ def plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor):
 
         for fragment in fragments:
             chrom, start, end = fragment.chrom, fragment.start, fragment.end
-            ax.plot([start, end], [y_pos, y_pos], marker='|', color='blue')
+            rect = patches.Rectangle((start, y_pos - 0.2), end - start, 0.4, linewidth=1, edgecolor='g', facecolor='g')
+            ax.add_patch(rect)
 
-    # Connect fragments of the same GEM with lines
+    # Connect fragments of the same GEM with solid lines
     for gem_id, fragments in gem_fragments.items():
         for i in range(len(fragments) - 1):
-            start1, end1 = fragments[i].start, fragments[i].end
-            start2, end2 = fragments[i + 1].start, fragments[i + 1].end
+            end1 = fragments[i].end
+            start2 = fragments[i + 1].start
             y_pos = gem_positions[gem_id]
-            line = Line2D([end1, start2], [y_pos, y_pos], color='gray', linestyle='--')
+            line = Line2D([end1, start2], [y_pos, y_pos], color='black', linestyle='-')
             ax.add_line(line)
 
     # Adding the left and right anchor regions
