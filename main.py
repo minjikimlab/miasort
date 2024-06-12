@@ -26,30 +26,23 @@ def main(path1, path2, type, anchor_line, output_file):
         ranked_gems = sort.process_left(ChIA_Drop, left_anchor, right_anchor, region)
         print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
 
-        plot_start_time = time.time()
-        plot.plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor)
-        print(f"It took {time.time() - plot_start_time} secs in total to plot the GEMs")
-
     elif type == "right":
         sort_start_time = time.time()
         ranked_gems = sort.process_right(ChIA_Drop, left_anchor, right_anchor, region)
         print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
-
-        plot_start_time = time.time()
-        plot.plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor)
-        print(f"It took {time.time() - plot_start_time} secs in total to plot the GEMs")
 
     elif type == "both":
         sort_start_time = time.time()
         ranked_gems = sort.process_both(ChIA_Drop, left_anchor, right_anchor, region)
         print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
 
-        plot_start_time = time.time()
-        plot.plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor)
-        print(f"It took {time.time() - plot_start_time} secs in total to plot the GEMs")
-
     else:
         print(f"Type '{type}' is not supported.")
+        return
+
+    plot_start_time = time.time()
+    plot.plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor)
+    print(f"It took {time.time() - plot_start_time} secs in total to plot the GEMs")
 
 
 if __name__ == '__main__':
