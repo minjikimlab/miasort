@@ -20,8 +20,8 @@ def process_left(ChIA_Drop_old, left_anchor, right_anchor, region):
     print("Filter ChIA_Drop to only include GEMs with intersecting IDs")
     ChIA_Drop = ChIA_Drop.filter(lambda x: x.fields[4] in intersecting_gem_ids)
 
-    print("Filter ChIA_Drop to only include GEMs with the correct chrom id")
-    ChIA_Drop = ChIA_Drop.filter(lambda x: x.chrom == left_anchor_chrom)
+    # print("Filter ChIA_Drop to only include GEMs with the correct chrom id")
+    # ChIA_Drop = ChIA_Drop.filter(lambda x: x.chrom == left_anchor_chrom)
 
     print("Group GEM fragments by their GEM ID and get the min start and max end positions")
     grouped_gems = {}
@@ -67,7 +67,7 @@ def process_left(ChIA_Drop_old, left_anchor, right_anchor, region):
 
     print("Sort the valid GEMs by their length")
     valid_gems.sort(key=lambda x: x[2])
-    print(valid_gems)
+    # print(valid_gems)
     return valid_gems
 
 
