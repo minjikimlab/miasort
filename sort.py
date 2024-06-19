@@ -199,3 +199,167 @@ def process_right(ChIA_Drop_old, left_anchor, right_anchor, region):
     valid_gems.sort(key=lambda x: x[2])
     print(valid_gems)
     return valid_gems
+
+
+def process_middle(ChIA_Drop_old, left_anchor, right_anchor, region, middle_anchor):
+    middle_anchor_chrom, positions = middle_anchor.split(':')
+    middle_anchor_start, middle_anchor_end = positions.split('-')
+
+    left_anchor_start = int(left_anchor.split('\t')[1])
+    left_anchor_end = int(left_anchor.split('\t')[2])
+    right_anchor_end = int(right_anchor.split('\t')[2])
+
+    # Filter by range
+    ChIA_Drop = ChIA_Drop_old.intersect(BedTool(region, from_string=True), wa=True, wb=True)
+
+    # Create BedTool object for the middle anchor
+    middle_anchor_bed = BedTool(
+        f"{middle_anchor_chrom}\t{middle_anchor_start}\t{middle_anchor_end}",
+        from_string=True
+    )
+
+    # Intersect ChIA_Drop with middle_anchor to get candidate GEMs
+    candidate_gems = ChIA_Drop.intersect(middle_anchor_bed, wa=True, u=True)
+
+    # Filter by chromosome
+    candidate_gems = candidate_gems.filter(lambda x: x.chrom == middle_anchor_chrom)
+
+    # Get unique GEM IDs from candidate GEMs
+    candidate_gem_ids = set(fragment[4] for fragment in candidate_gems)
+
+    # Filter ChIA_Drop to retain only GEMs with IDs in candidate_gem_ids
+    valid_gems = []
+    gem_fragments = {}
+    gem_lengths = {}
+
+    for fragment in ChIA_Drop:
+        gem_id = fragment[4]
+        if gem_id in candidate_gem_ids:
+            if gem_id not in gem_fragments:
+                gem_fragments[gem_id] = []
+            gem_fragments[gem_id].append(fragment)
+
+            start = int(fragment[1])
+            end = int(fragment[2])
+            if gem_id in gem_lengths:
+                gem_lengths[gem_id] = (min(gem_lengths[gem_id][0], start), max(gem_lengths[gem_id][1], end))
+            else:
+                gem_lengths[gem_id] = (start, end)
+
+    # Further filter valid GEMs based on the leftmost fragment and right anchor
+    for gem_id, fragments in gem_fragments.items():
+        leftmost_fragment_start = int(fragments[0][1])
+        leftmost_fragment_end = int(fragments[0][2])
+        _, end = gem_lengths[gem_id]
+
+        if leftmost_fragment_start >= left_anchor_start and end <= right_anchor_end:
+            valid_gems.append((gem_id, fragments, end - leftmost_fragment_start))
+
+    # Sort GEMs by their length
+    valid_gems.sort(key=lambda x: x[2])
+
+    return valid_gems
+
+
+def process_only_middle(ChIA_Drop_old, middle_region):
+    middle_anchor_chrom, positions = middle_region.split(':')
+    middle_anchor_start, middle_anchor_end = positions.split('-')
+
+    # Create BedTool object for the middle anchor
+    middle_anchor_bed = BedTool(
+        f"{middle_anchor_chrom}\t{middle_anchor_start}\t{middle_anchor_end}",
+        from_string=True
+    )
+
+    # Intersect ChIA_Drop with middle_anchor to get candidate GEMs
+    candidate_gems = ChIA_Drop_old.intersect(middle_anchor_bed, wa=True, u=True)
+
+    # Filter by chromosome
+    candidate_gems = candidate_gems.filter(lambda x: x.chrom == middle_anchor_chrom)
+
+    # Get unique GEM IDs from candidate GEMs
+    candidate_gem_ids = set(fragment[4] for fragment in candidate_gems)
+
+    # Filter ChIA_Drop to retain only GEMs with IDs in candidate_gem_ids
+    valid_gems = []
+    gem_fragments = {}
+    gem_lengths = {}
+
+    for fragment in ChIA_Drop_old:
+        gem_id = fragment[4]
+        if gem_id in candidate_gem_ids:
+            if gem_id not in gem_fragments:
+                gem_fragments[gem_id] = []
+            gem_fragments[gem_id].append(fragment)
+
+            start = int(fragment[1])
+            end = int(fragment[2])
+            if gem_id in gem_lengths:
+                gem_lengths[gem_id] = (min(gem_lengths[gem_id][0], start), max(gem_lengths[gem_id][1], end))
+            else:
+                gem_lengths[gem_id] = (start, end)
+
+    # Further filter valid GEMs based on the leftmost fragment and right anchor
+    for gem_id, fragments in gem_fragments.items():
+        leftmost_fragment_start = int(fragments[0][1])
+        leftmost_fragment_end = int(fragments[0][2])
+        rightmost_fragment_start = int(fragments[-1][1])
+        rightmost_fragment_end = int(fragments[-1][2])
+        _, end = gem_lengths[gem_id]
+
+        if (leftmost_fragment_start >= int(middle_anchor_start) and leftmost_fragment_end <= int(middle_anchor_end)) \
+        or (rightmost_fragment_start >= int(middle_anchor_start) and rightmost_fragment_end <= int(middle_anchor_end)):
+            valid_gems.append((gem_id, fragments, end - leftmost_fragment_start))
+
+    # Sort GEMs by their length
+    valid_gems.sort(key=lambda x: x[2])
+
+    return valid_gems
+
+
+def process_only_middle_1frag(ChIA_Drop_old, middle_region):
+    middle_anchor_chrom, positions = middle_region.split(':')
+    middle_anchor_start, middle_anchor_end = map(int, positions.split('-'))
+
+    # Create BedTool object for the middle anchor
+    middle_anchor_bed = BedTool(
+        f"{middle_anchor_chrom}\t{middle_anchor_start}\t{middle_anchor_end}",
+        from_string=True
+    )
+
+    # Intersect ChIA_Drop with middle_anchor to get candidate fragments
+    candidate_frag = ChIA_Drop_old.intersect(middle_anchor_bed, wa=True, u=True)
+
+    # Filter by chromosome
+    candidate_frag = candidate_frag.filter(lambda x: x.chrom == middle_anchor_chrom)
+
+    # Group fragments by GEM ID and calculate lengths
+    gem_fragments = {}
+    gem_lengths = {}
+
+    for fragment in candidate_frag:
+        gem_id = fragment[4]  # GEM ID
+        start = int(fragment[1])
+        end = int(fragment[2])
+
+        if gem_id not in gem_fragments:
+            gem_fragments[gem_id] = []
+        gem_fragments[gem_id].append(fragment)
+
+        if gem_id in gem_lengths:
+            gem_lengths[gem_id] = (min(gem_lengths[gem_id][0], start), max(gem_lengths[gem_id][1], end))
+        else:
+            gem_lengths[gem_id] = (start, end)
+
+    # Filter valid GEMs
+    valid_gems = []
+    for gem_id, fragments in gem_fragments.items():
+        start, end = gem_lengths[gem_id]
+        gem_length = end - start
+        if start >= middle_anchor_start and end <= middle_anchor_end:
+            valid_gems.append((gem_id, fragments, gem_length))
+
+    # Sort GEMs by their length
+    valid_gems.sort(key=lambda x: x[2])
+
+    return valid_gems

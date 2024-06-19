@@ -2,8 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.lines import Line2D
 
-
-def plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor):
+def plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor, middle_anchor=None, flag="normal"):
     fig, ax = plt.subplots(figsize=(15, 18))
 
     # Define the vertical spacing
@@ -32,15 +31,28 @@ def plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor):
             line = Line2D([end1, start2], [y_pos, y_pos], color='black', linestyle='-')
             ax.add_line(line)
 
-    # Adding the left and right anchor regions
     left_start, left_end = int(left_anchor.split('\t')[1]), int(left_anchor.split('\t')[2])
     right_start, right_end = int(right_anchor.split('\t')[1]), int(right_anchor.split('\t')[2])
-
     rect_left = patches.Rectangle((left_start, 0), left_end - left_start, (len(ranked_gems) + 1) * vertical_spacing, linewidth=1, edgecolor='r', facecolor='r', alpha=0.2)
     rect_right = patches.Rectangle((right_start, 0), right_end - right_start, (len(ranked_gems) + 1) * vertical_spacing, linewidth=1, edgecolor='r', facecolor='r', alpha=0.2)
+    if flag != "only-middle" and flag != "only-middle-1frag":
+        # Adding the left and right anchor regions
+        ax.add_patch(rect_left)
+        ax.add_patch(rect_right)
 
-    ax.add_patch(rect_left)
-    ax.add_patch(rect_right)
+    if (flag == "middle" or flag == "only-middle" or flag == "only-middle-1frag") and middle_anchor:
+        _, positions = middle_anchor.split(':')
+        middle_start, middle_end = positions.split('-')
+        rect_middle = patches.Rectangle(
+            (int(middle_start), 0),
+            int(middle_end) - int(middle_start),
+            (len(ranked_gems) + 1) * vertical_spacing,
+            linewidth=1,
+            edgecolor='red',
+            facecolor='red',
+            alpha=0.2
+        )
+        ax.add_patch(rect_middle)
 
     ax.set_title(f"Ranked GEMs Plot - {left_anchor.split('\t')[0]}")
     ax.set_xlabel("Genomic Position")
@@ -50,6 +62,5 @@ def plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor):
     ax.set_xlim(left_start - 1000, right_end + 1000)
     ax.invert_yaxis()
 
-    plt.show()
-
     plt.savefig(output_file)
+    plt.show()
