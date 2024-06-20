@@ -78,7 +78,7 @@ if __name__ == '__main__':
     parser.add_argument('--type', type=str, required=True, help='Type of processing: left, right, middle, only-middle, only-middle-1frag or both', action=ConditionalArgument)
     parser.add_argument('--anchor', type=str, required=True, help='The index of anchor line (0-based)')
     parser.add_argument('--output_file', type=str, required=True, help='Output file for the plot')
-    parser.add_argument('--region', type=str, help='Specific region to process when type is middle, only-middle')
+    parser.add_argument('--region', type=str, help='Specific region to process when type is middle, only-middle, or only-middle-1frag')
 
     args = parser.parse_args()
 
