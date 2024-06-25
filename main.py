@@ -15,7 +15,7 @@ class ConditionalArgument(argparse.Action):
         setattr(namespace, self.dest, values)
 
 
-def main(path1, path2, type, anchor_line, output_file, middle_region):
+def main(path1, path2, type, num_fragments, anchor_line, output_file, middle_region):
     pybedtools.helpers.cleanup()
 
     # Specify for the path of ___ALL.region.PEanno and import it (GEMs)
@@ -32,7 +32,7 @@ def main(path1, path2, type, anchor_line, output_file, middle_region):
 
     if type == "left":
         sort_start_time = time.time()
-        ranked_gems = sort.process_left(ChIA_Drop, left_anchor, right_anchor, region)
+        ranked_gems = sort.process_left(ChIA_Drop, num_fragments, left_anchor, right_anchor, region)
         print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
 
     elif type == "right":
@@ -80,6 +80,8 @@ if __name__ == '__main__':
     parser.add_argument('--type', type=str, required=True,
                         help='Type of processing: left, right, middle, only-middle, only-middle-1frag or both',
                         action=ConditionalArgument)
+    parser.add_argument('--numfrag', type=str, required=True,
+                        help='Number of fragments allowed in the region')
     parser.add_argument('--anchor', type=str, required=True,
                         help='The index of anchor line (0-based)')
     parser.add_argument('--output_file', type=str, required=True,
@@ -95,6 +97,7 @@ if __name__ == '__main__':
     path1 = args.path1
     path2 = args.path2
     processing_type = args.type
+    num_fragments = int(args.numfrag)
     anchor_line = int(args.anchor)
     output_file = args.output_file
     region = args.region \
@@ -103,6 +106,6 @@ if __name__ == '__main__':
         or processing_type == 'only-middle-1frag' \
         else None
 
-    main(path1, path2, processing_type, anchor_line, output_file, region)
+    main(path1, path2, processing_type, num_fragments, anchor_line, output_file, region)
 
     print(f"It took {time.time() - start_time} secs in total to finish this program")

@@ -2,14 +2,13 @@ import pybedtools
 from pybedtools import BedTool
 
 
-def process_left(ChIA_Drop_old, left_anchor, right_anchor, region):
+def process_left(ChIA_Drop_old, num_fragments, left_anchor, right_anchor, region):
     left_anchor_chrom = left_anchor.split('\t')[0]
     left_anchor_start = int(left_anchor.split('\t')[1])
     left_anchor_end = int(left_anchor.split('\t')[2])
     right_anchor_end = int(right_anchor.split('\t')[2])
 
     print("Filter GEMs to only include those in the region")
-    print("region:", region)
     region_bed = BedTool(region, from_string=True)
     ChIA_Drop = ChIA_Drop_old.intersect(region_bed, wa=True, wb=True)
 
