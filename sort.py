@@ -9,7 +9,9 @@ def process_left(ChIA_Drop_old, left_anchor, right_anchor, region):
     right_anchor_end = int(right_anchor.split('\t')[2])
 
     print("Filter GEMs to only include those in the region")
-    ChIA_Drop = ChIA_Drop_old.intersect(BedTool(region, from_string=True), wa=True, wb=True)
+    print("region:", region)
+    region_bed = BedTool(region, from_string=True)
+    ChIA_Drop = ChIA_Drop_old.intersect(region_bed, wa=True, wb=True)
 
     print("Create BedTool object for the left anchor")
     left_anchor_bed = BedTool(left_anchor, from_string=True)
@@ -19,9 +21,6 @@ def process_left(ChIA_Drop_old, left_anchor, right_anchor, region):
     intersecting_gem_ids = set(fragment.fields[4] for fragment in intersecting_fragments)
     print("Filter ChIA_Drop to only include GEMs with intersecting IDs")
     ChIA_Drop = ChIA_Drop.filter(lambda x: x.fields[4] in intersecting_gem_ids)
-
-    # print("Filter ChIA_Drop to only include GEMs with the correct chrom id")
-    # ChIA_Drop = ChIA_Drop.filter(lambda x: x.chrom == left_anchor_chrom)
 
     print("Group GEM fragments by their GEM ID and get the min start and max end positions")
     grouped_gems = {}
@@ -80,9 +79,6 @@ def process_both(ChIA_Drop_old, left_anchor, right_anchor, region):
 
     print("Filter GEMs to only include those in the region")
     ChIA_Drop = ChIA_Drop_old.intersect(BedTool(region, from_string=True), wa=True, wb=True)
-
-    print("Filter ChIA_Drop to only include GEMs with the correct chrom id")
-    ChIA_Drop = ChIA_Drop.filter(lambda x: x.chrom == left_anchor_chrom)
 
     print("Group GEM fragments by their GEM ID and get the min start and max end positions")
     grouped_gems = {}
@@ -151,9 +147,6 @@ def process_right(ChIA_Drop_old, left_anchor, right_anchor, region):
     print("Filter ChIA_Drop to only include GEMs with intersecting IDs")
     ChIA_Drop = ChIA_Drop.filter(lambda x: x.fields[4] in intersecting_gem_ids)
 
-    print("Filter ChIA_Drop to only include GEMs with the correct chrom id")
-    ChIA_Drop = ChIA_Drop.filter(lambda x: x.chrom == left_anchor_chrom)
-
     print("Group GEM fragments by their GEM ID and get the min start and max end positions")
     grouped_gems = {}
     for fragment_interval in ChIA_Drop:
@@ -221,9 +214,6 @@ def process_middle(ChIA_Drop_old, left_anchor, right_anchor, region, middle_anch
     # Intersect ChIA_Drop with middle_anchor to get candidate GEMs
     candidate_gems = ChIA_Drop.intersect(middle_anchor_bed, wa=True, u=True)
 
-    # Filter by chromosome
-    candidate_gems = candidate_gems.filter(lambda x: x.chrom == middle_anchor_chrom)
-
     # Get unique GEM IDs from candidate GEMs
     candidate_gem_ids = set(fragment[4] for fragment in candidate_gems)
 
@@ -273,9 +263,6 @@ def process_only_middle(ChIA_Drop_old, middle_region):
 
     # Intersect ChIA_Drop with middle_anchor to get candidate GEMs
     candidate_gems = ChIA_Drop_old.intersect(middle_anchor_bed, wa=True, u=True)
-
-    # Filter by chromosome
-    candidate_gems = candidate_gems.filter(lambda x: x.chrom == middle_anchor_chrom)
 
     # Get unique GEM IDs from candidate GEMs
     candidate_gem_ids = set(fragment[4] for fragment in candidate_gems)
@@ -329,9 +316,6 @@ def process_only_middle_1frag(ChIA_Drop_old, middle_region):
 
     # Intersect ChIA_Drop with middle_anchor to get candidate fragments
     candidate_frag = ChIA_Drop_old.intersect(middle_anchor_bed, wa=True, u=True)
-
-    # Filter by chromosome
-    candidate_frag = candidate_frag.filter(lambda x: x.chrom == middle_anchor_chrom)
 
     # Group fragments by GEM ID and calculate lengths
     gem_fragments = {}
