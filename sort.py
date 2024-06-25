@@ -6,6 +6,7 @@ def process_left(ChIA_Drop_old, num_fragments, left_anchor, right_anchor, region
     left_anchor_chrom = left_anchor.split('\t')[0]
     left_anchor_start = int(left_anchor.split('\t')[1])
     left_anchor_end = int(left_anchor.split('\t')[2])
+    right_anchor_start = int(right_anchor.split('\t')[1])
     right_anchor_end = int(right_anchor.split('\t')[2])
 
     print("Filter GEMs to only include those in the region")
@@ -18,17 +19,22 @@ def process_left(ChIA_Drop_old, num_fragments, left_anchor, right_anchor, region
     print("Get the GEM IDs that intersect with the left anchor")
     intersecting_fragments = ChIA_Drop.intersect(left_anchor_bed, wa=True, wb=True)
     intersecting_gem_ids = set(fragment.fields[4] for fragment in intersecting_fragments)
+
     print("Filter ChIA_Drop to only include GEMs with intersecting IDs")
     ChIA_Drop = ChIA_Drop.filter(lambda x: x.fields[4] in intersecting_gem_ids)
 
     print("Group GEM fragments by their GEM ID and get the min start and max end positions")
     grouped_gems = {}
+    bad_gem_ids = []
     for fragment_interval in ChIA_Drop:
         fragment = fragment_interval.fields
         gem_id = fragment[4]
         gem_size = int(fragment[3])
         start = int(fragment[1])
         end = int(fragment[2])
+
+        if start >= right_anchor_start and end <= right_anchor_end:
+            bad_gem_ids.append(gem_id)
 
         if gem_id not in grouped_gems.keys():
             grouped_gems[gem_id] = {
@@ -42,6 +48,9 @@ def process_left(ChIA_Drop_old, num_fragments, left_anchor, right_anchor, region
             grouped_gems[gem_id]['max_end'] = max(grouped_gems[gem_id]['max_end'], end)
             grouped_gems[gem_id]['fragments'].append(fragment)
 
+    for bad_gem_id in bad_gem_ids:
+        del grouped_gems[bad_gem_id]
+
     print("Add valid gems")
     valid_gems = []
     for gem_id, gem_info in grouped_gems.items():
@@ -54,7 +63,7 @@ def process_left(ChIA_Drop_old, num_fragments, left_anchor, right_anchor, region
             leftmost_fragment_start >= left_anchor_start
             and leftmost_fragment_start <= left_anchor_end
             and rightmost_fragment_end <= right_anchor_end
-            and len(gem_info['fragments']) == gem_size
+            and len(gem_info['fragments']) >= num_fragments
         ):
             # Get all fragments of the valid GEM
             fragments = [
