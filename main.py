@@ -3,6 +3,7 @@ from pybedtools import BedTool
 import argparse
 import time
 import plot
+import histogram
 import sort
 
 
@@ -18,10 +19,7 @@ class ConditionalArgument(argparse.Action):
 def main(path1, path2, type, num_fragments, anchor_line, output_file, middle_region):
     pybedtools.helpers.cleanup()
 
-    # Specify for the path of ___ALL.region.PEanno and import it (GEMs)
     ChIA_Drop = BedTool(path1)
-
-    # Specify for the path of ____PETcnt_G9.motifannot and import it (anchors, regions)
     Region = BedTool(path2)
 
     # Use only the first line of the region file for the left and right references
@@ -47,7 +45,7 @@ def main(path1, path2, type, num_fragments, anchor_line, output_file, middle_reg
 
     elif type == "middle":
         sort_start_time = time.time()
-        ranked_gems = sort.process_middle(ChIA_Drop, left_anchor, right_anchor, region, middle_region)
+        ranked_gems = sort.process_middle(ChIA_Drop, num_fragments, left_anchor, right_anchor, region, middle_region)
         print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
 
     elif type == "only-middle":
@@ -68,9 +66,11 @@ def main(path1, path2, type, num_fragments, anchor_line, output_file, middle_reg
     plot.plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor, middle_region, type)
     print(f"It took {time.time() - plot_start_time} secs in total to plot the GEMs")
 
+    histogram.generate_file(ranked_gems, output_file)
+
 
 if __name__ == '__main__':
-    start_time = time.time()  # record execution time
+    start_time = time.time()
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--path1', type=str, required=True,
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.region_required and not args.region:
-        parser.error("--region is required when --type is 'middle'")
+        parser.error("--region is required when --type is 'middle, only-middle or only-middle-1frag'")
 
     path1 = args.path1
     path2 = args.path2

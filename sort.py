@@ -204,7 +204,7 @@ def process_right(ChIA_Drop_old, num_fragments, left_anchor, right_anchor, regio
     return valid_gems
 
 
-def process_middle(ChIA_Drop_old, left_anchor, right_anchor, region, middle_anchor):
+def process_middle(ChIA_Drop_old, num_fragments, left_anchor, right_anchor, region, middle_anchor):
     middle_anchor_chrom, positions = middle_anchor.split(':')
     middle_anchor_start, middle_anchor_end = positions.split('-')
 
