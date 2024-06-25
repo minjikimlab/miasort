@@ -13,13 +13,24 @@ source env/bin/activate
 
 ### A to C ($\geq$ 1 fragment/complex)
 ```
-python main.py --path1 test_input.PEanno --path2 test_input.domains --type left --numfrag 1 --anchor 1 --output_file out_1
+python main.py --path1 test_input.PEanno --path2 test_input.domains --type left --numfrag 1 --anchor 0 --output_file out_1
 ```
 
 ### A to C ($\geq$ 2 fragments/complexes)
 ```
-python main.py --path1 test_input.PEanno --path2 test_input.domains --type left --numfrag 2 --anchor 1 --output_file out_2
+python main.py --path1 test_input.PEanno --path2 test_input.domains --type left --numfrag 2 --anchor 0 --output_file out_2
 ```
+
+### C to A ($\geq$ 1 fragment/complex)
+```
+python main.py --path1 test_input.PEanno --path2 test_input.domains --type right --numfrag 1 --anchor 0 --output_file out_3
+```
+
+### C to A ($\geq$ 2 fragment/complex)
+```
+python main.py --path1 test_input.PEanno --path2 test_input.domains --type right --numfrag 2 --anchor 0 --output_file out_4
+```
+
 
 ## Input Files
 ### Anchors and Regions (`.domains`)

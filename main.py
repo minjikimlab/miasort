@@ -37,7 +37,7 @@ def main(path1, path2, type, num_fragments, anchor_line, output_file, middle_reg
 
     elif type == "right":
         sort_start_time = time.time()
-        ranked_gems = sort.process_right(ChIA_Drop, left_anchor, right_anchor, region)
+        ranked_gems = sort.process_right(ChIA_Drop, num_fragments, left_anchor, right_anchor, region)
         print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
 
     elif type == "both":
