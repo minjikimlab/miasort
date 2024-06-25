@@ -1,5 +1,6 @@
-# FragmentSort
--- *Sorting ChIA-Drop GEM Fragments Based on Anchor Regions Efficiently*
+<div align="center">
+  <h1 align="center">ComplexSort</h1>
+</div>
 
 ## Run the Program
 An example terminal command is:

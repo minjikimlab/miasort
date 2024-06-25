@@ -73,12 +73,19 @@ if __name__ == '__main__':
     start_time = time.time()  # record execution time
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--path1', type=str, required=True, help='Path to the GEMs file (.PEanno)')
-    parser.add_argument('--path2', type=str, required=True, help='Path to the regions file (.domains)')
-    parser.add_argument('--type', type=str, required=True, help='Type of processing: left, right, middle, only-middle, only-middle-1frag or both', action=ConditionalArgument)
-    parser.add_argument('--anchor', type=str, required=True, help='The index of anchor line (0-based)')
-    parser.add_argument('--output_file', type=str, required=True, help='Output file for the plot')
-    parser.add_argument('--region', type=str, help='Specific region to process when type is middle, only-middle, or only-middle-1frag')
+    parser.add_argument('--path1', type=str, required=True,
+                        help='Path to the GEMs file (.PEanno)')
+    parser.add_argument('--path2', type=str, required=True,
+                        help='Path to the regions file (.domains)')
+    parser.add_argument('--type', type=str, required=True,
+                        help='Type of processing: left, right, middle, only-middle, only-middle-1frag or both',
+                        action=ConditionalArgument)
+    parser.add_argument('--anchor', type=str, required=True,
+                        help='The index of anchor line (0-based)')
+    parser.add_argument('--output_file', type=str, required=True,
+                        help='Output file for the plot')
+    parser.add_argument('--region', type=str,
+                        help='Specific region to process when type is middle, only-middle, or only-middle-1frag')
 
     args = parser.parse_args()
 
@@ -90,7 +97,11 @@ if __name__ == '__main__':
     processing_type = args.type
     anchor_line = int(args.anchor)
     output_file = args.output_file
-    region = args.region if processing_type == 'middle' or processing_type == 'only-middle' or processing_type == 'only-middle-1frag' else None
+    region = args.region \
+        if processing_type == 'middle' \
+        or processing_type == 'only-middle' \
+        or processing_type == 'only-middle-1frag' \
+        else None
 
     main(path1, path2, processing_type, anchor_line, output_file, region)
 
