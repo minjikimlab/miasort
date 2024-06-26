@@ -49,8 +49,9 @@ def main(start_time, path1, path2, processing_type, num_fragments, anchor_line, 
             sort_start_time = time.time()
             yes_chroms, no_chroms = process_multiple_regions(region, operation)
             # Process with the specified operation for multiple
-            ranked_gems = sort.process_multiple(ChIA_Drop, yes_chroms, no_chroms)
+            ranked_gems = sort.process_multiple(ChIA_Drop, num_fragments, yes_chroms, no_chroms)
             print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
+            plot.plot_ranked_gems_multiple_regions(start_time, ranked_gems, output_file, yes_chroms+no_chroms)
 
         else:
             print("Operation is required for type 'multiple'.")
@@ -74,23 +75,31 @@ if __name__ == '__main__':
     start_time = time.time()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--path1', type=str, required=True, help='Path to the GEMs file (.PEanno)')
-    parser.add_argument('--path2', type=str, help='Path to the regions file (.domains)')
+    parser.add_argument('--path1', type=str, required=True,
+                        help='Path to the GEMs file (.PEanno)')
+    parser.add_argument('--path2', type=str,
+                        help='Path to the regions file (.domains)')
     parser.add_argument('--type', type=str, required=True,
-                        help='Type of processing: left, right, middle, only-middle, only-middle-1frag, both, or multiple', action=ConditionalArgument)
-    parser.add_argument('--numfrag', type=str, help='Number of fragments allowed in the region')
-    parser.add_argument('--anchor', type=str, help='The index of anchor line (0-based)')
-    parser.add_argument('--output_file', type=str, help='Output file for the plot')
-    parser.add_argument('--region', type=str, help='Specific region to process when type is middle, only-middle, only-middle-1frag, or multiple')
-    parser.add_argument('--operation', type=str, help='Operation to perform when type is multiple')
+                        help='Type of processing: left, right, middle, only-middle, only-middle-1frag, both, or multiple',
+                        action=ConditionalArgument)
+    parser.add_argument('--numfrag', type=str,
+                        help='Number of fragments allowed in the region')
+    parser.add_argument('--anchor', type=str,
+                        help='The index of anchor line (0-based)')
+    parser.add_argument('--output_file', type=str,
+                        help='Output file for the plot')
+    parser.add_argument('--region', type=str,
+                        help='Specific region to process when type is middle, only-middle, only-middle-1frag, or multiple')
+    parser.add_argument('--operation', type=str,
+                        help='Operation to perform when type is multiple')
 
     args = parser.parse_args()
 
     if args.multiple_type:
         if not args.operation or not args.region:
             parser.error("--operation and --region are required when --type is 'multiple'")
-        if any([args.path2, args.numfrag, args.anchor, args.output_file]):
-            parser.error("--path2, --numfrag, --anchor, and --output_file are invalid options when --type is 'multiple'")
+        if any([args.path2, args.anchor]):
+            parser.error("--path2 and --anchor are invalid options when --type is 'multiple'")
     else:
         if args.region_required and not args.region:
             parser.error("--region is required when --type is 'middle, only-middle, only-middle-1frag, or multiple'")

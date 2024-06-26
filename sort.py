@@ -377,5 +377,82 @@ def process_only_middle_1frag(ChIA_Drop_old, middle_region):
     return valid_gems
 
 
-def process_multiple(CHIA_Drop_old, yes_chroms, no_chroms):
-    pass
+def process_multiple(ChIA_Drop_old, num_fragments, yes_chroms, no_chroms):
+    # reduce search space
+    chr_id = yes_chroms[0][0]
+    if not len(yes_chroms):
+        left_most_end = no_chroms[0][1]
+        right_most_end = no_chroms[-1][2]
+    elif not len(no_chroms):
+        left_most_end = yes_chroms[0][1]
+        right_most_end = yes_chroms[-1][2]
+    else:
+        left_most_end = min(yes_chroms[0][1], no_chroms[0][1])
+        right_most_end = max(yes_chroms[-1][2], no_chroms[-1][2])
+    region = BedTool(f"{chr_id}\t{left_most_end}\t{right_most_end}", from_string=True)
+    ChIA_Drop = ChIA_Drop_old.intersect(region, wa=True, wb=True)
+
+    # Process the first chromosome to initialize the valid_gem_ids
+    chr_id, left, right = yes_chroms[0]
+    frags = ChIA_Drop.intersect(
+        BedTool(f"{chr_id}\t{left}\t{right}", from_string=True),
+        wa=True,
+        wb=True
+    )
+    valid_gem_ids = set(frag[4] for frag in frags)
+
+    # Intersect with GEM IDs from the remaining chromosomes
+    for yes_chrom in yes_chroms[1:]:
+        chr_id, left, right = yes_chrom[:3]
+        frags = ChIA_Drop.intersect(
+            BedTool(f"{chr_id}\t{left}\t{right}", from_string=True),
+            wa=True,
+            wb=True
+        )
+        candidate_gem_ids = set(frag[4] for frag in frags)
+        valid_gem_ids.intersection_update(candidate_gem_ids)
+
+    # Exclude GEM IDs from the no_chroms regions
+    for no_chrom in no_chroms:
+        chr_id, left, right = no_chrom[:3]
+        frags = ChIA_Drop.intersect(
+            BedTool(f"{chr_id}\t{left}\t{right}", from_string=True),
+            wa=True,
+            wb=True
+        )
+        candidate_gem_ids = set(frag[4] for frag in frags)
+        valid_gem_ids.difference_update(candidate_gem_ids)
+
+    valid_gems = []
+    gem_fragments = {}
+    gem_lengths = {}
+
+    for fragment in ChIA_Drop:
+        gem_id = fragment[4]
+        if gem_id in valid_gem_ids:
+            if gem_id not in gem_fragments:
+                gem_fragments[gem_id] = []
+            gem_fragments[gem_id].append(fragment)
+
+            start = int(fragment[1])
+            end = int(fragment[2])
+
+            if gem_id in gem_lengths:
+                gem_lengths[gem_id] = (min(gem_lengths[gem_id][0], start),
+                                       max(gem_lengths[gem_id][1], end))
+            else:
+                gem_lengths[gem_id] = (start, end)
+
+    # Further filter valid GEMs based on the leftmost fragment and right anchor
+    for gem_id, fragments in gem_fragments.items():
+        leftmost_fragment_start = int(fragments[0][1])
+        leftmost_fragment_end = int(fragments[0][2])
+        _, end = gem_lengths[gem_id]
+
+        if len(fragments) >= num_fragments:
+            valid_gems.append((gem_id, fragments, end - leftmost_fragment_start))
+
+    # Sort GEMs by their length
+    valid_gems.sort(key=lambda x: x[2])
+
+    return valid_gems

@@ -9,8 +9,8 @@ def process_multiple_regions(regions, operations):
 
     Returns:
     tuple: A tuple containing two lists:
-        - List of "Yes" chromosome tuples of the format (chr_id, left, right, flag)
-        - List of "No" chromosome tuples of the format (chr_id, left, right, flag)
+        - List of "Yes" chromosome tuples of the format (chr_id, left, right)
+        - List of "No" chromosome tuples of the format (chr_id, left, right)
     """
 
     # Split the input strings into lists
@@ -27,7 +27,7 @@ def process_multiple_regions(regions, operations):
         left, right = map(int, pos.split('-'))
 
         # Create the chromosome tuple
-        chromosome_tuple = (chr_id, left, right, operation)
+        chromosome_tuple = (chr_id, left, right)
 
         # Append to the respective list based on the operation
         if operation == 'Yes' or operation == 'yes' \
