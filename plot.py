@@ -66,8 +66,7 @@ def plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor,
     ax.set_title(f"Ranked GEMs Plot - {left_anchor.split('\t')[0]}")
     ax.set_xlabel("Genomic Position")
     ax.set_ylabel("GEMs")
-    ax.set_yticks([i * vertical_spacing + 1 for i in range(len(ranked_gems))])
-    ax.set_yticklabels(range(1, len(ranked_gems) + 1))
+    ax.set_yticks([i for i in range(len(ranked_gems))], labels=range(1, len(ranked_gems) + 1))
     ax.set_xlim(left_start - 1000, right_end + 1000)
     ax.invert_yaxis()
 
@@ -77,7 +76,7 @@ def plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor,
 
     # for displaying the plot in a complete way,
     # delete this in the case of running it on GreatLakes servers
-    plt.show()
+    # plt.show()
 
 
 def plot_ranked_gems_multiple_regions(start_time, ranked_gems, output_file, regions):
@@ -135,4 +134,4 @@ def plot_ranked_gems_multiple_regions(start_time, ranked_gems, output_file, regi
 
     # for displaying the plot in a complete way,
     # delete this in the case of running it on GreatLakes servers
-    plt.show()
+    # plt.show()

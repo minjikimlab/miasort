@@ -52,6 +52,7 @@ def main(start_time, path1, path2, processing_type, num_fragments, anchor_line, 
             ranked_gems = sort.process_multiple(ChIA_Drop, num_fragments, yes_chroms, no_chroms)
             print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
             plot.plot_ranked_gems_multiple_regions(start_time, ranked_gems, output_file, yes_chroms+no_chroms)
+            histogram.generate_file(ranked_gems, output_file)
 
         else:
             print("Operation is required for type 'multiple'.")
