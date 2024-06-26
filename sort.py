@@ -226,7 +226,6 @@ def process_middle(ChIA_Drop_old, num_fragments, left_anchor, right_anchor, regi
     area_2 = BedTool(f"{middle_anchor_chrom}\t{middle_anchor_end}\t{right_anchor_start}",
                      from_string=True)
 
-    print(f"{middle_anchor_chrom}\t{middle_anchor_end}\t{right_anchor_start}")
     area_1_frags = ChIA_Drop.intersect(area_1, wa=True, wb=True)
     area_1_gem_ids = set(area_1_frag[4] for area_1_frag in area_1_frags)
 
@@ -270,7 +269,8 @@ def process_middle(ChIA_Drop_old, num_fragments, left_anchor, right_anchor, regi
         leftmost_fragment_end = int(fragments[0][2])
         _, end = gem_lengths[gem_id]
 
-        if leftmost_fragment_start >= left_anchor_start and end <= right_anchor_end:
+        if leftmost_fragment_start >= left_anchor_start and end <= right_anchor_end \
+        and len(fragments) >= num_fragments:
             valid_gems.append((gem_id, fragments, end - leftmost_fragment_start))
 
     # Sort GEMs by their length
@@ -375,3 +375,7 @@ def process_only_middle_1frag(ChIA_Drop_old, middle_region):
     valid_gems.sort(key=lambda x: x[2])
 
     return valid_gems
+
+
+def process_multiple(CHIA_Drop_old, regions, operations):
+    pass

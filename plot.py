@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.lines import Line2D
+import time
 
-def plot_ranked_gems(ranked_gems, output_file, left_anchor,
+def plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor,
                      right_anchor, middle_anchor=None, flag="normal"):
     fig, ax = plt.subplots(figsize=(15, 18))
 
@@ -69,5 +70,10 @@ def plot_ranked_gems(ranked_gems, output_file, left_anchor,
     ax.set_xlim(left_start - 1000, right_end + 1000)
     ax.invert_yaxis()
 
+    print(f"It took {time.time() - start_time} secs in total to finish this program")
+
     plt.savefig(output_file)
+
+    # for displaying the plot in a complete way,
+    # delete this in the case of running it on GreatLakes servers
     plt.show()

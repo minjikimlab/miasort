@@ -7,16 +7,7 @@ import histogram
 import sort
 
 
-class ConditionalArgument(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        if values == 'middle' or values == "only-middle" or values == "only-middle-1frag":
-            setattr(namespace, 'region_required', True)
-        else:
-            setattr(namespace, 'region_required', False)
-        setattr(namespace, self.dest, values)
-
-
-def main(path1, path2, type, num_fragments, anchor_line, output_file, middle_region):
+def main(start_time, path1, path2, type, num_fragments, anchor_line, output_file, middle_region):
     pybedtools.helpers.cleanup()
 
     ChIA_Drop = BedTool(path1)
@@ -28,45 +19,44 @@ def main(path1, path2, type, num_fragments, anchor_line, output_file, middle_reg
     right_anchor = f"{first_region.fields[3]}\t{first_region.fields[4]}\t{first_region.fields[5]}"
     region = f"{first_region.chrom}\t{first_region.start}\t{first_region.fields[5]}"
 
+    sort_start_time = time.time()
+
     if type == "left":
-        sort_start_time = time.time()
         ranked_gems = sort.process_left(ChIA_Drop, num_fragments, left_anchor, right_anchor, region)
-        print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
 
     elif type == "right":
-        sort_start_time = time.time()
         ranked_gems = sort.process_right(ChIA_Drop, num_fragments, left_anchor, right_anchor, region)
-        print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
 
     elif type == "both":
-        sort_start_time = time.time()
         ranked_gems = sort.process_both(ChIA_Drop, left_anchor, right_anchor, region)
-        print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
 
     elif type == "middle":
-        sort_start_time = time.time()
         ranked_gems = sort.process_middle(ChIA_Drop, num_fragments, left_anchor, right_anchor, region, middle_region)
-        print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
 
     elif type == "only-middle":
-        sort_start_time = time.time()
         ranked_gems = sort.process_only_middle(ChIA_Drop, middle_region)
-        print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
 
     elif type == "only-middle-1frag":
-        sort_start_time = time.time()
         ranked_gems = sort.process_only_middle_1frag(ChIA_Drop, middle_region)
-        print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
 
     else:
         print(f"Type '{type}' is not supported.")
         return
 
-    plot_start_time = time.time()
-    plot.plot_ranked_gems(ranked_gems, output_file, left_anchor, right_anchor, middle_region, type)
-    print(f"It took {time.time() - plot_start_time} secs in total to plot the GEMs")
+    print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
+
+    plot.plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor, right_anchor, middle_region, type)
 
     histogram.generate_file(ranked_gems, output_file)
+
+
+class ConditionalArgument(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        if values == 'middle' or values == "only-middle" or values == "only-middle-1frag":
+            setattr(namespace, 'region_required', True)
+        else:
+            setattr(namespace, 'region_required', False)
+        setattr(namespace, self.dest, values)
 
 
 if __name__ == '__main__':
@@ -106,6 +96,4 @@ if __name__ == '__main__':
         or processing_type == 'only-middle-1frag' \
         else None
 
-    main(path1, path2, processing_type, num_fragments, anchor_line, output_file, region)
-
-    print(f"It took {time.time() - start_time} secs in total to finish this program")
+    main(start_time, path1, path2, processing_type, num_fragments, anchor_line, output_file, region)

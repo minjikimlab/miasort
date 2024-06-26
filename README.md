@@ -1,5 +1,5 @@
 <div align="center">
-  <h1 align="center">ComplexSort</h1>
+  <h1 align="center">ComplexSorter</h1>
 </div>
 
 ## Installment
