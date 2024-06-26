@@ -42,13 +42,14 @@ def plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor,
     rect_right = patches.Rectangle((right_start, 0), right_end - right_start,
                                    (len(ranked_gems) + 1) * vertical_spacing, linewidth=1,
                                    edgecolor='r', facecolor='r', alpha=0.2)
+
     if flag != "only-middle" and flag != "only-middle-1frag":
         # Adding the left and right anchor regions
         ax.add_patch(rect_left)
         ax.add_patch(rect_right)
 
-    if (flag == "middle" or flag == "only-middle" or flag == "only-middle-1frag") \
-    and middle_anchor:
+    if (flag == "middle" or flag == "only-middle" \
+    or flag == "only-middle-1frag") and middle_anchor:
         _, positions = middle_anchor.split(':')
         middle_start, middle_end = positions.split('-')
         rect_middle = patches.Rectangle(
@@ -77,3 +78,7 @@ def plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor,
     # for displaying the plot in a complete way,
     # delete this in the case of running it on GreatLakes servers
     plt.show()
+
+
+def plot_ranked_gems_multiple_regions():
+    pass
