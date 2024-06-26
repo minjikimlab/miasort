@@ -5,6 +5,7 @@ import time
 import plot
 import histogram
 import sort
+from helper import process_multiple_regions
 
 
 def main(start_time, path1, path2, processing_type, num_fragments, anchor_line, output_file, region, operation):
@@ -45,9 +46,11 @@ def main(start_time, path1, path2, processing_type, num_fragments, anchor_line, 
 
     else:
         if operation:
+            sort_start_time = time.time()
+            yes_chroms, no_chroms = process_multiple_regions(region, operation)
             # Process with the specified operation for multiple
-            ranked_gems = sort.process_multiple(ChIA_Drop, region, operation)
-            print(f"Processing with operation '{operation}' completed.")
+            ranked_gems = sort.process_multiple(ChIA_Drop, yes_chroms, no_chroms)
+            print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
 
         else:
             print("Operation is required for type 'multiple'.")

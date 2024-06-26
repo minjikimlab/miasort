@@ -1,2 +1,39 @@
-def process_multiple_regions(regions):
-    pass
+def process_multiple_regions(regions, operations):
+    """
+    Processes regions and operations to classify them into "Yes" and "No" chromosome tuples.
+
+    Parameters:
+    regions (str): Regions in the format [chr_id]:[left]-[right];[chr_id]:[left]-[right];...
+    operations (str): Operations in the format [Yes];[No];... where "Yes" means the region
+                      should be treated as an AND operation.
+
+    Returns:
+    tuple: A tuple containing two lists:
+        - List of "Yes" chromosome tuples of the format (chr_id, left, right, flag)
+        - List of "No" chromosome tuples of the format (chr_id, left, right, flag)
+    """
+
+    # Split the input strings into lists
+    region_list = regions.split(';')
+    operation_list = operations.split(';')
+
+    yes_chromosomes = []
+    no_chromosomes = []
+
+    # Iterate over the regions and corresponding operations
+    for region, operation in zip(region_list, operation_list):
+        # Parse the region into components
+        chr_id, pos = region.split(':')
+        left, right = map(int, pos.split('-'))
+
+        # Create the chromosome tuple
+        chromosome_tuple = (chr_id, left, right, operation)
+
+        # Append to the respective list based on the operation
+        if operation == 'Yes' or operation == 'yes' \
+        or operation == 'Y' or operation == 'y':
+            yes_chromosomes.append(chromosome_tuple)
+        else:
+            no_chromosomes.append(chromosome_tuple)
+
+    return yes_chromosomes, no_chromosomes

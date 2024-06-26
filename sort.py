@@ -377,5 +377,5 @@ def process_only_middle_1frag(ChIA_Drop_old, middle_region):
     return valid_gems
 
 
-def process_multiple(CHIA_Drop_old, regions, operations):
+def process_multiple(CHIA_Drop_old, yes_chroms, no_chroms):
     pass
