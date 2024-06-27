@@ -99,18 +99,20 @@ def plot_ranked_gems_multiple_regions(start_time, ranked_gems, output_file, regi
 
         for fragment in fragments:
             chrom, start, end = fragment.chrom, fragment.start, fragment.end
-            rect = patches.Rectangle((start, y_pos - 0.05),
+            rect = patches.Rectangle((start, i - 0.05),
                                      end - start, 0.1, linewidth=1, edgecolor='g', facecolor='g')
             ax.add_patch(rect)
 
+    count = 0
     # Connect fragments of the same GEM with solid lines
     for gem_id, fragments in gem_fragments.items():
         for i in range(len(fragments) - 1):
             end1 = fragments[i].end
             start2 = fragments[i + 1].start
             y_pos = gem_positions[gem_id]
-            line = Line2D([end1, start2], [y_pos, y_pos], color='black', linestyle='-')
+            line = Line2D([end1, start2], [count, count], color='black', linestyle='-')
             ax.add_line(line)
+        count += 1
 
     left_start = regions[0][1]
     right_end = regions[0][2]
@@ -118,18 +120,18 @@ def plot_ranked_gems_multiple_regions(start_time, ranked_gems, output_file, regi
         _, start, end = region
         left_start = min(left_start, start)
         right_end = max(right_end, end)
-        rect = patches.Rectangle((start, 0), end - start,
-                                    (len(ranked_gems) + 1) * vertical_spacing, linewidth=1,
+        rect = patches.Rectangle((start, -1), end - start,
+                                    (len(ranked_gems) + 1), linewidth=1,
                                     edgecolor='r', facecolor='r', alpha=0.2)
         ax.add_patch(rect)
 
     ax.set_title(f"Ranked GEMs Plot")
     ax.set_xlabel("Genomic Position")
     ax.set_ylabel("GEMs")
-    ax.set_yticks([i * vertical_spacing + 1 for i in range(len(ranked_gems))])
-    ax.set_yticklabels(range(1, len(ranked_gems) + 1))
+    ax.set_yticks([i for i in range(len(ranked_gems))], labels=range(1, len(ranked_gems) + 1))
     ax.set_xlim(left_start - 1000, right_end + 1000)
-    ax.invert_yaxis()
+    ax.set_ylim(-1, len(ranked_gems) + 2)
+    ax.invert_yaxis()  # labels read top-to-bottom
 
     print(f"It took {time.time() - start_time} secs in total to finish this program")
 
