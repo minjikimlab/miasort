@@ -21,26 +21,28 @@ def plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor,
 
         for fragment in fragments:
             chrom, start, end = fragment.chrom, fragment.start, fragment.end
-            rect = patches.Rectangle((start, y_pos - 0.05),
+            rect = patches.Rectangle((start, i - 0.05),
                                      end - start, 0.1, linewidth=1, edgecolor='g', facecolor='g')
             ax.add_patch(rect)
 
+    count = 0
     # Connect fragments of the same GEM with solid lines
     for gem_id, fragments in gem_fragments.items():
         for i in range(len(fragments) - 1):
             end1 = fragments[i].end
             start2 = fragments[i + 1].start
             y_pos = gem_positions[gem_id]
-            line = Line2D([end1, start2], [y_pos, y_pos], color='black', linestyle='-')
+            line = Line2D([end1, start2], [count, count], color='black', linestyle='-')
             ax.add_line(line)
+        count += 1
 
     left_start, left_end = int(left_anchor.split('\t')[1]), int(left_anchor.split('\t')[2])
     right_start, right_end = int(right_anchor.split('\t')[1]), int(right_anchor.split('\t')[2])
-    rect_left = patches.Rectangle((left_start, 0), left_end - left_start,
-                                  (len(ranked_gems) + 1) * vertical_spacing, linewidth=1,
+    rect_left = patches.Rectangle((left_start, -1), left_end - left_start,
+                                  (len(ranked_gems) + 1), linewidth=1,
                                   edgecolor='r', facecolor='r', alpha=0.2)
-    rect_right = patches.Rectangle((right_start, 0), right_end - right_start,
-                                   (len(ranked_gems) + 1) * vertical_spacing, linewidth=1,
+    rect_right = patches.Rectangle((right_start, -1), right_end - right_start,
+                                   (len(ranked_gems) + 1), linewidth=1,
                                    edgecolor='r', facecolor='r', alpha=0.2)
 
     if flag != "only-middle" and flag != "only-middle-1frag":
@@ -68,7 +70,8 @@ def plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor,
     ax.set_ylabel("GEMs")
     ax.set_yticks([i for i in range(len(ranked_gems))], labels=range(1, len(ranked_gems) + 1))
     ax.set_xlim(left_start - 1000, right_end + 1000)
-    ax.invert_yaxis()
+    ax.set_ylim(-1, len(ranked_gems) + 2)
+    ax.invert_yaxis()  # labels read top-to-bottom
 
     print(f"It took {time.time() - start_time} secs in total to finish this program")
 
