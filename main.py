@@ -18,19 +18,19 @@ def main(start_time, path1, path2, processing_type, num_fragments, anchor_line, 
         first_region = list(Region)[anchor_line]
         left_anchor = f"{first_region.chrom}\t{first_region.start}\t{first_region.end}"
         right_anchor = f"{first_region.fields[3]}\t{first_region.fields[4]}\t{first_region.fields[5]}"
-        region = f"{first_region.chrom}\t{first_region.start}\t{first_region.fields[5]}"
+        filter_region = f"{first_region.chrom}\t{first_region.start}\t{first_region.fields[5]}"
 
         sort_start_time = time.time()
 
         if processing_type == "left":
-            ranked_gems = sort.process_left(ChIA_Drop, num_fragments, left_anchor, right_anchor, region)
+            ranked_gems = sort.process_left(ChIA_Drop, num_fragments, left_anchor, right_anchor, filter_region)
         elif processing_type == "right":
-            ranked_gems = sort.process_right(ChIA_Drop, num_fragments, left_anchor, right_anchor, region)
+            ranked_gems = sort.process_right(ChIA_Drop, num_fragments, left_anchor, right_anchor, filter_region)
         elif processing_type == "both":
-            ranked_gems = sort.process_both(ChIA_Drop, left_anchor, right_anchor, region)
+            ranked_gems = sort.process_both(ChIA_Drop, left_anchor, right_anchor, filter_region)
         elif processing_type == "middle":
             ranked_gems = sort.process_middle(ChIA_Drop, num_fragments,
-                                              left_anchor, right_anchor, region, region)
+                                              left_anchor, right_anchor, filter_region, region)
         elif processing_type == "only-middle":
             ranked_gems = sort.process_only_middle(ChIA_Drop, region)
         elif processing_type == "only-middle-1frag":

@@ -7,16 +7,11 @@ def plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor,
                      right_anchor, middle_anchor=None, flag="normal"):
     fig, ax = plt.subplots(figsize=(15, 18))
 
-    # Define the vertical spacing
-    vertical_spacing = 0.5  # Smaller value for less spacing
-
     # Plotting the GEMs
     gem_positions = {}
     gem_fragments = {}
 
     for i, (gem_id, fragments, length) in enumerate(ranked_gems):
-        y_pos = i * vertical_spacing + 1
-        gem_positions[gem_id] = y_pos
         gem_fragments[gem_id] = fragments
 
         for fragment in fragments:
@@ -31,7 +26,6 @@ def plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor,
         for i in range(len(fragments) - 1):
             end1 = fragments[i].end
             start2 = fragments[i + 1].start
-            y_pos = gem_positions[gem_id]
             line = Line2D([end1, start2], [count, count], color='black', linestyle='-')
             ax.add_line(line)
         count += 1
@@ -55,9 +49,9 @@ def plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor,
         _, positions = middle_anchor.split(':')
         middle_start, middle_end = positions.split('-')
         rect_middle = patches.Rectangle(
-            (int(middle_start), 0),
+            (int(middle_start), -1),
             int(middle_end) - int(middle_start),
-            (len(ranked_gems) + 1) * vertical_spacing,
+            (len(ranked_gems) + 1),
             linewidth=1,
             edgecolor='red',
             facecolor='red',
@@ -85,16 +79,11 @@ def plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor,
 def plot_ranked_gems_multiple_regions(start_time, ranked_gems, output_file, regions):
     fig, ax = plt.subplots(figsize=(15, 18))
 
-    # Define the vertical spacing
-    vertical_spacing = 0.5  # Smaller value for less spacing
-
     # Plotting the GEMs
     gem_positions = {}
     gem_fragments = {}
 
     for i, (gem_id, fragments, length) in enumerate(ranked_gems):
-        y_pos = i * vertical_spacing + 1
-        gem_positions[gem_id] = y_pos
         gem_fragments[gem_id] = fragments
 
         for fragment in fragments:
@@ -109,7 +98,6 @@ def plot_ranked_gems_multiple_regions(start_time, ranked_gems, output_file, regi
         for i in range(len(fragments) - 1):
             end1 = fragments[i].end
             start2 = fragments[i + 1].start
-            y_pos = gem_positions[gem_id]
             line = Line2D([end1, start2], [count, count], color='black', linestyle='-')
             ax.add_line(line)
         count += 1

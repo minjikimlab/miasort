@@ -5,3 +5,4 @@ env
 *__pycache__*
 *.DS_Store*
 *GM12878*
+medium_test_results/
