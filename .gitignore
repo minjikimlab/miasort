@@ -6,3 +6,7 @@ env
 *.DS_Store*
 *GM12878*
 medium_test_results/
+*b_centered_test*
+*left_test*
+*right_test*
+*both_test*
