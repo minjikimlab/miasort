@@ -5,44 +5,83 @@ import time
 import plot
 import histogram
 import sort
-from helper import process_multiple_regions
+from helper import process_multiple_regions, process_graphs_arg, \
+    create_filename
 
 
-def main(start_time, path1, path2, processing_type, num_fragments, anchor_line, output_file, region, operation):
+def main(start_time, path1, path2, processing_type, graphs,
+         num_fragments, region, operation, dataset):
     pybedtools.helpers.cleanup()
 
     ChIA_Drop = BedTool(path1)
 
-    if processing_type != "multiple":
+    if processing_type != "multiple":  # abc processing
         Region = BedTool(path2)
-        first_region = list(Region)[anchor_line]
-        left_anchor = f"{first_region.chrom}\t{first_region.start}\t{first_region.end}"
-        right_anchor = f"{first_region.fields[3]}\t{first_region.fields[4]}\t{first_region.fields[5]}"
-        filter_region = f"{first_region.chrom}\t{first_region.start}\t{first_region.fields[5]}"
+        graphs_flags = process_graphs_arg(graphs)
 
-        sort_start_time = time.time()
+        for anchors in Region:
+            anchors = anchors.fields
+            id = anchors[9]
+            A = f"{anchors[0]}\t{anchors[1]}\t{anchors[2]}"
+            B = f"{anchors[3]}\t{anchors[4]}\t{anchors[5]}"
+            C = f"{anchors[6]}\t{anchors[7]}\t{anchors[8]}"
+            filter_region = f"{anchors[0]}\t{anchors[1]}\t{anchors[8]}"
 
-        if processing_type == "left":
-            ranked_gems = sort.process_left(ChIA_Drop, num_fragments, left_anchor, right_anchor, filter_region)
-        elif processing_type == "right":
-            ranked_gems = sort.process_right(ChIA_Drop, num_fragments, left_anchor, right_anchor, filter_region)
-        elif processing_type == "both":
-            ranked_gems = sort.process_both(ChIA_Drop, left_anchor, right_anchor, filter_region)
-        elif processing_type == "middle":
-            ranked_gems = sort.process_middle(ChIA_Drop, num_fragments,
-                                              left_anchor, right_anchor, filter_region, region)
-        elif processing_type == "only-middle":
-            ranked_gems = sort.process_only_middle(ChIA_Drop, region)
-        elif processing_type == "only-middle-1frag":
-            ranked_gems = sort.process_only_middle_1frag(ChIA_Drop, region)
-        else:
-            print(f"Type '{processing_type}' is not supported.")
-            return
+            # only do this once and then save it
+            region_bed = BedTool(filter_region, from_string=True)
+            ChIA_Drop = ChIA_Drop.intersect(region_bed, wa=True, wb=True)
 
-        print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
-        plot.plot_ranked_gems_scaled(start_time, ranked_gems, output_file,
-                              left_anchor, right_anchor, region, processing_type)
-        histogram.generate_file(ranked_gems, output_file)
+            if graphs_flags["AtoB"]:
+                ranked_gems = sort.process_left(ChIA_Drop, num_fragments, A, B, filter_region)
+                output_file = create_filename(dataset, id, "AtoB", num_fragments, len(ranked_gems))
+                plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, B, C)
+                histogram.generate_file(ranked_gems, output_file)
+
+            if graphs_flags["AtoC"]:
+                ranked_gems = sort.process_left(ChIA_Drop, num_fragments, A, C, filter_region)
+                output_file = create_filename(dataset, id, "AtoC", num_fragments, len(ranked_gems))
+                plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B)
+                histogram.generate_file(ranked_gems, output_file)
+
+            if graphs_flags["BtoA"]:
+                ranked_gems = sort.process_right(ChIA_Drop, num_fragments, A, B, filter_region)
+                output_file = create_filename(dataset, id, "BtoA", num_fragments, len(ranked_gems))
+                plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, B, C)
+                histogram.generate_file(ranked_gems, output_file)
+
+            if graphs_flags["BtoC"]:
+                ranked_gems = sort.process_left(ChIA_Drop, num_fragments, B, C, filter_region)
+                output_file = create_filename(dataset, id, "BtoC", num_fragments, len(ranked_gems))
+                plot.plot_ranked_gems_scaled(ranked_gems, output_file, B, C, A)
+                histogram.generate_file(ranked_gems, output_file)
+
+            if graphs_flags["CtoA"]:
+                ranked_gems = sort.process_right(ChIA_Drop, num_fragments, A, C, filter_region)
+                output_file = create_filename(dataset, id, "CtoA", num_fragments, len(ranked_gems))
+                plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B)
+                histogram.generate_file(ranked_gems, output_file)
+
+            if graphs_flags["CtoB"]:
+                ranked_gems = sort.process_right(ChIA_Drop, num_fragments, B, C, filter_region)
+                output_file = create_filename(dataset, id, "CtoB", num_fragments, len(ranked_gems))
+                plot.plot_ranked_gems_scaled(ranked_gems, output_file, B, C, A)
+                histogram.generate_file(ranked_gems, output_file)
+
+            if graphs_flags["AandC"]:
+                region = f"{anchors[0]}:{anchors[1]}-{anchors[2]};{anchors[6]}:{anchors[7]}-{anchors[8]}"
+                yes_chroms, no_chroms = process_multiple_regions(region, "yes;yes")
+                ranked_gems = sort.process_multiple(ChIA_Drop, num_fragments, yes_chroms, no_chroms)
+                output_file = create_filename(dataset, id, "AandC", num_fragments, len(ranked_gems))
+                plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B)
+                histogram.generate_file(ranked_gems, output_file)
+
+            if graphs_flags["Bcentered"]:
+                ranked_gems = sort.process_middle(ChIA_Drop, num_fragments,
+                                                    A, C, filter_region, B)
+                output_file = create_filename(dataset, id, "Bcentered", num_fragments, len(ranked_gems))
+                plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B)
+                histogram.generate_file(ranked_gems, output_file)
+
 
     else:
         if operation:
@@ -51,25 +90,12 @@ def main(start_time, path1, path2, processing_type, num_fragments, anchor_line, 
             # Process with the specified operation for multiple
             ranked_gems = sort.process_multiple(ChIA_Drop, num_fragments, yes_chroms, no_chroms)
             print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
-            plot.plot_ranked_gems_multiple_regions(start_time, ranked_gems, output_file, yes_chroms+no_chroms)
-            histogram.generate_file(ranked_gems, output_file)
+            plot.plot_ranked_gems_multiple_regions(start_time, ranked_gems, "output_file", yes_chroms+no_chroms)  # TODO: revise file name
+            histogram.generate_file(ranked_gems, "output_file")  # TODO: revise file name
 
         else:
             print("Operation is required for type 'multiple'.")
             return
-
-
-class ConditionalArgument(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        if values in ['middle', 'only-middle', 'only-middle-1frag', 'multiple']:
-            setattr(namespace, 'region_required', True)
-        else:
-            setattr(namespace, 'region_required', False)
-        if values == 'multiple':
-            setattr(namespace, 'multiple_type', True)
-        else:
-            setattr(namespace, 'multiple_type', False)
-        setattr(namespace, self.dest, values)
 
 
 if __name__ == '__main__':
@@ -79,16 +105,13 @@ if __name__ == '__main__':
     parser.add_argument('--path1', type=str, required=True,
                         help='Path to the GEMs file (.PEanno)')
     parser.add_argument('--path2', type=str,
-                        help='Path to the regions file (.domains)')
+                        help='Path to the regions file')
     parser.add_argument('--type', type=str, required=True,
-                        help='Type of processing: left, right, middle, only-middle, only-middle-1frag, both, or multiple',
-                        action=ConditionalArgument)
+                        help='Type of processing: abc or multiple')
+    parser.add_argument('--graphs', type=str, required=True,
+                        help='Graphs to genereate when type is abc')
     parser.add_argument('--numfrag', type=str,
                         help='Number of fragments allowed in the region')
-    parser.add_argument('--anchor', type=str,
-                        help='The index of anchor line (0-based)')
-    parser.add_argument('--output_file', type=str,
-                        help='Output file for the plot')
     parser.add_argument('--region', type=str,
                         help='Specific region to process when type is middle, only-middle, only-middle-1frag, or multiple')
     parser.add_argument('--operation', type=str,
@@ -96,28 +119,14 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    if args.multiple_type:
-        if not args.operation or not args.region:
-            parser.error("--operation and --region are required when --type is 'multiple'")
-        if any([args.path2, args.anchor]):
-            parser.error("--path2 and --anchor are invalid options when --type is 'multiple'")
-    else:
-        if args.region_required and not args.region:
-            parser.error("--region is required when --type is 'middle, only-middle, only-middle-1frag, or multiple'")
-        if args.type != "multiple" and args.operation:
-            parser.error("--operation is not valid unless --type is 'multiple'")
-
     path1 = args.path1
+    dataset = path1.split("-")[0]
     path2 = args.path2
     processing_type = args.type
+    graphs = args.graphs
     num_fragments = int(args.numfrag) if args.numfrag else None
-    anchor_line = int(args.anchor) if args.anchor else None
-    output_file = args.output_file
     region = args.region
     operation = args.operation
 
-    main(start_time, path1, path2, processing_type, num_fragments, anchor_line, output_file, region, operation)
-
-    """Redesign the command line."""
-
+    main(start_time, path1, path2, processing_type, graphs, num_fragments, region, operation, dataset)
 

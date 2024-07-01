@@ -3,8 +3,8 @@ import matplotlib.patches as patches
 from matplotlib.lines import Line2D
 import time
 
-def plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor,
-                     right_anchor, middle_anchor=None, flag="normal"):
+def plot_ranked_gems(ranked_gems, output_file, left_anchor,
+                     right_anchor, middle_anchor):
     """Plot accurate plot."""
     fig, ax = plt.subplots(figsize=(30, 30))
 
@@ -33,32 +33,22 @@ def plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor,
 
     left_start, left_end = int(left_anchor.split('\t')[1]), int(left_anchor.split('\t')[2])
     right_start, right_end = int(right_anchor.split('\t')[1]), int(right_anchor.split('\t')[2])
+    middle_start, middle_end = int(middle_anchor.split('\t')[1]), int(middle_anchor.split('\t')[2])
+
     rect_left = patches.Rectangle((left_start, -1), left_end - left_start,
                                   (len(ranked_gems) + 1), linewidth=1,
                                   edgecolor='r', facecolor='r', alpha=0.2)
     rect_right = patches.Rectangle((right_start, -1), right_end - right_start,
                                    (len(ranked_gems) + 1), linewidth=1,
                                    edgecolor='r', facecolor='r', alpha=0.2)
+    rect_middle = patches.Rectangle((middle_start, -1), middle_end - middle_start,
+                                (len(ranked_gems) + 1), linewidth=1,
+                                edgecolor='r', facecolor='r', alpha=0.2)
 
-    if flag != "only-middle" and flag != "only-middle-1frag":
-        # Adding the left and right anchor regions
-        ax.add_patch(rect_left)
-        ax.add_patch(rect_right)
-
-    if (flag == "middle" or flag == "only-middle" \
-    or flag == "only-middle-1frag") and middle_anchor:
-        _, positions = middle_anchor.split(':')
-        middle_start, middle_end = positions.split('-')
-        rect_middle = patches.Rectangle(
-            (int(middle_start), -1),
-            int(middle_end) - int(middle_start),
-            (len(ranked_gems) + 1),
-            linewidth=1,
-            edgecolor='red',
-            facecolor='red',
-            alpha=0.2
-        )
-        ax.add_patch(rect_middle)
+    # Adding the left and right anchor regions
+    ax.add_patch(rect_left)
+    ax.add_patch(rect_right)
+    ax.add_patch(rect_middle)
 
     ax.set_title(f"Ranked GEMs Plot - {left_anchor.split('\t')[0]}")
     ax.set_xlabel("Genomic Position")
@@ -68,8 +58,6 @@ def plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor,
     ax.set_ylim(-1, len(ranked_gems) + 2)
     ax.invert_yaxis()  # labels read top-to-bottom
 
-    print(f"It took {time.time() - start_time} secs in total to finish this program")
-
     plt.savefig(output_file)
 
     # for displaying the plot in a complete way,
@@ -77,10 +65,10 @@ def plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor,
     # plt.show()
 
 
-def plot_ranked_gems_scaled(start_time, ranked_gems, output_file, left_anchor,
-                     right_anchor, middle_anchor=None, flag="normal"):
+def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
+                        right_anchor, middle_anchor):
     """Plot accurate plot."""
-    fig, ax = plt.subplots(figsize=(30, 50))
+    fig, ax = plt.subplots(figsize=(50, 50))
 
     # Plotting the GEMs
     gem_positions = {}
@@ -90,8 +78,8 @@ def plot_ranked_gems_scaled(start_time, ranked_gems, output_file, left_anchor,
         gem_fragments[gem_id] = fragments
         for fragment in fragments:
             chrom, start, end = fragment.chrom, fragment.start, fragment.end
-            rect = patches.Rectangle((start, i - 0.4),
-                                     (end - start) * 3, 0.8, linewidth=1, edgecolor='g', facecolor='g')
+            rect = patches.Rectangle((start, i - 0.2),
+                                     (end - start) * 3, 0.4, linewidth=1, edgecolor='g', facecolor='g')
             ax.add_patch(rect)
 
     count = 0
@@ -99,48 +87,37 @@ def plot_ranked_gems_scaled(start_time, ranked_gems, output_file, left_anchor,
     for gem_id, fragments in gem_fragments.items():
         start = fragments[0].start
         end = fragments[-1].end
-        line = Line2D([start, end], [count, count], color='grey', linestyle='-', linewidth=0.1)
+        line = Line2D([start, end], [count, count], color='grey', linestyle='-', linewidth=0.4)
         ax.add_line(line)
         count += 1
 
     left_start, left_end = int(left_anchor.split('\t')[1]), int(left_anchor.split('\t')[2])
     right_start, right_end = int(right_anchor.split('\t')[1]), int(right_anchor.split('\t')[2])
+    middle_start, middle_end = int(middle_anchor.split('\t')[1]), int(middle_anchor.split('\t')[2])
+
     rect_left = patches.Rectangle((left_start, -1), left_end - left_start,
                                   (len(ranked_gems) + 1), linewidth=1,
                                   edgecolor='r', facecolor='r', alpha=0.2)
     rect_right = patches.Rectangle((right_start, -1), right_end - right_start,
                                    (len(ranked_gems) + 1), linewidth=1,
                                    edgecolor='r', facecolor='r', alpha=0.2)
+    rect_middle = patches.Rectangle((middle_start, -1), middle_end - middle_start,
+                                (len(ranked_gems) + 1), linewidth=1,
+                                edgecolor='r', facecolor='r', alpha=0.2)
 
-    if flag != "only-middle" and flag != "only-middle-1frag":
-        # Adding the left and right anchor regions
-        ax.add_patch(rect_left)
-        ax.add_patch(rect_right)
-
-    if (flag == "middle" or flag == "only-middle" \
-    or flag == "only-middle-1frag") and middle_anchor:
-        _, positions = middle_anchor.split(':')
-        middle_start, middle_end = positions.split('-')
-        rect_middle = patches.Rectangle(
-            (int(middle_start), -1),
-            int(middle_end) - int(middle_start),
-            (len(ranked_gems) + 1),
-            linewidth=1,
-            edgecolor='red',
-            facecolor='red',
-            alpha=0.2
-        )
-        ax.add_patch(rect_middle)
+    # Adding the left and right anchor regions
+    ax.add_patch(rect_left)
+    ax.add_patch(rect_right)
+    ax.add_patch(rect_middle)
 
     ax.set_title(f"Ranked GEMs Plot - {left_anchor.split('\t')[0]}")
     ax.set_xlabel("Genomic Position")
     ax.set_ylabel("GEMs")
     ax.set_yticks([i for i in range(len(ranked_gems))], labels=range(1, len(ranked_gems) + 1))
-    ax.set_xlim(left_start - 1000, right_end + 1000)
+    ax.set_xlim(min(left_start, right_start, middle_start) - 1000,
+                max(left_end, right_end, middle_end) + 1000)
     ax.set_ylim(-1, len(ranked_gems) + 2)
     ax.invert_yaxis()  # labels read top-to-bottom
-
-    print(f"It took {time.time() - start_time} secs in total to finish this program")
 
     plt.savefig(output_file)
 

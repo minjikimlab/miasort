@@ -37,3 +37,25 @@ def process_multiple_regions(regions, operations):
             no_chromosomes.append(chromosome_tuple)
 
     return yes_chromosomes, no_chromosomes
+
+
+def process_graphs_arg(arg):
+    graphs_flags = {
+        "AtoB": False,
+        "AtoC": False,
+        "BtoA": False,
+        "BtoC": False,
+        "CtoA": False,
+        "CtoB": False,
+        "AandC": False,
+        "Bcentered": False,
+    }
+
+    commands = arg.split(";")
+    for command in commands:
+        graphs_flags[command] = True
+    return graphs_flags
+
+
+def create_filename(dataset, id, command, numfrag, num_gems):
+    return f"{dataset}_{id}_{command}_{numfrag}_{num_gems}"

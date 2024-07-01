@@ -3,14 +3,11 @@ from pybedtools import BedTool
 from debug import test_gem_id_difference
 
 
-def process_left(ChIA_Drop_old, num_fragments, left_anchor, right_anchor, region):
+def process_left(ChIA_Drop, num_fragments, left_anchor, right_anchor, region):
     left_anchor_start = int(left_anchor.split('\t')[1])
     left_anchor_end = int(left_anchor.split('\t')[2])
     right_anchor_start = int(right_anchor.split('\t')[1])
     right_anchor_end = int(right_anchor.split('\t')[2])
-
-    region_bed = BedTool(region, from_string=True)
-    ChIA_Drop = ChIA_Drop_old.intersect(region_bed, wa=True, wb=True)
 
     left_anchor_bed = BedTool(left_anchor, from_string=True)
 
@@ -128,17 +125,14 @@ def process_both(ChIA_Drop_old, left_anchor, right_anchor, region):
     return valid_gems
 
 
-def process_right(ChIA_Drop_old, num_fragments, left_anchor, right_anchor, region):
+def process_right(ChIA_Drop, num_fragments, left_anchor, right_anchor, region):
     left_anchor_chrom = left_anchor.split('\t')[0]
     left_anchor_start = int(left_anchor.split('\t')[1])
     left_anchor_end = int(left_anchor.split('\t')[2])
     right_anchor_start = int(right_anchor.split('\t')[1])
     right_anchor_end = int(right_anchor.split('\t')[2])
 
-    ChIA_Drop = ChIA_Drop_old.intersect(BedTool(region, from_string=True), wa=True, wb=True)
-
     right_anchor_bed = BedTool(right_anchor, from_string=True)
-
     intersecting_fragments = ChIA_Drop.intersect(right_anchor_bed, wa=True, wb=True)
     intersecting_gem_ids = set(fragment.fields[4] for fragment in intersecting_fragments)
 
@@ -189,22 +183,18 @@ def process_right(ChIA_Drop_old, num_fragments, left_anchor, right_anchor, regio
 
     valid_gems.sort(key=lambda x: x[2])
 
-    test_gem_id_difference(valid_gems, "cr1491_SE_Right.bed")
+    # test_gem_id_difference(valid_gems, "cr1491_SE_Right.bed")
 
     return valid_gems
 
 
-def process_middle(ChIA_Drop_old, num_fragments, left_anchor, right_anchor, region, middle_anchor):
-    middle_anchor_chrom, positions = middle_anchor.split(':')
-    middle_anchor_start, middle_anchor_end = positions.split('-')
+def process_middle(ChIA_Drop, num_fragments, left_anchor, right_anchor, region, middle_anchor):
+    middle_anchor_chrom, middle_anchor_start, middle_anchor_end = middle_anchor.split('\t')
 
     left_anchor_start = int(left_anchor.split('\t')[1])
     left_anchor_end = int(left_anchor.split('\t')[2])
     right_anchor_start = int(right_anchor.split('\t')[1])
     right_anchor_end = int(right_anchor.split('\t')[2])
-
-    # Filter by range
-    ChIA_Drop = ChIA_Drop_old.intersect(BedTool(region, from_string=True), wa=True, wb=True)
 
     # Get unique GEM IDs from candidate GEMs
     candidate_gem_ids = set(fragment[4] for fragment in ChIA_Drop)
@@ -380,7 +370,7 @@ def process_only_middle_1frag(ChIA_Drop_old, middle_region):
     return valid_gems
 
 
-def process_multiple(ChIA_Drop_old, num_fragments, yes_chroms, no_chroms):
+def process_multiple(ChIA_Drop, num_fragments, yes_chroms, no_chroms):
     # reduce search space
     chr_id = yes_chroms[0][0]
     if not len(yes_chroms):
@@ -393,7 +383,6 @@ def process_multiple(ChIA_Drop_old, num_fragments, yes_chroms, no_chroms):
         left_most_end = min(yes_chroms[0][1], no_chroms[0][1])
         right_most_end = max(yes_chroms[-1][2], no_chroms[-1][2])
     region = BedTool(f"{chr_id}\t{left_most_end}\t{right_most_end}", from_string=True)
-    ChIA_Drop = ChIA_Drop_old.intersect(region, wa=True, wb=True)
 
     # Process the first chromosome to initialize the valid_gem_ids
     chr_id, left, right = yes_chroms[0]
