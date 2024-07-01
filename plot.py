@@ -5,7 +5,7 @@ import time
 
 def plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor,
                      right_anchor, middle_anchor=None, flag="normal"):
-    fig, ax = plt.subplots(figsize=(15, 18))
+    fig, ax = plt.subplots(figsize=(30, 30))
 
     # Plotting the GEMs
     gem_positions = {}
@@ -16,8 +16,8 @@ def plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor,
 
         for fragment in fragments:
             chrom, start, end = fragment.chrom, fragment.start, fragment.end
-            rect = patches.Rectangle((start, i - 0.05),
-                                     end - start, 0.1, linewidth=1, edgecolor='g', facecolor='g')
+            rect = patches.Rectangle((start, i - 0.25),
+                                     end - start, 0.5, linewidth=1, edgecolor='g', facecolor='g')
             ax.add_patch(rect)
 
     count = 0
@@ -26,7 +26,7 @@ def plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor,
         for i in range(len(fragments) - 1):
             end1 = fragments[i].end
             start2 = fragments[i + 1].start
-            line = Line2D([end1, start2], [count, count], color='black', linestyle='-')
+            line = Line2D([end1, start2], [count, count], color='black', linestyle='-', linewidth=0.5)
             ax.add_line(line)
         count += 1
 
@@ -77,7 +77,7 @@ def plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor,
 
 
 def plot_ranked_gems_multiple_regions(start_time, ranked_gems, output_file, regions):
-    fig, ax = plt.subplots(figsize=(15, 18))
+    fig, ax = plt.subplots(figsize=(30, 30))
 
     # Plotting the GEMs
     gem_positions = {}
@@ -88,8 +88,8 @@ def plot_ranked_gems_multiple_regions(start_time, ranked_gems, output_file, regi
 
         for fragment in fragments:
             chrom, start, end = fragment.chrom, fragment.start, fragment.end
-            rect = patches.Rectangle((start, i - 0.05),
-                                     end - start, 0.1, linewidth=1, edgecolor='g', facecolor='g')
+            rect = patches.Rectangle((start, i - 0.2),
+                                     end - start, 0.4, linewidth=1, edgecolor='g', facecolor='g')
             ax.add_patch(rect)
 
     count = 0
@@ -98,7 +98,7 @@ def plot_ranked_gems_multiple_regions(start_time, ranked_gems, output_file, regi
         for i in range(len(fragments) - 1):
             end1 = fragments[i].end
             start2 = fragments[i + 1].start
-            line = Line2D([end1, start2], [count, count], color='black', linestyle='-')
+            line = Line2D([end1, start2], [count, count], color='black', linestyle='-', linewidth=0.5)
             ax.add_line(line)
         count += 1
 
