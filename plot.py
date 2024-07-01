@@ -88,8 +88,8 @@ def plot_ranked_gems_multiple_regions(start_time, ranked_gems, output_file, regi
 
         for fragment in fragments:
             chrom, start, end = fragment.chrom, fragment.start, fragment.end
-            rect = patches.Rectangle((start, i - 0.2),
-                                     end - start, 0.4, linewidth=1, edgecolor='g', facecolor='g')
+            rect = patches.Rectangle((start, i - 0.25),
+                                     end - start, 0.5, linewidth=1, edgecolor='g', facecolor='g')
             ax.add_patch(rect)
 
     count = 0

@@ -64,7 +64,7 @@ def process_left(ChIA_Drop_old, num_fragments, left_anchor, right_anchor, region
 
     valid_gems.sort(key=lambda x: x[2])
 
-    # test_gem_id_difference(valid_gems)
+    # test_gem_id_difference(valid_gems, "cr1491_SE_Left.bed")
 
     return valid_gems
 
@@ -135,19 +135,15 @@ def process_right(ChIA_Drop_old, num_fragments, left_anchor, right_anchor, regio
     right_anchor_start = int(right_anchor.split('\t')[1])
     right_anchor_end = int(right_anchor.split('\t')[2])
 
-    print("Filter GEMs to only include those in the region")
     ChIA_Drop = ChIA_Drop_old.intersect(BedTool(region, from_string=True), wa=True, wb=True)
 
-    print("Create BedTool object for the right anchor")
     right_anchor_bed = BedTool(right_anchor, from_string=True)
 
-    print("Get the GEM IDs that intersect with the right anchor")
     intersecting_fragments = ChIA_Drop.intersect(right_anchor_bed, wa=True, wb=True)
     intersecting_gem_ids = set(fragment.fields[4] for fragment in intersecting_fragments)
-    print("Filter ChIA_Drop to only include GEMs with intersecting IDs")
+
     ChIA_Drop = ChIA_Drop.filter(lambda x: x.fields[4] in intersecting_gem_ids)
 
-    print("Group GEM fragments by their GEM ID and get the min start and max end positions")
     grouped_gems = {}
     bad_gem_ids = set()
     for fragment_interval in ChIA_Drop:
@@ -157,7 +153,7 @@ def process_right(ChIA_Drop_old, num_fragments, left_anchor, right_anchor, regio
         start = int(fragment[1])
         end = int(fragment[2])
 
-        if start >= left_anchor_start and end <= left_anchor_end:
+        if (start >= left_anchor_start and end <= left_anchor_end) or start <= left_anchor_end:
             bad_gem_ids.add(gem_id)
 
         if gem_id not in grouped_gems.keys():
@@ -175,7 +171,6 @@ def process_right(ChIA_Drop_old, num_fragments, left_anchor, right_anchor, regio
     for bad_gem_id in bad_gem_ids:
         del grouped_gems[bad_gem_id]
 
-    print("Add valid gems")
     valid_gems = []
     for gem_id, gem_info in grouped_gems.items():
         leftmost_fragment_start = gem_info['min_start']
@@ -184,8 +179,7 @@ def process_right(ChIA_Drop_old, num_fragments, left_anchor, right_anchor, regio
         gem_length = rightmost_fragment_end - leftmost_fragment_start
 
         if (
-            rightmost_fragment_end <= right_anchor_end
-            and len(gem_info['fragments']) >= num_fragments
+            len(gem_info['fragments']) >= num_fragments
         ):
             fragments = [
                 pybedtools.create_interval_from_list(fragment)
@@ -193,8 +187,10 @@ def process_right(ChIA_Drop_old, num_fragments, left_anchor, right_anchor, regio
             ]
             valid_gems.append((gem_id, fragments, gem_length))
 
-    print("Sort the valid GEMs by their length")
     valid_gems.sort(key=lambda x: x[2])
+
+    test_gem_id_difference(valid_gems, "cr1491_SE_Right.bed")
+
     return valid_gems
 
 
