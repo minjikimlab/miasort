@@ -5,6 +5,7 @@ import time
 
 def plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor,
                      right_anchor, middle_anchor=None, flag="normal"):
+    """Plot accurate plot."""
     fig, ax = plt.subplots(figsize=(30, 30))
 
     # Plotting the GEMs
@@ -26,8 +27,80 @@ def plot_ranked_gems(start_time, ranked_gems, output_file, left_anchor,
         for i in range(len(fragments) - 1):
             end1 = fragments[i].end
             start2 = fragments[i + 1].start
-            line = Line2D([end1, start2], [count, count], color='black', linestyle='-', linewidth=0.5)
+            line = Line2D([end1, start2], [count, count], color='grey', linestyle='-', linewidth=0.1)
             ax.add_line(line)
+        count += 1
+
+    left_start, left_end = int(left_anchor.split('\t')[1]), int(left_anchor.split('\t')[2])
+    right_start, right_end = int(right_anchor.split('\t')[1]), int(right_anchor.split('\t')[2])
+    rect_left = patches.Rectangle((left_start, -1), left_end - left_start,
+                                  (len(ranked_gems) + 1), linewidth=1,
+                                  edgecolor='r', facecolor='r', alpha=0.2)
+    rect_right = patches.Rectangle((right_start, -1), right_end - right_start,
+                                   (len(ranked_gems) + 1), linewidth=1,
+                                   edgecolor='r', facecolor='r', alpha=0.2)
+
+    if flag != "only-middle" and flag != "only-middle-1frag":
+        # Adding the left and right anchor regions
+        ax.add_patch(rect_left)
+        ax.add_patch(rect_right)
+
+    if (flag == "middle" or flag == "only-middle" \
+    or flag == "only-middle-1frag") and middle_anchor:
+        _, positions = middle_anchor.split(':')
+        middle_start, middle_end = positions.split('-')
+        rect_middle = patches.Rectangle(
+            (int(middle_start), -1),
+            int(middle_end) - int(middle_start),
+            (len(ranked_gems) + 1),
+            linewidth=1,
+            edgecolor='red',
+            facecolor='red',
+            alpha=0.2
+        )
+        ax.add_patch(rect_middle)
+
+    ax.set_title(f"Ranked GEMs Plot - {left_anchor.split('\t')[0]}")
+    ax.set_xlabel("Genomic Position")
+    ax.set_ylabel("GEMs")
+    ax.set_yticks([i for i in range(len(ranked_gems))], labels=range(1, len(ranked_gems) + 1))
+    ax.set_xlim(left_start - 1000, right_end + 1000)
+    ax.set_ylim(-1, len(ranked_gems) + 2)
+    ax.invert_yaxis()  # labels read top-to-bottom
+
+    print(f"It took {time.time() - start_time} secs in total to finish this program")
+
+    plt.savefig(output_file)
+
+    # for displaying the plot in a complete way,
+    # delete this in the case of running it on GreatLakes servers
+    # plt.show()
+
+
+def plot_ranked_gems_scaled(start_time, ranked_gems, output_file, left_anchor,
+                     right_anchor, middle_anchor=None, flag="normal"):
+    """Plot accurate plot."""
+    fig, ax = plt.subplots(figsize=(30, 50))
+
+    # Plotting the GEMs
+    gem_positions = {}
+    gem_fragments = {}
+
+    for i, (gem_id, fragments, length) in enumerate(ranked_gems):
+        gem_fragments[gem_id] = fragments
+        for fragment in fragments:
+            chrom, start, end = fragment.chrom, fragment.start, fragment.end
+            rect = patches.Rectangle((start, i - 0.4),
+                                     (end - start) * 3, 0.8, linewidth=1, edgecolor='g', facecolor='g')
+            ax.add_patch(rect)
+
+    count = 0
+    # Connect fragments of the same GEM with solid lines
+    for gem_id, fragments in gem_fragments.items():
+        start = fragments[0].start
+        end = fragments[-1].end
+        line = Line2D([start, end], [count, count], color='grey', linestyle='-', linewidth=0.1)
+        ax.add_line(line)
         count += 1
 
     left_start, left_end = int(left_anchor.split('\t')[1]), int(left_anchor.split('\t')[2])

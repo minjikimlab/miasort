@@ -40,7 +40,7 @@ def main(start_time, path1, path2, processing_type, num_fragments, anchor_line, 
             return
 
         print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
-        plot.plot_ranked_gems(start_time, ranked_gems, output_file,
+        plot.plot_ranked_gems_scaled(start_time, ranked_gems, output_file,
                               left_anchor, right_anchor, region, processing_type)
         histogram.generate_file(ranked_gems, output_file)
 
@@ -117,3 +117,7 @@ if __name__ == '__main__':
     operation = args.operation
 
     main(start_time, path1, path2, processing_type, num_fragments, anchor_line, output_file, region, operation)
+
+    """Redesign the command line."""
+
+
