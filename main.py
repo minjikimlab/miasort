@@ -29,40 +29,48 @@ def main(start_time, path1, path2, processing_type, graphs,
 
             # only do this once and then save it
             region_bed = BedTool(filter_region, from_string=True)
-            ChIA_Drop = ChIA_Drop.intersect(region_bed, wa=True, wb=True)
+            ChIA_Drop_anchor = ChIA_Drop.intersect(region_bed, wa=True, wb=True)
+
+            filter = f"{anchors[0]}\t{anchors[1]}\t{anchors[5]}"
+            region_bed = BedTool(filter, from_string=True)
+            ChIA_Drop_ab = ChIA_Drop_anchor.intersect(region_bed, wa=True, wb=True)
+
+            filter = f"{anchors[0]}\t{anchors[4]}\t{anchors[8]}"
+            region_bed = BedTool(filter, from_string=True)
+            ChIA_Drop_bc = ChIA_Drop_anchor.intersect(region_bed, wa=True, wb=True)
 
             if graphs_flags["AtoB"]:
-                ranked_gems = sort.process_left(ChIA_Drop, num_fragments, A, B, filter_region)
+                ranked_gems = sort.process_left(ChIA_Drop_ab, num_fragments, A, B, filter_region)
                 output_file = create_filename(dataset, id, "AtoB", num_fragments, len(ranked_gems))
                 plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, B, C)
                 histogram.generate_file(ranked_gems, output_file)
 
             if graphs_flags["AtoC"]:
-                ranked_gems = sort.process_left(ChIA_Drop, num_fragments, A, C, filter_region)
+                ranked_gems = sort.process_left(ChIA_Drop_anchor, num_fragments, A, C, filter_region)
                 output_file = create_filename(dataset, id, "AtoC", num_fragments, len(ranked_gems))
                 plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B)
                 histogram.generate_file(ranked_gems, output_file)
 
             if graphs_flags["BtoA"]:
-                ranked_gems = sort.process_right(ChIA_Drop, num_fragments, A, B, filter_region)
+                ranked_gems = sort.process_right(ChIA_Drop_ab, num_fragments, A, B, filter_region)
                 output_file = create_filename(dataset, id, "BtoA", num_fragments, len(ranked_gems))
                 plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, B, C)
                 histogram.generate_file(ranked_gems, output_file)
 
             if graphs_flags["BtoC"]:
-                ranked_gems = sort.process_left(ChIA_Drop, num_fragments, B, C, filter_region)
+                ranked_gems = sort.process_left(ChIA_Drop_bc, num_fragments, B, C, filter_region)
                 output_file = create_filename(dataset, id, "BtoC", num_fragments, len(ranked_gems))
                 plot.plot_ranked_gems_scaled(ranked_gems, output_file, B, C, A)
                 histogram.generate_file(ranked_gems, output_file)
 
             if graphs_flags["CtoA"]:
-                ranked_gems = sort.process_right(ChIA_Drop, num_fragments, A, C, filter_region)
+                ranked_gems = sort.process_right(ChIA_Drop_anchor, num_fragments, A, C, filter_region)
                 output_file = create_filename(dataset, id, "CtoA", num_fragments, len(ranked_gems))
                 plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B)
                 histogram.generate_file(ranked_gems, output_file)
 
             if graphs_flags["CtoB"]:
-                ranked_gems = sort.process_right(ChIA_Drop, num_fragments, B, C, filter_region)
+                ranked_gems = sort.process_right(ChIA_Drop_bc, num_fragments, B, C, filter_region)
                 output_file = create_filename(dataset, id, "CtoB", num_fragments, len(ranked_gems))
                 plot.plot_ranked_gems_scaled(ranked_gems, output_file, B, C, A)
                 histogram.generate_file(ranked_gems, output_file)
@@ -70,14 +78,13 @@ def main(start_time, path1, path2, processing_type, graphs,
             if graphs_flags["AandC"]:
                 region = f"{anchors[0]}:{anchors[1]}-{anchors[2]};{anchors[6]}:{anchors[7]}-{anchors[8]}"
                 yes_chroms, no_chroms = process_multiple_regions(region, "yes;yes")
-                ranked_gems = sort.process_multiple(ChIA_Drop, num_fragments, yes_chroms, no_chroms)
+                ranked_gems = sort.process_multiple(ChIA_Drop_anchor, num_fragments, yes_chroms, no_chroms)
                 output_file = create_filename(dataset, id, "AandC", num_fragments, len(ranked_gems))
                 plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B)
                 histogram.generate_file(ranked_gems, output_file)
 
             if graphs_flags["Bcentered"]:
-                ranked_gems = sort.process_middle(ChIA_Drop, num_fragments,
-                                                    A, C, filter_region, B)
+                ranked_gems = sort.process_middle(ChIA_Drop_anchor, num_fragments, A, C, filter_region, B)
                 output_file = create_filename(dataset, id, "Bcentered", num_fragments, len(ranked_gems))
                 plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B)
                 histogram.generate_file(ranked_gems, output_file)
