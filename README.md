@@ -2,11 +2,15 @@
   <h1 align="center">ComplexSorter</h1>
 </div>
 
-## Installment
+## Installation
 ```
 chmod +x ./bin/install.sh
 ./bin/install.sh
 source env/bin/activate
+
+Bedtools should also be installed. To do so, follow instructions on https://bedtools.readthedocs.io/en/latest/content/installation.html#.
+One of the options is:
+$ mamba install -c conda-forge bedtools
 ```
 
 ## Input Files
