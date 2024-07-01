@@ -95,20 +95,20 @@ def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
     right_start, right_end = int(right_anchor.split('\t')[1]), int(right_anchor.split('\t')[2])
     middle_start, middle_end = int(middle_anchor.split('\t')[1]), int(middle_anchor.split('\t')[2])
 
-    rect_left = patches.Rectangle((left_start, -1), left_end - left_start,
-                                  (len(ranked_gems) + 1), linewidth=1,
-                                  edgecolor='r', facecolor='r', alpha=0.2)
-    rect_right = patches.Rectangle((right_start, -1), right_end - right_start,
-                                   (len(ranked_gems) + 1), linewidth=1,
-                                   edgecolor='r', facecolor='r', alpha=0.2)
-    rect_middle = patches.Rectangle((middle_start, -1), middle_end - middle_start,
-                                (len(ranked_gems) + 1), linewidth=1,
-                                edgecolor='r', facecolor='r', alpha=0.2)
+    # rect_left = patches.Rectangle((left_start, -1), left_end - left_start,
+    #                               (len(ranked_gems) + 1), linewidth=1,
+    #                               edgecolor='r', facecolor='r', alpha=0.2)
+    # rect_right = patches.Rectangle((right_start, -1), right_end - right_start,
+    #                                (len(ranked_gems) + 1), linewidth=1,
+    #                                edgecolor='r', facecolor='r', alpha=0.2)
+    # rect_middle = patches.Rectangle((middle_start, -1), middle_end - middle_start,
+    #                             (len(ranked_gems) + 1), linewidth=1,
+    #                             edgecolor='r', facecolor='r', alpha=0.2)
 
     # Adding the left and right anchor regions
-    ax.add_patch(rect_left)
-    ax.add_patch(rect_right)
-    ax.add_patch(rect_middle)
+    # ax.add_patch(rect_left)
+    # ax.add_patch(rect_right)
+    # ax.add_patch(rect_middle)
 
     ax.set_title(f"Ranked GEMs Plot - {left_anchor.split('\t')[0]}")
     ax.set_xlabel("Genomic Position")
@@ -120,6 +120,8 @@ def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
     ax.invert_yaxis()  # labels read top-to-bottom
 
     plt.savefig(output_file)
+
+    plt.close(fig)  # Close the figure to free up memory
 
     # for displaying the plot in a complete way,
     # delete this in the case of running it on GreatLakes servers
