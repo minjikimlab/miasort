@@ -76,7 +76,7 @@ def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-    fig, ax = plt.subplots(figsize=(50, 50))
+    fig, ax = plt.subplots(figsize=(50, 8))
 
     gem_fragments = {}
 
@@ -84,9 +84,9 @@ def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
         gem_fragments[gem_id] = fragments
         for fragment in fragments:
             _, start, end = fragment.chrom, fragment.start, fragment.end
-            rect = patches.Rectangle((start, i - 0.2),
-                                     (end - start) * 3, 0.4, linewidth=1,
-                                     edgecolor=colors_flags["fragments"],
+            rect = patches.Rectangle((start, i - 0.225),
+                                     (end - start) * 5, 0.45, linewidth=1,
+                                     edgecolor="black",
                                      facecolor=colors_flags["fragments"])
             ax.add_patch(rect)
 
@@ -96,8 +96,8 @@ def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
         start = fragments[0].start
         end = fragments[-1].end
         line = Line2D([start, end], [count, count],
-                      color=colors_flags["lines"],
-                      linestyle='-', linewidth=0.4)
+                      color='#525252',
+                      linestyle='-', linewidth=0.25)
         ax.add_line(line)
         count += 1
 
