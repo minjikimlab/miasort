@@ -59,3 +59,18 @@ def process_graphs_arg(arg):
 
 def create_filename(dataset, id, command, numfrag, num_gems):
     return f"{dataset}_{id}_{command}_{numfrag}_{num_gems}"
+
+
+def process_color_arg(colors):
+    colors_flags = {
+        "anchors": None,
+        "fragments": None,
+        "lines": None,
+    }
+
+    colors = colors.split(';')
+    colors_flags["anchors"] = colors[0]
+    colors_flags["fragments"] = colors[1]
+    colors_flags["lines"] = colors[2]
+
+    return colors_flags

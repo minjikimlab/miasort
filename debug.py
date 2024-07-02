@@ -9,7 +9,6 @@ def test_gem_id_difference(ranked_gems, correct_input_name):
     show_disparity(correct_gem_ids, curr_gem_ids)
 
 
-
 def show_disparity(a, b):
     # Convert lists to sets
     set_a = set(a)
