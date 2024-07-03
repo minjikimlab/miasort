@@ -74,3 +74,21 @@ def process_color_arg(colors):
     colors_flags["lines"] = colors[2]
 
     return colors_flags
+
+
+def figsize_height_scaler(x):
+    k = 17 / 47
+    b = 189 / 47
+    # calculate y using the equation y = kx + b
+    y = k * x + b
+    return y
+
+
+def kb_format(x, pos):
+    """Convert x-axis tick labels to kb."""
+
+    kb_value = x / 1000
+    if kb_value.is_integer():
+        return f'{int(kb_value)} kb'
+    else:
+        return f'{kb_value:.1f} kb'

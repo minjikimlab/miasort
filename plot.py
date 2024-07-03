@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.lines import Line2D
+from helper import figsize_height_scaler, kb_format
 import time
 import os
 
@@ -76,7 +77,10 @@ def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-    fig, ax = plt.subplots(figsize=(50, 8))
+    fig, ax = plt.subplots(figsize=(
+        50,  # TODO: dynamically adjust
+        round(figsize_height_scaler(len(ranked_gems)))
+    ))
 
     gem_fragments = {}
 
@@ -129,14 +133,24 @@ def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
     elif anchor_options == "yes_top":
         print("Waiting to be implemented")
 
-    ax.set_title(f"Ranked GEMs Plot - {left_anchor.split('\t')[0]}")
-    ax.set_xlabel("Genomic Position")
-    ax.set_ylabel("GEMs")
+    # font size
+    title_font = {'fontsize': 40, 'fontweight': 'bold'}
+    label_font = {'fontsize': 30}
+    tick_font_size = 25
+
+    ax.set_title(f"Ranked GEMs Plot - {left_anchor.split('\t')[0]}", fontdict=title_font)
+    ax.set_xlabel("Genomic Position", fontdict=label_font)
+    ax.set_ylabel("GEMs", fontdict=label_font)
     ax.set_yticks([i for i in range(len(ranked_gems))], labels=range(1, len(ranked_gems) + 1))
     ax.set_xlim(min(left_start, right_start, middle_start) - 1000,
                 max(left_end, right_end, middle_end) + 1000)
     ax.set_ylim(-1, len(ranked_gems) + 2)
     ax.invert_yaxis()  # labels read top-to-bottom
+    # set font size of x, y axis numbers
+    ax.tick_params(axis='x', labelsize=tick_font_size)
+    ax.tick_params(axis='y', labelsize=tick_font_size)
+
+    ax.xaxis.set_major_formatter(plt.FuncFormatter(kb_format))
 
     plt.savefig(directory_str)
 
