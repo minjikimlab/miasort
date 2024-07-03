@@ -27,8 +27,14 @@ def main(start_time, path1, path2, processing_type, graphs,
             A = f"{anchors[0]}\t{anchors[1]}\t{anchors[2]}"
             B = f"{anchors[3]}\t{anchors[4]}\t{anchors[5]}"
             C = f"{anchors[6]}\t{anchors[7]}\t{anchors[8]}"
-            filter_region = f"{anchors[0]}\t{anchors[1]}\t{anchors[8]}"
 
+            # error check
+            if anchors[1] >= anchors[2] or anchors[4] >= anchors[5] or anchors[7] >= anchors[8] \
+            or anchors[2] >= anchors[4] or anchors[5] >= anchors[7]:
+                print("Error: left is larger than right, please check the input file")
+                continue
+
+            filter_region = f"{anchors[0]}\t{anchors[1]}\t{anchors[8]}"
             # only do this once and then save it
             region_bed = BedTool(filter_region, from_string=True)
             ChIA_Drop_anchor = ChIA_Drop.intersect(region_bed, wa=True, wb=True)
@@ -90,7 +96,6 @@ def main(start_time, path1, path2, processing_type, graphs,
                 output_file = create_filename(dataset, id, "Bcentered", num_fragments, len(ranked_gems))
                 plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B, out_dir, colors_flags, anchor_options)
                 histogram.generate_file(ranked_gems, output_file, out_dir)
-
 
     else:
         if operation:
