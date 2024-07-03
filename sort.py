@@ -254,20 +254,24 @@ def process_middle(ChIA_Drop, num_fragments, left_anchor, right_anchor, region, 
             valid_gems.append((gem_id, fragments, end - start, start, end))
 
     # Sort GEMs by their length
-    valid_gems.sort(key=lambda x: x[2])
 
-    prev_start = valid_gems[0][3]
-    prev_end = valid_gems[0][4]
+    if len(valid_gems) > 0:
+        valid_gems.sort(key=lambda x: x[2])
 
-    new_valid_gems = [valid_gems[0][:3]]
+        prev_start = valid_gems[0][3]
+        prev_end = valid_gems[0][4]
+        new_valid_gems = [valid_gems[0][:3]]
 
-    for valid_gem in valid_gems[1:]:
-        curr_start = valid_gem[3]
-        curr_end = valid_gem[4]
-        if not (prev_start <= curr_start or prev_end >= curr_end):
-            new_valid_gems.append(valid_gem[:3])
-            prev_start = curr_start
-            prev_end = curr_end
+        for valid_gem in valid_gems[1:]:
+            curr_start = valid_gem[3]
+            curr_end = valid_gem[4]
+
+            if not (prev_start <= curr_start or prev_end >= curr_end):
+                new_valid_gems.append(valid_gem[:3])
+                prev_start = curr_start
+                prev_end = curr_end
+    else:
+        new_valid_gems = valid_gems
 
     return new_valid_gems
 
