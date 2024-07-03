@@ -104,4 +104,4 @@ def create_plot_title(id, input_filename, command, anchors):
     r = anchors[2].split('\t')
     anchor_c = f"{r[0]}:{r[1]}-{r[2]}"
 
-    return f"{id}, {input_filename}\nA: {anchor_a}, B: {anchor_b}, C: {anchor_c}\n{command}"
+    return f"{id}\n{input_filename}\nA: {anchor_a}; B: {anchor_b}; C: {anchor_c}\n{command}"

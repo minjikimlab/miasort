@@ -102,7 +102,7 @@ def main(start_time, path1, path2, processing_type, graphs,
                 ranked_gems = sort.process_middle(ChIA_Drop_anchor, num_fragments, A, C, filter_region, B)
                 output_file = create_filename(dataset, id, "Bcentered", num_fragments, len(ranked_gems))
                 plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B, out_dir,
-                                             colors_flags, anchor_options, id, path2, "Bcentered")
+                                             colors_flags, anchor_options, id, path1, "Bcentered")
                 histogram.generate_file(ranked_gems, output_file, out_dir)
 
     else:

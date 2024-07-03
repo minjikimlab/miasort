@@ -126,18 +126,28 @@ def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
                                         edgecolor=colors_flags["anchors"],
                                         facecolor=colors_flags["anchors"],
                                         alpha=0.2)
-        # adding the left and right anchor regions
         ax.add_patch(rect_left)
         ax.add_patch(rect_right)
         ax.add_patch(rect_middle)
 
     elif anchor_options == "yes_top":
-        print("Waiting to be implemented")
+        rect_left = patches.Rectangle((left_start, -1), left_end - left_start,
+                                      0.5, linewidth=1, edgecolor=colors_flags["anchors"],
+                                      facecolor=colors_flags["anchors"], alpha=0.2)
+        rect_right = patches.Rectangle((right_start, -1), right_end - right_start,
+                                       0.5, linewidth=1, edgecolor=colors_flags["anchors"],
+                                       facecolor=colors_flags["anchors"], alpha=0.2)
+        rect_middle = patches.Rectangle((middle_start, -1), middle_end - middle_start,
+                                        0.5, linewidth=1, edgecolor=colors_flags["anchors"],
+                                        facecolor=colors_flags["anchors"], alpha=0.2)
+        ax.add_patch(rect_left)
+        ax.add_patch(rect_right)
+        ax.add_patch(rect_middle)
 
     # font size
     title_font = {'fontsize': 40, 'fontweight': 'bold'}
     label_font = {'fontsize': 30}
-    tick_font_size = 25
+    tick_font_size = 23
     anchors = [left_anchor, middle_anchor, right_anchor]
     anchors.sort(key=lambda x: int(x.split('\t')[1]))
 
@@ -157,7 +167,7 @@ def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
     ax.xaxis.set_major_formatter(plt.FuncFormatter(kb_format))
 
     # adjust the margins to add space at the top and bottom
-    plt.subplots_adjust(top=0.75, bottom=0.15)
+    plt.subplots_adjust(top=0.72, bottom=0.15)
 
     plt.savefig(directory_str)
     plt.close(fig)  # close the figure to free up memory
