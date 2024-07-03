@@ -85,13 +85,13 @@ def figsize_height_scaler(x):
 
 
 def kb_format(x, pos):
-    """Convert x-axis tick labels to kb."""
+    """Convert x-axis tick labels to kb, formatted with commas."""
 
     kb_value = x / 1000
     if kb_value.is_integer():
-        return f'{int(kb_value)} kb'
+        return f'{int(kb_value):,} kb'
     else:
-        return f'{kb_value:.1f} kb'
+        return f'{kb_value:,.1f} kb'
 
 
 def create_plot_title(id, input_filename, command, anchors):

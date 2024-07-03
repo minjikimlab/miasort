@@ -132,21 +132,21 @@ def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
 
     elif anchor_options == "yes_top":
         rect_left = patches.Rectangle((left_start, -1), left_end - left_start,
-                                      0.5, linewidth=1, edgecolor=colors_flags["anchors"],
-                                      facecolor=colors_flags["anchors"], alpha=0.2)
+                                      0.5, linewidth=1, edgecolor="black",
+                                      facecolor="black")
         rect_right = patches.Rectangle((right_start, -1), right_end - right_start,
-                                       0.5, linewidth=1, edgecolor=colors_flags["anchors"],
-                                       facecolor=colors_flags["anchors"], alpha=0.2)
+                                       0.5, linewidth=1, edgecolor="black",
+                                       facecolor="black")
         rect_middle = patches.Rectangle((middle_start, -1), middle_end - middle_start,
-                                        0.5, linewidth=1, edgecolor=colors_flags["anchors"],
-                                        facecolor=colors_flags["anchors"], alpha=0.2)
+                                        0.5, linewidth=1, edgecolor="black",
+                                        facecolor="black")
         ax.add_patch(rect_left)
         ax.add_patch(rect_right)
         ax.add_patch(rect_middle)
 
     # font size
     title_font = {'fontsize': 40, 'fontweight': 'bold'}
-    label_font = {'fontsize': 30}
+    label_font = {'fontsize': 38}
     tick_font_size = 23
     anchors = [left_anchor, middle_anchor, right_anchor]
     anchors.sort(key=lambda x: int(x.split('\t')[1]))
@@ -154,7 +154,7 @@ def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
     ax.set_title(create_plot_title(id, path1, command, anchors),
                  fontdict=title_font)
     ax.set_xlabel("Genomic Position", fontdict=label_font)
-    ax.set_ylabel("GEMs", fontdict=label_font)
+    ax.set_ylabel("Chromatin Complexes", fontdict=label_font)
     ax.set_yticks([i for i in range(len(ranked_gems))], labels=range(1, len(ranked_gems) + 1))
     ax.set_xlim(min(left_start, right_start, middle_start) - 1000,
                 max(left_end, right_end, middle_end) + 1000)
