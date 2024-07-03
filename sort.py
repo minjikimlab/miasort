@@ -254,7 +254,6 @@ def process_middle(ChIA_Drop, num_fragments, left_anchor, right_anchor, region, 
             valid_gems.append((gem_id, fragments, end - start, start, end))
 
     # Sort GEMs by their length
-
     if len(valid_gems) > 0:
         valid_gems.sort(key=lambda x: x[2])
 

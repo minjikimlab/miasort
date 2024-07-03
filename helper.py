@@ -77,8 +77,8 @@ def process_color_arg(colors):
 
 
 def figsize_height_scaler(x):
-    k = 17 / 47
-    b = 189 / 47
+    k = 23 / 47
+    b = 189 / 47 + 2
     # calculate y using the equation y = kx + b
     y = k * x + b
     return y
@@ -92,3 +92,16 @@ def kb_format(x, pos):
         return f'{int(kb_value)} kb'
     else:
         return f'{kb_value:.1f} kb'
+
+
+def create_plot_title(id, input_filename, command, anchors):
+    l = anchors[0].split('\t')
+    anchor_a = f"{l[0]}:{l[1]}-{l[2]}"
+
+    m = anchors[1].split('\t')
+    anchor_b = f"{m[0]}:{m[1]}-{m[2]}"
+
+    r = anchors[2].split('\t')
+    anchor_c = f"{r[0]}:{r[1]}-{r[2]}"
+
+    return f"{id}, {input_filename}\nA: {anchor_a}, B: {anchor_b}, C: {anchor_c}\n{command}"

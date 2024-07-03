@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.lines import Line2D
-from helper import figsize_height_scaler, kb_format
+from helper import figsize_height_scaler, kb_format, create_plot_title
 import time
 import os
 
@@ -68,7 +68,8 @@ import os
 
 
 def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
-                        right_anchor, middle_anchor, out_dir, colors_flags, anchor_options):
+                        right_anchor, middle_anchor, out_dir, colors_flags,
+                        anchor_options, id, path1, command):
     directory_str = output_file
     if out_dir != "/":
         # create directory if it doesn't exist
@@ -137,8 +138,11 @@ def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
     title_font = {'fontsize': 40, 'fontweight': 'bold'}
     label_font = {'fontsize': 30}
     tick_font_size = 25
+    anchors = [left_anchor, middle_anchor, right_anchor]
+    anchors.sort(key=lambda x: int(x.split('\t')[1]))
 
-    ax.set_title(f"Ranked GEMs Plot - {left_anchor.split('\t')[0]}", fontdict=title_font)
+    ax.set_title(create_plot_title(id, path1, command, anchors),
+                 fontdict=title_font)
     ax.set_xlabel("Genomic Position", fontdict=label_font)
     ax.set_ylabel("GEMs", fontdict=label_font)
     ax.set_yticks([i for i in range(len(ranked_gems))], labels=range(1, len(ranked_gems) + 1))
@@ -152,8 +156,10 @@ def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
 
     ax.xaxis.set_major_formatter(plt.FuncFormatter(kb_format))
 
-    plt.savefig(directory_str)
+    # adjust the margins to add space at the top and bottom
+    plt.subplots_adjust(top=0.75, bottom=0.15)
 
+    plt.savefig(directory_str)
     plt.close(fig)  # close the figure to free up memory
 
     # for displaying the plot in a complete way,
