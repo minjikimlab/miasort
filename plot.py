@@ -112,17 +112,17 @@ def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
 
     if anchor_options == "yes_complete":
         rect_left = patches.Rectangle((left_start, -1), left_end - left_start,
-                                    (len(ranked_gems) + 1), linewidth=1,
+                                    (len(ranked_gems) + 3), linewidth=1,
                                     edgecolor=colors_flags["anchors"],
                                     facecolor=colors_flags["anchors"],
                                     alpha=0.2)
         rect_right = patches.Rectangle((right_start, -1), right_end - right_start,
-                                    (len(ranked_gems) + 1), linewidth=1,
+                                    (len(ranked_gems) + 3), linewidth=1,
                                     edgecolor=colors_flags["anchors"],
                                     facecolor=colors_flags["anchors"],
                                     alpha=0.2)
         rect_middle = patches.Rectangle((middle_start, -1), middle_end - middle_start,
-                                        (len(ranked_gems) + 1), linewidth=1,
+                                        (len(ranked_gems) + 3), linewidth=1,
                                         edgecolor=colors_flags["anchors"],
                                         facecolor=colors_flags["anchors"],
                                         alpha=0.2)
@@ -156,8 +156,8 @@ def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
     ax.set_xlabel("Genomic Position", fontdict=label_font)
     ax.set_ylabel("Chromatin Complexes", fontdict=label_font)
     ax.set_yticks([i for i in range(len(ranked_gems))], labels=range(1, len(ranked_gems) + 1))
-    ax.set_xlim(min(left_start, right_start, middle_start) - 1000,
-                max(left_end, right_end, middle_end) + 1000)
+    ax.set_xlim(min(left_start, right_start, middle_start) - 3000,
+                max(left_end, right_end, middle_end) + 3000)
     ax.set_ylim(-1, len(ranked_gems) + 2)
     ax.invert_yaxis()  # labels read top-to-bottom
     # set font size of x, y axis numbers
