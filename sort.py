@@ -3,7 +3,7 @@ from pybedtools import BedTool
 from debug import test_gem_id_difference
 
 
-def process_left(ChIA_Drop, num_fragments, left_anchor, right_anchor, region):
+def process_left(ChIA_Drop, num_fragments_min, num_fragments_max, left_anchor, right_anchor, region):
     left_anchor_start = int(left_anchor.split('\t')[1])
     left_anchor_end = int(left_anchor.split('\t')[2])
     right_anchor_start = int(right_anchor.split('\t')[1])
@@ -50,9 +50,8 @@ def process_left(ChIA_Drop, num_fragments, left_anchor, right_anchor, region):
         gem_size = gem_info['gem_size']
         gem_length = rightmost_fragment_end - leftmost_fragment_start
 
-        if (
-            len(gem_info['fragments']) >= num_fragments
-        ):
+        num_frgaments = len(gem_info['fragments'])
+        if num_frgaments >= num_fragments_min and num_frgaments <= num_fragments_max:
             fragments = [
                 pybedtools.create_interval_from_list(fragment)
                 for fragment in gem_info['fragments']
@@ -125,7 +124,7 @@ def process_left(ChIA_Drop, num_fragments, left_anchor, right_anchor, region):
 #     return valid_gems
 
 
-def process_right(ChIA_Drop, num_fragments, left_anchor, right_anchor, region):
+def process_right(ChIA_Drop, num_fragments_min, num_fragments_max, left_anchor, right_anchor, region):
     left_anchor_chrom = left_anchor.split('\t')[0]
     left_anchor_start = int(left_anchor.split('\t')[1])
     left_anchor_end = int(left_anchor.split('\t')[2])
@@ -172,9 +171,8 @@ def process_right(ChIA_Drop, num_fragments, left_anchor, right_anchor, region):
         gem_size = gem_info['gem_size']
         gem_length = rightmost_fragment_end - leftmost_fragment_start
 
-        if (
-            len(gem_info['fragments']) >= num_fragments
-        ):
+        num_frgaments = len(gem_info['fragments'])
+        if num_frgaments >= num_fragments_min and num_frgaments <= num_fragments_max:
             fragments = [
                 pybedtools.create_interval_from_list(fragment)
                 for fragment in gem_info['fragments']
@@ -188,7 +186,7 @@ def process_right(ChIA_Drop, num_fragments, left_anchor, right_anchor, region):
     return valid_gems
 
 
-def process_middle(ChIA_Drop, num_fragments, left_anchor, right_anchor, region, middle_anchor):
+def process_middle(ChIA_Drop, num_fragments_min, num_fragments_max, left_anchor, right_anchor, region, middle_anchor):
     middle_anchor_chrom, middle_anchor_start, middle_anchor_end = middle_anchor.split('\t')
 
     left_anchor_start = int(left_anchor.split('\t')[1])
@@ -250,7 +248,7 @@ def process_middle(ChIA_Drop, num_fragments, left_anchor, right_anchor, region, 
         start, end = gem_lengths[gem_id]
 
         if start > left_anchor_end and end < right_anchor_start \
-        and len(fragments) >= num_fragments:
+        and len(fragments) >= num_fragments_min and len(fragments) <= num_fragments_max:
             valid_gems.append((gem_id, fragments, end - start, start, end))
 
     # Sort GEMs by their length
@@ -373,7 +371,7 @@ def process_middle(ChIA_Drop, num_fragments, left_anchor, right_anchor, region, 
 #     return valid_gems
 
 
-def process_multiple(ChIA_Drop, num_fragments, yes_chroms, no_chroms):
+def process_multiple(ChIA_Drop, num_fragments_min, num_fragments_max, yes_chroms, no_chroms):
     # reduce search space
     chr_id = yes_chroms[0][0]
     if not len(yes_chroms):
@@ -444,7 +442,7 @@ def process_multiple(ChIA_Drop, num_fragments, yes_chroms, no_chroms):
         leftmost_fragment_end = int(fragments[0][2])
         _, end = gem_lengths[gem_id]
 
-        if len(fragments) >= num_fragments:
+        if len(fragments) >= num_fragments_min and len(fragments) <= num_fragments_max:
             valid_gems.append((gem_id, fragments, end - leftmost_fragment_start))
 
     # Sort GEMs by their length

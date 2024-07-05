@@ -57,8 +57,8 @@ def process_graphs_arg(arg):
     return graphs_flags
 
 
-def create_filename(dataset, id, command, numfrag, num_gems):
-    return f"{dataset}_{id}_{command}_{numfrag}_{num_gems}"
+def create_filename(dataset, id, command, numfrag_min, numfrag_max, num_gems):
+    return f"{dataset}_{id}_{command}_{numfrag_min}_{numfrag_max}_{num_gems}"
 
 
 def process_color_arg(colors):
