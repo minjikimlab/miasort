@@ -112,17 +112,17 @@ def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
 
     if anchor_options == "yes_complete":
         rect_left = patches.Rectangle((left_start, -1), left_end - left_start,
-                                    (len(ranked_gems) + 3), linewidth=1,
+                                    (len(ranked_gems) + 2), linewidth=1,
                                     edgecolor=colors_flags["anchors"],
                                     facecolor=colors_flags["anchors"],
                                     alpha=0.2)
         rect_right = patches.Rectangle((right_start, -1), right_end - right_start,
-                                    (len(ranked_gems) + 3), linewidth=1,
+                                    (len(ranked_gems) + 2), linewidth=1,
                                     edgecolor=colors_flags["anchors"],
                                     facecolor=colors_flags["anchors"],
                                     alpha=0.2)
         rect_middle = patches.Rectangle((middle_start, -1), middle_end - middle_start,
-                                        (len(ranked_gems) + 3), linewidth=1,
+                                        (len(ranked_gems) + 2), linewidth=1,
                                         edgecolor=colors_flags["anchors"],
                                         facecolor=colors_flags["anchors"],
                                         alpha=0.2)
@@ -130,19 +130,26 @@ def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
         ax.add_patch(rect_right)
         ax.add_patch(rect_middle)
 
+        ax.set_ylim(-1, len(ranked_gems) + 1)
+
     elif anchor_options == "yes_top":
-        rect_left = patches.Rectangle((left_start, -1), left_end - left_start,
-                                      0.5, linewidth=1, edgecolor="black",
+        rect_left = patches.Rectangle((left_start, -3), left_end - left_start,
+                                      1, linewidth=1, edgecolor="black",
                                       facecolor="black")
-        rect_right = patches.Rectangle((right_start, -1), right_end - right_start,
-                                       0.5, linewidth=1, edgecolor="black",
+        rect_right = patches.Rectangle((right_start, -3), right_end - right_start,
+                                       1, linewidth=1, edgecolor="black",
                                        facecolor="black")
-        rect_middle = patches.Rectangle((middle_start, -1), middle_end - middle_start,
-                                        0.5, linewidth=1, edgecolor="black",
+        rect_middle = patches.Rectangle((middle_start, -3), middle_end - middle_start,
+                                        1, linewidth=1, edgecolor="black",
                                         facecolor="black")
         ax.add_patch(rect_left)
         ax.add_patch(rect_right)
         ax.add_patch(rect_middle)
+
+        ax.set_ylim(-3, len(ranked_gems) + 1)
+
+    else:  # anchor_options=="no"
+        ax.set_ylim(-1, len(ranked_gems) + 1)
 
     # font size
     title_font = {'fontsize': 40, 'fontweight': 'bold'}
@@ -158,7 +165,6 @@ def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
     ax.set_yticks([i for i in range(len(ranked_gems))], labels=range(1, len(ranked_gems) + 1))
     ax.set_xlim(min(left_start, right_start, middle_start) - 3000,
                 max(left_end, right_end, middle_end) + 3000)
-    ax.set_ylim(-1, len(ranked_gems) + 2)
     ax.invert_yaxis()  # labels read top-to-bottom
     # set font size of x, y axis numbers
     ax.tick_params(axis='x', labelsize=tick_font_size)
