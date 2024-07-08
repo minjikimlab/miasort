@@ -32,7 +32,7 @@ def main(start_time, path1, path2, processing_type, graphs,
             # error check
             if anchors[1] >= anchors[2] or anchors[4] >= anchors[5] or anchors[7] >= anchors[8] \
             or anchors[2] >= anchors[4] or anchors[5] >= anchors[7]:
-                print("Error: left is larger than right, please check the input file")
+                print(f"Error for {id}: left is larger than right, please check the input file")
                 continue
 
             filter_region = f"{anchors[0]}\t{anchors[1]}\t{anchors[8]}"
@@ -135,8 +135,8 @@ if __name__ == '__main__':
                         help='Graphs to genereate when type is abc')
     parser.add_argument('--numfrag_min', type=str, default="2",
                         help='Minimum number of fragments allowed in the region')
-    parser.add_argument('--numfrag_max', type=str, default="100",
-                        help='Maximum number of fragments allowed in the region')  # TODO: revise default maximum
+    parser.add_argument('--numfrag_max', type=str, default="1000",
+                        help='Maximum number of fragments allowed in the region')
     parser.add_argument('--region', type=str,
                         help='Specific region to process when type is middle, only-middle, only-middle-1frag, or multiple')
     parser.add_argument('--operation', type=str,
