@@ -40,7 +40,7 @@ def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
         start = fragments[0].start
         end = fragments[-1].end
         line = Line2D([start, end], [count, count],
-                      color='#525252',
+                      color=colors_flags["lines"],
                       linestyle='-', linewidth=0.25)
         ax.add_line(line)
         count += 1

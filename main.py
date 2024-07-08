@@ -143,7 +143,7 @@ if __name__ == '__main__':
                         help='Operation to perform when type is multiple')
     parser.add_argument('--out_dir', type=str, default="/",
                         help='The output directory name that the output files will be put in')
-    parser.add_argument('--colors', type=str, default="red;green;grey",
+    parser.add_argument('--colors', type=str, default="red;green;#525252",
                         help='The color of the anchors, fragments and lines (in order, seperated by semicolons)')
     parser.add_argument('--anchor_options', type=str, default="no",
                         help='Three options: yes_complete (draw anchors complete on the graph), yes_top (draw anchors on the top of the graph) and no (do not draw anchors)')
