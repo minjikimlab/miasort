@@ -102,8 +102,13 @@ def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
     ax.set_xlabel("Genomic Position", fontdict=label_font)
     ax.set_ylabel("Chromatin Complexes", fontdict=label_font)
     ax.set_yticks([i for i in range(len(ranked_gems))], labels=range(1, len(ranked_gems) + 1))
-    ax.set_xlim(min(left_start, right_start, middle_start) - 3000,
-                max(left_end, right_end, middle_end) + 3000)
+
+    left_end = min(left_start, right_start, middle_start)
+    right_end = max(left_end, right_end, middle_end)
+    distance = right_end - left_end
+    margin = round(0.05 * distance)
+    ax.set_xlim(left_end - margin, right_end + margin)
+
     ax.invert_yaxis()  # labels read top-to-bottom
     # set font size of x, y axis numbers
     ax.tick_params(axis='x', labelsize=tick_font_size)
