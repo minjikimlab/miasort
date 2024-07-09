@@ -36,17 +36,29 @@ def main(start_time, path1, path2, processing_type, graphs,
                 continue
 
             filter_region = f"{anchors[0]}\t{anchors[1]}\t{anchors[8]}"
+
+            start = time.time()
             # only do this once and then save it
             region_bed = BedTool(filter_region, from_string=True)
+            print(f"1: {time.time() - start}")
+            start = time.time()
             ChIA_Drop_anchor = ChIA_Drop.intersect(region_bed, wa=True, wb=True)
-
+            print(f"2: {time.time() - start}")
+            start = time.time()
             filter = f"{anchors[0]}\t{anchors[1]}\t{anchors[5]}"
             region_bed = BedTool(filter, from_string=True)
+            print(f"3: {time.time() - start}")
+            start = time.time()
             ChIA_Drop_ab = ChIA_Drop_anchor.intersect(region_bed, wa=True, wb=True)
-
+            print(f"4: {time.time() - start}")
+            start = time.time()
             filter = f"{anchors[0]}\t{anchors[4]}\t{anchors[8]}"
             region_bed = BedTool(filter, from_string=True)
+            print(f"5: {time.time() - start}")
+            start = time.time()
             ChIA_Drop_bc = ChIA_Drop_anchor.intersect(region_bed, wa=True, wb=True)
+            print(f"6: {time.time() - start}")
+            start = time.time()
 
             if graphs_flags["AtoB"]:
                 ranked_gems = sort.process_left(ChIA_Drop_ab, num_fragments_min, num_fragments_max, A, B, filter_region)
@@ -105,6 +117,8 @@ def main(start_time, path1, path2, processing_type, graphs,
                 plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B, out_dir,
                                              colors_flags, anchor_options, id, path1, "Bcentered")
                 histogram.generate_file(ranked_gems, output_file, out_dir)
+
+            print(f"7: {time.time() - start}")
 
     else:
         if operation:
