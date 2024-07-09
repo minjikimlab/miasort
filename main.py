@@ -10,7 +10,8 @@ import os
 import shutil
 import csv
 from helper import process_multiple_regions, process_graphs_arg, \
-    create_plot_filename, process_color_arg, create_histogram_filename, create_csv_filename
+    create_plot_filename, process_color_arg, create_histogram_filename, \
+    create_csv_filename
 
 
 def main(start_time, path1, path2, processing_type, graphs,
@@ -61,24 +62,24 @@ def main(start_time, path1, path2, processing_type, graphs,
 
             start = time.time()
             # only do this once and then save it
-            region_bed = BedTool(filter_region, from_string=True)
+            region_bed = BedTool(filter_region, from_string=True).saveas()
             print(f"1: {time.time() - start}")
             start = time.time()
-            ChIA_Drop_anchor = ChIA_Drop.intersect(region_bed, wa=True, wb=True)
-            print(f"2: {time.time() - start}")
+            ChIA_Drop_anchor = ChIA_Drop.intersect(region_bed, wa=True, wb=True, sorted=True)
+            print(f"2: {time.time() - start}") 
             start = time.time()
             filter = f"{anchors[0]}\t{anchors[1]}\t{anchors[5]}"
             region_bed = BedTool(filter, from_string=True)
             print(f"3: {time.time() - start}")
             start = time.time()
-            ChIA_Drop_ab = ChIA_Drop_anchor.intersect(region_bed, wa=True, wb=True)
+            ChIA_Drop_ab = ChIA_Drop_anchor.intersect(region_bed, wa=True, wb=True, sorted=True)
             print(f"4: {time.time() - start}")
             start = time.time()
             filter = f"{anchors[0]}\t{anchors[4]}\t{anchors[8]}"
             region_bed = BedTool(filter, from_string=True)
             print(f"5: {time.time() - start}")
             start = time.time()
-            ChIA_Drop_bc = ChIA_Drop_anchor.intersect(region_bed, wa=True, wb=True)
+            ChIA_Drop_bc = ChIA_Drop_anchor.intersect(region_bed, wa=True, wb=True, sorted=True)
             print(f"6: {time.time() - start}")
             start = time.time()
 

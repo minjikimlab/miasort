@@ -9,7 +9,7 @@ def process_left(ChIA_Drop, num_fragments_min, num_fragments_max, left_anchor, r
 
     left_anchor_bed = BedTool(left_anchor, from_string=True)
 
-    intersecting_fragments = ChIA_Drop.intersect(left_anchor_bed, wa=True, wb=True)
+    intersecting_fragments = ChIA_Drop.intersect(left_anchor_bed, wa=True, wb=True, sorted=True)
     intersecting_gem_ids = set(fragment.fields[4] for fragment in intersecting_fragments)
 
     ChIA_Drop = ChIA_Drop.filter(lambda x: x.fields[4] in intersecting_gem_ids)
@@ -68,7 +68,7 @@ def process_right(ChIA_Drop, num_fragments_min, num_fragments_max, left_anchor, 
     left_anchor_end = int(left_anchor.split('\t')[2])
 
     right_anchor_bed = BedTool(right_anchor, from_string=True)
-    intersecting_fragments = ChIA_Drop.intersect(right_anchor_bed, wa=True, wb=True)
+    intersecting_fragments = ChIA_Drop.intersect(right_anchor_bed, wa=True, wb=True, sorted=True)
     intersecting_gem_ids = set(fragment.fields[4] for fragment in intersecting_fragments)
 
     ChIA_Drop = ChIA_Drop.filter(lambda x: x.fields[4] in intersecting_gem_ids)
@@ -140,10 +140,10 @@ def process_middle(ChIA_Drop, num_fragments_min, num_fragments_max, left_anchor,
     area_2 = BedTool(f"{middle_anchor_chrom}\t{middle_anchor_end}\t{right_anchor_start}",
                      from_string=True)
 
-    area_1_frags = ChIA_Drop.intersect(area_1, wa=True, wb=True)
+    area_1_frags = ChIA_Drop.intersect(area_1, wa=True, wb=True, sorted=True)
     area_1_gem_ids = set(area_1_frag[4] for area_1_frag in area_1_frags)
 
-    area_2_frags = ChIA_Drop.intersect(area_2, wa=True, wb=True)
+    area_2_frags = ChIA_Drop.intersect(area_2, wa=True, wb=True, sorted=True)
     area_2_gem_ids = set(area_2_frag[4] for area_2_frag in area_2_frags)
 
     in_area_gem_ids = area_1_gem_ids.intersection(area_2_gem_ids)
@@ -228,7 +228,8 @@ def process_multiple(ChIA_Drop, num_fragments_min, num_fragments_max, yes_chroms
     frags = ChIA_Drop.intersect(
         BedTool(f"{chr_id}\t{left}\t{right}", from_string=True),
         wa=True,
-        wb=True
+        wb=True,
+        sorted=True
     )
     valid_gem_ids = set(frag[4] for frag in frags)
 
@@ -238,7 +239,8 @@ def process_multiple(ChIA_Drop, num_fragments_min, num_fragments_max, yes_chroms
         frags = ChIA_Drop.intersect(
             BedTool(f"{chr_id}\t{left}\t{right}", from_string=True),
             wa=True,
-            wb=True
+            wb=True,
+            sorted=True
         )
         candidate_gem_ids = set(frag[4] for frag in frags)
         valid_gem_ids.intersection_update(candidate_gem_ids)
@@ -249,7 +251,8 @@ def process_multiple(ChIA_Drop, num_fragments_min, num_fragments_max, yes_chroms
         frags = ChIA_Drop.intersect(
             BedTool(f"{chr_id}\t{left}\t{right}", from_string=True),
             wa=True,
-            wb=True
+            wb=True,
+            sorted=True
         )
         candidate_gem_ids = set(frag[4] for frag in frags)
         valid_gem_ids.difference_update(candidate_gem_ids)

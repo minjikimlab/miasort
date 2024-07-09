@@ -14,3 +14,8 @@ cr1491_SE_Left.bed
 cr1491_SE_Right.bed
 greatlakes/
 *test_folder*
+*hts*
+*bgzip*
+bin/annot-tsv
+tabix
+share/
