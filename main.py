@@ -5,8 +5,12 @@ import time
 import plot
 import histogram
 import sort
+import records
+import os
+import shutil
+import csv
 from helper import process_multiple_regions, process_graphs_arg, \
-    create_filename, process_color_arg
+    create_plot_filename, process_color_arg, create_histogram_filename, create_csv_filename
 
 
 def main(start_time, path1, path2, processing_type, graphs,
@@ -18,9 +22,28 @@ def main(start_time, path1, path2, processing_type, graphs,
 
     colors_flags = process_color_arg(colors)
 
+    # delete the out_dir folder if it exists
+    if out_dir != "/":
+        if os.path.exists(out_dir):
+            shutil.rmtree(out_dir)
+
     if processing_type != "multiple":  # abc processing
         Region = BedTool(path2)
         graphs_flags = process_graphs_arg(graphs)
+
+        csv_file = create_csv_filename(dataset, path2)
+        if out_dir != "/":
+            if not os.path.exists(out_dir):
+                # create directory
+                os.makedirs(out_dir)
+            path = os.path.join(out_dir, csv_file)
+        else:
+            path = csv_file
+        # write the header of the comp records file
+        with open(path, 'a', newline='') as file:
+            writer = csv.writer(file)
+            field = ["Region ID", "A", "B", "C", "Region", "Sort Scheme", "Number of Complexes"]
+            writer.writerow(field)
 
         for anchors in Region:
             anchors = anchors.fields
@@ -62,61 +85,69 @@ def main(start_time, path1, path2, processing_type, graphs,
 
             if graphs_flags["AtoB"]:
                 ranked_gems = sort.process_left(ChIA_Drop_ab, num_fragments_min, num_fragments_max, A, B, filter_region)
-                output_file = create_filename(dataset, id, "AtoB", num_fragments_min, num_fragments_max, len(ranked_gems))
+                output_file = create_plot_filename(dataset, id, "AtoB", num_fragments_min, num_fragments_max, len(ranked_gems))
                 plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, B, C, out_dir,
                                              colors_flags, anchor_options, id, path1, "AtoB")
                 histogram.generate_file(ranked_gems, output_file, out_dir)
+                records.generate_file(id, A, B, C, "AtoB", len(ranked_gems), csv_file, out_dir)
 
             if graphs_flags["AtoC"]:
                 ranked_gems = sort.process_left(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region)
-                output_file = create_filename(dataset, id, "AtoC", num_fragments_min, num_fragments_max, len(ranked_gems))
+                output_file = create_plot_filename(dataset, id, "AtoC", num_fragments_min, num_fragments_max, len(ranked_gems))
                 plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B, out_dir,
                                              colors_flags, anchor_options, id, path1, "AtoC")
                 histogram.generate_file(ranked_gems, output_file, out_dir)
+                records.generate_file(id, A, B, C, "AtoC", len(ranked_gems), csv_file, out_dir)
 
             if graphs_flags["BtoA"]:
                 ranked_gems = sort.process_right(ChIA_Drop_ab, num_fragments_min, num_fragments_max, A, B, filter_region)
-                output_file = create_filename(dataset, id, "BtoA", num_fragments_min, num_fragments_max, len(ranked_gems))
+                output_file = create_plot_filename(dataset, id, "BtoA", num_fragments_min, num_fragments_max, len(ranked_gems))
                 plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, B, C, out_dir,
                                              colors_flags, anchor_options, id, path1, "BtoA")
                 histogram.generate_file(ranked_gems, output_file, out_dir)
+                records.generate_file(id, A, B, C, "BtoA", len(ranked_gems), csv_file, out_dir)
 
             if graphs_flags["BtoC"]:
                 ranked_gems = sort.process_left(ChIA_Drop_bc, num_fragments_min, num_fragments_max, B, C, filter_region)
-                output_file = create_filename(dataset, id, "BtoC", num_fragments_min, num_fragments_max, len(ranked_gems))
+                output_file = create_plot_filename(dataset, id, "BtoC", num_fragments_min, num_fragments_max, len(ranked_gems))
                 plot.plot_ranked_gems_scaled(ranked_gems, output_file, B, C, A, out_dir,
                                              colors_flags, anchor_options, id, path1, "BtoC")
                 histogram.generate_file(ranked_gems, output_file, out_dir)
+                records.generate_file(id, A, B, C, "BtoC", len(ranked_gems), csv_file, out_dir)
 
             if graphs_flags["CtoA"]:
                 ranked_gems = sort.process_right(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region)
-                output_file = create_filename(dataset, id, "CtoA", num_fragments_min, num_fragments_max, len(ranked_gems))
+                output_file = create_plot_filename(dataset, id, "CtoA", num_fragments_min, num_fragments_max, len(ranked_gems))
                 plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B, out_dir,
                                              colors_flags, anchor_options, id, path1, "CtoA")
                 histogram.generate_file(ranked_gems, output_file, out_dir)
+                records.generate_file(id, A, B, C, "CtoA", len(ranked_gems), csv_file, out_dir)
 
             if graphs_flags["CtoB"]:
                 ranked_gems = sort.process_right(ChIA_Drop_bc, num_fragments_min, num_fragments_max, B, C, filter_region)
-                output_file = create_filename(dataset, id, "CtoB", num_fragments_min, num_fragments_max, len(ranked_gems))
+                output_file = create_plot_filename(dataset, id, "CtoB", num_fragments_min, num_fragments_max, len(ranked_gems))
                 plot.plot_ranked_gems_scaled(ranked_gems, output_file, B, C, A, out_dir,
                                              colors_flags, anchor_options, id, path1, "CtoB")
                 histogram.generate_file(ranked_gems, output_file, out_dir)
+                records.generate_file(id, A, B, C, "CtoB", len(ranked_gems), csv_file, out_dir)
 
             if graphs_flags["AandC"]:
                 region = f"{anchors[0]}:{anchors[1]}-{anchors[2]};{anchors[6]}:{anchors[7]}-{anchors[8]}"
                 yes_chroms, no_chroms = process_multiple_regions(region, "yes;yes")
                 ranked_gems = sort.process_multiple(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
-                output_file = create_filename(dataset, id, "AandC", num_fragments_min, num_fragments_max, len(ranked_gems))
+                output_file = create_plot_filename(dataset, id, "AandC", num_fragments_min, num_fragments_max, len(ranked_gems))
                 plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B, out_dir,
                                              colors_flags, anchor_options, id, path1, "AandC")
                 histogram.generate_file(ranked_gems, output_file, out_dir)
+                records.generate_file(id, A, B, C, "AandC", len(ranked_gems), csv_file, out_dir)
 
             if graphs_flags["Bcentered"]:
                 ranked_gems = sort.process_middle(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region, B)
-                output_file = create_filename(dataset, id, "Bcentered", num_fragments_min, num_fragments_max, len(ranked_gems))
+                output_file = create_plot_filename(dataset, id, "Bcentered", num_fragments_min, num_fragments_max, len(ranked_gems))
                 plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B, out_dir,
                                              colors_flags, anchor_options, id, path1, "Bcentered")
                 histogram.generate_file(ranked_gems, output_file, out_dir)
+                records.generate_file(id, A, B, C, "Bcentered", len(ranked_gems), csv_file, out_dir)
 
             print(f"7: {time.time() - start}")
 

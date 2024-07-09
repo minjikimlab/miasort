@@ -57,8 +57,19 @@ def process_graphs_arg(arg):
     return graphs_flags
 
 
-def create_filename(dataset, id, command, numfrag_min, numfrag_max, num_gems):
+def create_plot_filename(dataset, id, command, numfrag_min, numfrag_max, num_gems):
+    """Generate the filename for the plot png image."""
     return f"{dataset}_{id}_{command}_{numfrag_min}_{numfrag_max}_{num_gems}"
+
+
+def create_csv_filename(dataset, path2):
+    """Generate the filename for the csv file."""
+    return f"{dataset}_{path2}_comp_records.csv"
+
+
+def create_histogram_filename(dataset, path2):
+    """Generate the filename for the histogram text file."""
+    return f"{dataset}_{path2}_histogram.txt"
 
 
 def process_color_arg(colors):
