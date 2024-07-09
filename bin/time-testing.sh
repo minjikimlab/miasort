@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# test runtime on a large BED file
+
 # Stop on errors
 set -Eeuo pipefail
 set -x
