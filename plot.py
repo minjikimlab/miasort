@@ -11,11 +11,7 @@ def plot_ranked_gems_scaled(ranked_gems, output_file, left_anchor,
                         anchor_options, id, path1, command):
     directory_str = output_file
     if out_dir != "/":
-        # create directory if it doesn't exist
         directory_str = f"./{out_dir}/{output_file}"
-        directory = os.path.dirname(directory_str)
-        if not os.path.exists(directory):
-            os.makedirs(directory)
 
     fig, ax = plt.subplots(figsize=(
         50,  # TODO: dynamically adjust

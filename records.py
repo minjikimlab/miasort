@@ -23,4 +23,3 @@ def generate_file(id, A, B, C, command, num_complexes, csv_file, out_dir):
         writer = csv.writer(file)
         field = [id, anchor_a, anchor_b, anchor_c, region, command, num_complexes]
         writer.writerow(field)
-
