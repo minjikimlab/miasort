@@ -21,14 +21,21 @@ def main(start_time, path1, path2, processing_type, graphs,
          dataset, out_dir, colors, anchor_options):
     pybedtools.helpers.cleanup()
 
-    ChIA_Drop = BedTool(path1)
-
-    start = time.time()
-    ChIA_Drop_df = pandas.read_table(
-        ChIA_Drop.fn,
+    chunksize = 10**6  # Adjust the chunk size as needed
+    reader = pandas.read_table(
+        path1,
         names=['chrom', 'start', 'stop', 'num_frag', 'name', 'unused'],
-        engine="c"  # alternatively: pyarrow, python
+        engine="c",  # alternatively: pyarrow, python
+        iterator=True,
+        chunksize=chunksize
     )
+
+    chunks = []
+    start = time.time()
+    for chunk in reader:
+        chunks.append(chunk)
+
+    ChIA_Drop_df = pandas.concat(chunks, ignore_index=True)
     print(f"read dataset as pandas df: {time.time() - start}")
 
     colors_flags = process_color_arg(colors)
