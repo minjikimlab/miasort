@@ -1,5 +1,7 @@
 import pybedtools
 from pybedtools import BedTool
+import pyranges as pr
+import pandas
 import argparse
 import time
 import plot
@@ -20,6 +22,14 @@ def main(start_time, path1, path2, processing_type, graphs,
     pybedtools.helpers.cleanup()
 
     ChIA_Drop = BedTool(path1)
+
+    start = time.time()
+    ChIA_Drop_df = pandas.read_table(
+        ChIA_Drop.fn,
+        names=['chrom', 'start', 'stop', 'num_frag', 'name', 'unused'],
+        engine="c"  # alternatively: pyarrow, python
+    )
+    print(f"read dataset as pandas df: {time.time() - start}")
 
     colors_flags = process_color_arg(colors)
 
@@ -60,28 +70,27 @@ def main(start_time, path1, path2, processing_type, graphs,
             C = f"{anchors[6]}\t{anchors[7]}\t{anchors[8]}"
             filter_region = f"{anchors[0]}\t{anchors[1]}\t{anchors[8]}"
 
+            filter_dict = {0:[anchors[0]], 1:[anchors[1]], 2:[anchors[8]],
+                3:['1'], 4:['filter_region'], 5:['E']}
+            filter_df = pandas.DataFrame(filter_dict)
+            cols = "Chromosome Start End NumFrag Name Unused".split()
+            # Add column names to the dfs for PyRanges to know
+            ChIA_Drop_df.columns = cols
+            filter_df.columns = cols
+
             start = time.time()
-            # only do this once and then save it
-            region_bed = BedTool(filter_region, from_string=True).saveas()
-            print(f"1: {time.time() - start}")
-            start = time.time()
-            ChIA_Drop_anchor = ChIA_Drop.intersect(region_bed, wa=True, wb=True, sorted=True)
-            print(f"2: {time.time() - start}") 
-            start = time.time()
+            # create PyRanges-objects from the dfs
+            ChIA_Drop_pr, filter_pr = pr.PyRanges(ChIA_Drop_df), pr.PyRanges(filter_df)
+            ChIA_Drop_anchor = BedTool.from_dataframe(ChIA_Drop_pr.intersect(filter_pr, nb_cpu=1).df)  # revise num_cpu
+            print(f"intersect: {time.time() - start}")
+
             filter = f"{anchors[0]}\t{anchors[1]}\t{anchors[5]}"
             region_bed = BedTool(filter, from_string=True)
-            print(f"3: {time.time() - start}")
-            start = time.time()
-            ChIA_Drop_ab = ChIA_Drop_anchor.intersect(region_bed, wa=True, wb=True, sorted=True)
-            print(f"4: {time.time() - start}")
-            start = time.time()
+            ChIA_Drop_ab = ChIA_Drop_anchor.intersect(region_bed, wa=True, wb=True)
+
             filter = f"{anchors[0]}\t{anchors[4]}\t{anchors[8]}"
             region_bed = BedTool(filter, from_string=True)
-            print(f"5: {time.time() - start}")
-            start = time.time()
-            ChIA_Drop_bc = ChIA_Drop_anchor.intersect(region_bed, wa=True, wb=True, sorted=True)
-            print(f"6: {time.time() - start}")
-            start = time.time()
+            ChIA_Drop_bc = ChIA_Drop_anchor.intersect(region_bed, wa=True, wb=True)
 
             if graphs_flags["AtoB"]:
                 start = time.time()
