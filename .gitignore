@@ -19,3 +19,10 @@ greatlakes/
 bin/annot-tsv
 tabix
 share/
+*.pairs*
+*.clusters*
+*.csv*
+pairs2regions
+*LHG0035N_0035V_0045V*
+hg38.chrom.sizes
+.vscode/
