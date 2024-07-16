@@ -11,6 +11,7 @@ import records
 import os
 import shutil
 import csv
+import dask.dataframe as dd
 from helper import process_multiple_regions, process_graphs_arg, \
     create_plot_filename, process_color_arg, create_histogram_filename, \
     create_csv_filename
@@ -25,14 +26,13 @@ def main(start_time, path1, path2, processing_type, graphs,
 
     print("Start reading input file.")
 
-    ChIA_Drop_df = pandas.read_csv(
+    ChIA_Drop_df = dd.read_csv(
         ChIA_Drop.fn,
-        sep='\t',
         names=['chrom', 'start', 'stop', 'num_frag', 'name', 'unused'],
-        engine='c',  # Alternatively: pyarrow, python
-        dtype={'chrom': str, 'start': int, 'stop': int, 'num_frag': int, 'name': str, 'unused': str},
-        low_memory=True
+        blocksize='64MB'  # Adjust block size as needed
     )
+
+    ChIA_Drop_df = ChIA_Drop_df.compute()  # Convert Dask dataframe to Pandas dataframe
 
     print(f"read dataset as pandas df: {time.time() - start}")
 
