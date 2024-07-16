@@ -23,4 +23,4 @@ end_time=$(date +%s)
 duration=$((end_time - start_time))
 
 # Display the duration
-echo "Total time for running ComplexSorter: $duration seconds"
+echo "Total time for running ComplexSortexr: $duration seconds"
