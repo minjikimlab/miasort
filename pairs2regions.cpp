@@ -7,6 +7,7 @@
 #include <vector>
 #include <zlib.h>
 
+
 // Function to read chromosome sizes from a file
 std::map<std::string, int> readChromSizes(const std::string& filepath) {
     std::map<std::string, int> chromSizes;
@@ -29,8 +30,11 @@ std::map<std::string, int> readChromSizes(const std::string& filepath) {
 
 
 // Function to read pairs and write regions
-void readPairsAndWriteRegions(const std::string& directory, const std::string& pairsFile, const std::map<std::string, int>& chromSizes, const std::string& libid, int extbp, int selfbp) {
-    std::string outputFile = directory + "/" + libid + ".ext" + std::to_string(extbp) + "bp.g" + std::to_string(selfbp) + "bp.region";
+void readPairsAndWriteRegions(const std::string& directory, const std::string& pairsFile,
+                             const std::map<std::string, int>& chromSizes,
+                             const std::string& libid, int extbp, int selfbp) {
+    std::string outputFile = directory + "/" + libid + ".ext" + std::to_string(extbp) +
+                            "bp.g" + std::to_string(selfbp) + "bp.region";
     std::ofstream fout(outputFile, std::ios::app);
     if (!fout.is_open()) {
         throw std::runtime_error("Unable to open output file at " + outputFile);
@@ -76,9 +80,11 @@ void readPairsAndWriteRegions(const std::string& directory, const std::string& p
     fout.close();
 }
 
+
 int main(int argc, char* argv[]) {
     if (argc < 4 || argc > 6) {
-        std::cerr << "Usage: " << argv[0] << " <directory> <pairs_file> <chrom_sizes_file> [<extbp> [<selfbp>]]" << std::endl;
+        std::cerr << "Usage: " << argv[0] <<
+        " <directory> <pairs_file> <chrom_sizes_file> [<extbp> [<selfbp>]]" << std::endl;
         return 1;
     }
 
@@ -90,7 +96,8 @@ int main(int argc, char* argv[]) {
     int extbp = (argc > 4) ? std::stoi(argv[4]) : 250;
     int selfbp = (argc > 5) ? std::stoi(argv[5]) : 8000;
 
-    std::string libid = pairsFile.substr(pairsFile.find_last_of("/") + 1, pairsFile.find(".bsorted.pairs.gz") - pairsFile.find_last_of("/") - 1);
+    std::string libid = pairsFile.substr(pairsFile.find_last_of("/") + 1,
+                                        pairsFile.find(".bsorted.pairs.gz") - pairsFile.find_last_of("/") - 1);
 
     try {
         std::map<std::string, int> chromSizes = readChromSizes(chromSizesFile);
