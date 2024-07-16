@@ -25,10 +25,13 @@ def main(start_time, path1, path2, processing_type, graphs,
 
     print("Start reading input file.")
 
-    ChIA_Drop_df = pandas.read_table(
+    ChIA_Drop_df = pandas.read_csv(
         ChIA_Drop.fn,
+        sep='\t',
         names=['chrom', 'start', 'stop', 'num_frag', 'name', 'unused'],
-        engine="c"  # alternatively: pyarrow, python
+        engine='c',  # Alternatively: pyarrow, python
+        dtype={'chrom': str, 'start': int, 'stop': int, 'num_frag': int, 'name': str, 'unused': str},
+        low_memory=True
     )
 
     print(f"read dataset as pandas df: {time.time() - start}")
