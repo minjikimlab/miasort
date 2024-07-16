@@ -2,6 +2,6 @@
 
 **7m46.145s**
 
-```
+```Shell
 time ./pairs2regions . ./LHG0035N_0035V_0045V.bsorted.pairs.gz ./hg38.chrom.sizes
 ```

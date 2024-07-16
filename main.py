@@ -21,7 +21,7 @@ def main(start_time, path1, path2, processing_type, graphs,
          dataset, out_dir, colors, anchor_options):
     pybedtools.helpers.cleanup()
 
-    chunksize = 10**6  # Adjust the chunk size as needed
+    chunksize = 10**3  # Adjust the chunk size as needed
     reader = pandas.read_table(
         path1,
         names=['chrom', 'start', 'stop', 'num_frag', 'name', 'unused'],
