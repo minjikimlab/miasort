@@ -11,7 +11,7 @@ import records
 import os
 import shutil
 import csv
-import dask.dataframe as dd
+# import dask.dataframe as dd
 from helper import process_multiple_regions, process_graphs_arg, \
     create_plot_filename, process_color_arg, create_histogram_filename, \
     create_csv_filename
