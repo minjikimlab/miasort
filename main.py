@@ -25,16 +25,21 @@ def main(start_time, path1, path2, processing_type, graphs,
     ChIA_Drop = BedTool(path1)
 
     print("Start reading input file.")
-
-    ChIA_Drop_df = dd.read_csv(
-        ChIA_Drop.fn,
+    start = time.time()
+    chunksize = 10**6  # Adjust the chunk size as needed
+    reader = pandas.read_table(
+        path1,
         names=['chrom', 'start', 'stop', 'num_frag', 'name', 'unused'],
-        blocksize='64MB'  # Adjust block size as needed
+        engine="c",  # alternatively: pyarrow, python
+        iterator=True,
+        chunksize=chunksize
     )
-
-    ChIA_Drop_df = ChIA_Drop_df.compute()  # Convert Dask dataframe to Pandas dataframe
-
-    print(f"read dataset as pandas df: {time.time() - start}")
+    chunks = []
+    start = time.time()
+    for chunk in reader:
+        chunks.append(chunk)
+    ChIA_Drop_df = pandas.concat(chunks, ignore_index=True)
+    print(f"Finish storing input data Pandas DF w/ {time.time() - start} secs")
 
     colors_flags = process_color_arg(colors)
 
@@ -87,7 +92,7 @@ def main(start_time, path1, path2, processing_type, graphs,
             # create PyRanges-objects from the dfs
             ChIA_Drop_pr, filter_pr = pr.PyRanges(ChIA_Drop_df), pr.PyRanges(filter_df)
             ChIA_Drop_anchor = BedTool.from_dataframe(ChIA_Drop_pr.intersect(filter_pr, nb_cpu=1).df)  # revise num_cpu
-            print(f"intersect: {time.time() - start}")
+            print(f"intersect() finishes w/ {time.time() - start} secs")
 
             filter = f"{anchors[0]}\t{anchors[1]}\t{anchors[5]}"
             region_bed = BedTool(filter, from_string=True)
