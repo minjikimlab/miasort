@@ -3,7 +3,7 @@
 </div>
 
 ## Installation
-```
+```Shell
 chmod +x ./bin/install.sh
 ./bin/install.sh
 source env/bin/activate
@@ -11,8 +11,17 @@ source env/bin/activate
 
 Bedtools should also be installed. To do so, follow instructions on https://bedtools.readthedocs.io/en/latest/content/installation.html#.
 One of the options is:
-```
+```Shell
 $ mamba install -c conda-forge bedtools
+```
+
+## Example Command for Running the Tool
+
+```Shell
+python main.py \
+--path1 GM12878-cohesin-pooled_comp_FDR_0.1_ALL_motifext4kbboth.region.PEanno \
+--path2 test-july-2.bedte --type abc --graphs BtoA --numfrag_min 2 \
+--anchor_options no --out_dir test_folder
 ```
 
 ## Input Files
