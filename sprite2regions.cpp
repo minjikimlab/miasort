@@ -73,14 +73,13 @@ auto ThreadPool::enqueue(F&& f, Args&&... args) -> std::future<typename std::res
     return res;
 }
 
-
-// Function to read chromosome sizes from a file
 std::map<std::string, int> readChromSizes(const std::string& filepath) {
     std::map<std::string, int> chromSizes;
     std::ifstream file(filepath);
     if (!file.is_open()) {
         throw std::runtime_error("Unable to open chromosome sizes file at " + filepath);
     }
+
     std::string line;
     while (std::getline(file, line)) {
         std::istringstream ss(line);
@@ -94,32 +93,32 @@ std::map<std::string, int> readChromSizes(const std::string& filepath) {
 }
 
 
-// Function to process a SPRITE cluster line and return the results
-std::vector<std::string> processSpriteCluster(const std::string& line, const std::map<std::string, int>& chromSizes, int extbp, int& cluster_id) {
+std::vector<std::string> processSpriteBatch(const std::vector<std::string>& lines, const std::map<std::string, int>& chromSizes, int extbp, int& cluster_id) {
     std::vector<std::string> result;
-    if (!line.empty() && line[0] != '#') {
-        std::istringstream ss(line);
-        std::string barcodes, chrom;
-        int pos;
-        std::vector<std::string> fields;
-        while (std::getline(ss, barcodes, '\t')) {
-            fields.push_back(barcodes);
+    for (const auto& line : lines) {
+        if (!line.empty() && line[0] != '#') {
+            std::istringstream ss(line);
+            std::string barcodes, chrom;
+            int pos;
+            std::vector<std::string> fields;
+            while (std::getline(ss, barcodes, '\t')) {
+                fields.push_back(barcodes);
+            }
+            for (size_t j = 1; j < fields.size(); ++j) {
+                std::istringstream loc(fields[j]);
+                loc >> chrom >> pos;
+                int start = std::max(0, pos - extbp);
+                int end = std::min(pos + extbp, chromSizes.at(chrom));
+                std::string region_id = "SPRITE-" + std::to_string(cluster_id) + "-R" + std::to_string(j);
+                result.push_back(chrom + "\t" + std::to_string(start) + "\t" + std::to_string(end) + "\t" + region_id);
+            }
+            ++cluster_id;
         }
-        for (size_t j = 1; j < fields.size(); ++j) {
-            std::istringstream loc(fields[j]);
-            loc >> chrom >> pos;
-            int start = std::max(0, pos - extbp);
-            int end = std::min(pos + extbp, chromSizes.at(chrom));
-            std::string region_id = "SPRITE-" + std::to_string(cluster_id) + "-R" + std::to_string(j);
-            result.push_back(chrom + "\t" + std::to_string(start) + "\t" + std::to_string(end) + "\t" + region_id);
-        }
-        ++cluster_id;
     }
     return result;
 }
 
 
-// Function to read SPRITE clusters and write regions using a thread pool
 void readSpriteAndWriteRegions(const std::string& directory, const std::string& spriteFile, const std::map<std::string, int>& chromSizes, int extbp) {
     std::string outputFile = directory + "/SPRITE_regions.ext" + std::to_string(extbp) + "bp.region";
     std::ofstream fout(outputFile);
@@ -138,11 +137,23 @@ void readSpriteAndWriteRegions(const std::string& directory, const std::string& 
     std::mutex mtx;
     ThreadPool pool(std::thread::hardware_concurrency());
     std::vector<std::future<std::vector<std::string>>> futures;
+    std::vector<std::string> batch;
+    const size_t BATCH_SIZE = 100000;  // hyperparam, TODO:
 
     while (gzgets(gz, buffer, sizeof(buffer)) != Z_NULL) {
         line = buffer;
-        futures.emplace_back(pool.enqueue([&chromSizes, extbp, line, &cluster_id]() mutable {
-            return processSpriteCluster(line, chromSizes, extbp, cluster_id);
+        batch.push_back(line);
+        if (batch.size() >= BATCH_SIZE) {
+            futures.emplace_back(pool.enqueue([&chromSizes, extbp, batch, &cluster_id]() mutable {
+                return processSpriteBatch(batch, chromSizes, extbp, cluster_id);
+            }));
+            batch.clear();
+        }
+    }
+
+    if (!batch.empty()) {
+        futures.emplace_back(pool.enqueue([&chromSizes, extbp, batch, &cluster_id]() mutable {
+            return processSpriteBatch(batch, chromSizes, extbp, cluster_id);
         }));
     }
 
