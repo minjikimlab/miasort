@@ -3,9 +3,87 @@
 #include <sstream>
 #include <string>
 #include <map>
-#include <algorithm>
 #include <vector>
 #include <zlib.h>
+#include <thread>
+#include <mutex>
+#include <queue>
+#include <future>
+#include <stdexcept>
+#include <condition_variable>
+
+class ThreadPool {
+public:
+    ThreadPool(size_t threads);
+    ~ThreadPool();
+
+    template<class F, class... Args>
+    auto enqueue(F&& f, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type>;
+
+private:
+    // Workers
+    std::vector<std::thread> workers;
+    // Task queue
+    std::queue<std::function<void()>> tasks;
+
+    // Synchronization
+    std::mutex queue_mutex;
+    std::condition_variable condition;
+    bool stop;
+};
+
+
+inline ThreadPool::ThreadPool(size_t threads) : stop(false) {
+    for (size_t i = 0; i < threads; ++i)
+        workers.emplace_back([this] {
+            for (;;) {
+                std::function<void()> task;
+
+                {
+                    std::unique_lock<std::mutex> lock(this->queue_mutex);
+                    this->condition.wait(lock, [this] { return this->stop || !this->tasks.empty(); });
+                    if (this->stop && this->tasks.empty())
+                        return;
+                    task = std::move(this->tasks.front());
+                    this->tasks.pop();
+                }
+
+                task();
+            }
+        });
+}
+
+
+inline ThreadPool::~ThreadPool() {
+    {
+        std::unique_lock<std::mutex> lock(queue_mutex);
+        stop = true;
+    }
+    condition.notify_all();
+    for (std::thread &worker : workers)
+        worker.join();
+}
+
+
+template<class F, class... Args>
+auto ThreadPool::enqueue(F&& f, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type> {
+    using return_type = typename std::result_of<F(Args...)>::type;
+
+    auto task = std::make_shared<std::packaged_task<return_type()>>(std::bind(std::forward<F>(f), std::forward<Args>(args)...));
+
+    std::future<return_type> res = task->get_future();
+    {
+        std::unique_lock<std::mutex> lock(queue_mutex);
+
+        // Don't allow enqueueing after stopping the pool
+        if (stop)
+            throw std::runtime_error("enqueue on stopped ThreadPool");
+
+        tasks.emplace([task]() { (*task)(); });
+    }
+    condition.notify_one();
+    return res;
+}
 
 
 // Function to read chromosome sizes from a file
@@ -29,13 +107,45 @@ std::map<std::string, int> readChromSizes(const std::string& filepath) {
 }
 
 
-// Function to read pairs and write regions
+// Function to process a line and return the results
+std::vector<std::string> processLine(const std::string& line, const std::map<std::string, int>& chromSizes, const std::string& libid, int extbp, int selfbp, int& i) {
+    std::vector<std::string> result;
+    if (line[0] != '#') {
+        std::istringstream ss(line);
+        std::vector<std::string> fields;
+        std::string field;
+        while (std::getline(ss, field, '\t')) {
+            fields.push_back(field);
+        }
+
+        std::string chrom1 = fields[1];
+        int pos1 = std::stoi(fields[2]);
+        std::string chrom2 = fields[3];
+        int pos2 = std::stoi(fields[4]);
+
+        if (chrom1 == chrom2 && chrom1 != "chrM" && pos2 - pos1 > selfbp) {
+            int start1 = std::max(0, pos1 - extbp);
+            int end1 = std::min(pos1 + extbp, chromSizes.at(chrom1));
+            int start2 = std::max(0, pos2 - extbp);
+            int end2 = std::min(pos2 + extbp, chromSizes.at(chrom1));
+            std::string gemid = libid + "-100-" + std::to_string(i) + "-HEA-7-4-sub-1-1";
+            ++i;
+
+            result.push_back(chrom1 + "\t" + std::to_string(start1) + "\t" + std::to_string(end1) + "\t2\t" + gemid);
+            result.push_back(chrom1 + "\t" + std::to_string(start2) + "\t" + std::to_string(end2) + "\t2\t" + gemid);
+        }
+    }
+    return result;
+}
+
+
+// Function to read pairs and write regions using a thread pool
 void readPairsAndWriteRegions(const std::string& directory, const std::string& pairsFile,
                              const std::map<std::string, int>& chromSizes,
                              const std::string& libid, int extbp, int selfbp) {
     std::string outputFile = directory + "/" + libid + ".ext" + std::to_string(extbp) +
                             "bp.g" + std::to_string(selfbp) + "bp.region";
-    std::ofstream fout(outputFile, std::ios::app);
+    std::ofstream fout(outputFile);
     if (!fout.is_open()) {
         throw std::runtime_error("Unable to open output file at " + outputFile);
     }
@@ -48,34 +158,27 @@ void readPairsAndWriteRegions(const std::string& directory, const std::string& p
     char buffer[8192];
     std::string line;
     int i = 100000000;
+    std::mutex mtx;
+    ThreadPool pool(std::thread::hardware_concurrency());
+
+    std::vector<std::future<std::vector<std::string>>> futures;
+
     while (gzgets(gz, buffer, sizeof(buffer)) != Z_NULL) {
         line = buffer;
-        if (line[0] != '#') {
-            std::istringstream ss(line);
-            std::vector<std::string> fields;
-            std::string field;
-            while (std::getline(ss, field, '\t')) {
-                fields.push_back(field);
-            }
+        // Enqueue a task to process the line
+        futures.emplace_back(pool.enqueue([&chromSizes, &libid, extbp, selfbp, line, &i]() mutable {
+            return processLine(line, chromSizes, libid, extbp, selfbp, i);
+        }));
+    }
 
-            std::string chrom1 = fields[1];
-            int pos1 = std::stoi(fields[2]);
-            std::string chrom2 = fields[3];
-            int pos2 = std::stoi(fields[4]);
-
-            if (chrom1 == chrom2 && chrom1 != "chrM" && pos2 - pos1 > selfbp) {
-                int start1 = std::max(0, pos1 - extbp);
-                int end1 = std::min(pos1 + extbp, chromSizes.at(chrom1));
-                int start2 = std::max(0, pos2 - extbp);
-                int end2 = std::min(pos2 + extbp, chromSizes.at(chrom1));
-                std::string gemid = libid + "-100-" + std::to_string(i) + "-HEA-7-4-sub-1-1";
-
-                fout << chrom1 << "\t" << start1 << "\t" << end1 << "\t2\t" << gemid << "\n";
-                fout << chrom1 << "\t" << start2 << "\t" << end2 << "\t2\t" << gemid << "\n";
-                ++i;
-            }
+    for (auto& fut : futures) {
+        std::vector<std::string> results = fut.get();
+        std::lock_guard<std::mutex> lock(mtx);
+        for (const auto& res : results) {
+            fout << res << "\n";
         }
     }
+
     gzclose(gz);
     fout.close();
 }
