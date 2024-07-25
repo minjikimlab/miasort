@@ -26,3 +26,5 @@ pairs2regions
 *LHG0035N_0035V_0045V*
 hg38.chrom.sizes
 .vscode/
+SPRITE_regions.ext250bp.region
+sprite2regions
