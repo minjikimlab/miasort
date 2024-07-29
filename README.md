@@ -55,6 +55,10 @@ Column 3 (0-indexed), in this case `2`, indicates **the number of fragments in o
 
 Ignore the 6th column.
 
+## Acknowledgement
+
+Part of the code for the `intersect` functionality is adapted from [coitrees](https://github.com/dcjones/coitrees?tab=MIT-1-ov-file) © 2019 Daniel C. Jones (dcjones@cs.washington.edu)
+
 ## License
 Shield: [![CC BY-NC-ND 4.0][cc-by-nc-nd-shield]][cc-by-nc-nd]
 

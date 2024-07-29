@@ -28,3 +28,5 @@ hg38.chrom.sizes
 .vscode/
 SPRITE_regions.ext250bp.region
 sprite2regions
+target/
+Cargo.lock
