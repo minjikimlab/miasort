@@ -8,7 +8,7 @@ set -x
 start_time=$(date +%s)
 
 time cargo run --release --example bed-intersect -- \
-GM12878-cohesin-pooled_comp_FDR_0.1_ALL_motifext4kbboth.region.PEanno test-july-2.bedte > coitrees_output.bed
+4DNFIACOTIGL.pairs.gz.ext250bp.g8000bp.region test-july-2.bedte > coitrees_output.bed
 
 # Record the end time
 end_time=$(date +%s)

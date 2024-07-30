@@ -111,10 +111,17 @@ std::vector<std::string> processPairsBatch(const std::vector<std::string>& lines
             int pos2 = std::stoi(fields[4]);
 
             if (chrom1 == chrom2 && chrom1 != "chrM" && pos2 - pos1 > selfbp) {
+                auto it = chromSizes.find(chrom1);
+                if (it == chromSizes.end()) {
+                    // Key not found, continue with the next line
+                    continue;
+                }
+                int chromSize = it->second;
+
                 int start1 = std::max(0, pos1 - extbp);
-                int end1 = std::min(pos1 + extbp, chromSizes.at(chrom1));
+                int end1 = std::min(pos1 + extbp, chromSize);
                 int start2 = std::max(0, pos2 - extbp);
-                int end2 = std::min(pos2 + extbp, chromSizes.at(chrom1));
+                int end2 = std::min(pos2 + extbp, chromSize);
                 std::string gemid = libid + "-100-" + std::to_string(i) + "-HEA-7-4-sub-1-1";
                 ++i;
 

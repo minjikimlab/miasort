@@ -107,8 +107,16 @@ std::vector<std::string> processSpriteBatch(const std::vector<std::string>& line
             for (size_t j = 1; j < fields.size(); ++j) {
                 std::istringstream loc(fields[j]);
                 loc >> chrom >> pos;
+
+                auto it = chromSizes.find(chrom);
+                if (it == chromSizes.end()) {
+                    // Key not found, continue with the next line
+                    continue;
+                }
+                int chromSize = it->second;
+
                 int start = std::max(0, pos - extbp);
-                int end = std::min(pos + extbp, chromSizes.at(chrom));
+                int end = std::min(pos + extbp, chromSize);
                 std::string region_id = "SPRITE-" + std::to_string(cluster_id) + "-R" + std::to_string(j);
                 result.push_back(chrom + "\t" + std::to_string(start) + "\t" + std::to_string(end) + "\t" + region_id);
             }
