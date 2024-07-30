@@ -1,5 +1,3 @@
-## pairs2regions
-
 **7m46.145s**
 
 58,649,978 lines
@@ -43,4 +41,21 @@ sys     4m21.449s
 + duration=1447
 + echo 'Total time for running pairs2regions: 1447 seconds'
 Total time for running pairs2regions: 1447 seconds
+```
+
+```
+(env) zhangzzc@mac-c02yk0jqjv3y complex-sorter % ./bin/time-testing-sprite2regions.sh
++ g++ -std=c++11 -o sprite2regions sprite2regions.cpp -lz
+++ date +%s
++ start_time=1722360793
++ ./sprite2regions . ./GM12878-SPRITE.byChromosome.clusters ./hg38.chrom.sizes
+
+real    5m11.846s
+user    79m23.628s
+sys     0m59.745s
+++ date +%s
++ end_time=1722361105
++ duration=312
++ echo 'Total time for running sprite2regions: 312 seconds'
+Total time for running sprite2regions: 312 seconds
 ```
