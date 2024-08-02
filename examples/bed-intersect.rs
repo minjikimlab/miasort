@@ -16,7 +16,6 @@ extern crate libc;
 
 type GenericError = Box<dyn Error>;
 
-// Parse a i32 with no checking whatsoever. (e.g. non-number characters will just)
 fn i32_from_bytes_uncheckd(s: &[u8]) -> i32 {
     if s.is_empty() {
         0
@@ -63,12 +62,9 @@ fn parse_bed_line(line: &[u8]) -> (&str, i32, i32) {
 
 type IntervalHashMap = FnvHashMap<String, Vec<Interval<()>>>;
 
-// Read a bed file into a COITree
 fn read_bed_file(path: &str) -> Result<FnvHashMap<String, COITree<(), u32>>, GenericError> {
     let mut nodes = IntervalHashMap::default();
-
     let now = Instant::now();
-
     let file = File::open(path)?;
     let mut rdr = BufReader::new(file);
     let mut line_count = 0;
@@ -76,15 +72,8 @@ fn read_bed_file(path: &str) -> Result<FnvHashMap<String, COITree<(), u32>>, Gen
 
     while rdr.read_until(b'\n', &mut line).unwrap() > 0 {
         let (seqname, first, last) = parse_bed_line(&line);
-
-        let node_arr = if let Some(node_arr) = nodes.get_mut(seqname) {
-            node_arr
-        } else {
-            nodes.entry(seqname.to_string()).or_insert(Vec::new())
-        };
-
+        let node_arr = nodes.entry(seqname.to_string()).or_insert(Vec::new());
         node_arr.push(Interval::new(first, last, ()));
-
         line_count += 1;
         line.clear();
     }
@@ -110,24 +99,16 @@ fn read_bed_file_numbered(
     path: &str,
 ) -> Result<FnvHashMap<String, COITree<usize, u32>>, GenericError> {
     let mut nodes = FnvHashMap::<String, Vec<Interval<usize>>>::default();
-
     let now = Instant::now();
-
     let file = File::open(path)?;
     let mut rdr = BufReader::new(file);
     let mut line_count = 0;
     let mut line = Vec::new();
+
     while rdr.read_until(b'\n', &mut line).unwrap() > 0 {
         let (seqname, first, last) = parse_bed_line(&line);
-
-        let node_arr = if let Some(node_arr) = nodes.get_mut(seqname) {
-            node_arr
-        } else {
-            nodes.entry(seqname.to_string()).or_insert(Vec::new())
-        };
-
+        let node_arr = nodes.entry(seqname.to_string()).or_insert(Vec::new());
         node_arr.push(Interval::new(first, last, node_arr.len()));
-
         line_count += 1;
         line.clear();
     }
@@ -151,31 +132,19 @@ fn read_bed_file_numbered(
 
 fn query_bed_files(filename_a: &str, filename_b: &str) -> Result<(), GenericError> {
     let tree = read_bed_file(filename_a)?;
-
     let file = File::open(filename_b)?;
     let mut rdr = BufReader::new(file);
     let mut line = Vec::new();
-
     let mut total_count: usize = 0;
     let now = Instant::now();
 
-    // let stdout = io::stdout();
-    // let mut out = stdout.lock();
-
     while rdr.read_until(b'\n', &mut line).unwrap() > 0 {
         let (seqname, first, last) = parse_bed_line(&line);
-
         let mut count: usize = 0;
-
         if let Some(seqname_tree) = tree.get(seqname) {
-            // seqname_tree.query(first, last, |_| count += 1);
             count = seqname_tree.query_count(first, last);
         }
 
-        // out.write(&line[..line.len()-1])?;
-        // writeln!(out, "\t{}", count)?;
-
-        // unfortunately printing in c is quite a bit faster than rust
         unsafe {
             let linelen = line.len();
             line[linelen - 1] = b'\0';
@@ -187,7 +156,6 @@ fn query_bed_files(filename_a: &str, filename_b: &str) -> Result<(), GenericErro
         }
 
         total_count += count;
-
         line.clear();
     }
 
@@ -240,12 +208,8 @@ fn query_bed_files_coverage(filename_a: &str, filename_b: &str) -> Result<(), Ge
     let file = File::open(filename_b)?;
     let mut rdr = BufReader::new(file);
     let mut line = Vec::new();
-
     let mut total_count: usize = 0;
     let now = Instant::now();
-
-    // let stdout = io::stdout();
-    // let mut out = stdout.lock();
 
     while rdr.read_until(b'\n', &mut line).unwrap() > 0 {
         let (seqname, first, last) = parse_bed_line(&line);
@@ -259,10 +223,6 @@ fn query_bed_files_coverage(filename_a: &str, filename_b: &str) -> Result<(), Ge
             cov = countcov.1;
         }
 
-        // out.write(&line[..line.len()-1])?;
-        // writeln!(out, "\t{}", count)?;
-
-        // unfortunately printing in c is quite a bit faster than rust
         unsafe {
             let linelen = line.len();
             line[linelen - 1] = b'\0';
@@ -275,7 +235,6 @@ fn query_bed_files_coverage(filename_a: &str, filename_b: &str) -> Result<(), Ge
         }
 
         total_count += count;
-
         line.clear();
     }
 
@@ -290,11 +249,9 @@ fn query_bed_files_with_sorted_querent(
     filename_b: &str,
 ) -> Result<(), GenericError> {
     let trees = read_bed_file(filename_a)?;
-
     let file = File::open(filename_b)?;
     let mut rdr = BufReader::new(file);
     let mut line = Vec::new();
-
     let mut total_count: usize = 0;
     let now = Instant::now();
 
@@ -305,13 +262,11 @@ fn query_bed_files_with_sorted_querent(
 
     while rdr.read_until(b'\n', &mut line).unwrap() > 0 {
         let (seqname, first, last) = parse_bed_line(&line);
-
         let mut count: usize = 0;
         if let Some(querent) = querents.get_mut(seqname) {
             querent.query(first, last, |_| count += 1);
         }
 
-        // unfortunately printing in c is quite a bit faster than rust
         unsafe {
             let linelen = line.len();
             line[linelen - 1] = b'\0';
@@ -323,7 +278,6 @@ fn query_bed_files_with_sorted_querent(
         }
 
         total_count += count;
-
         line.clear();
     }
 
@@ -333,28 +287,66 @@ fn query_bed_files_with_sorted_querent(
     Ok(())
 }
 
+fn find_intersections(filename_a: &str, filename_b: &str) -> Result<(), GenericError> {
+    let tree_a = read_bed_file(filename_a)?;
+    let tree_b = read_bed_file(filename_b)?;
+
+    let mut total_intersections: usize = 0;
+
+    for (seqname, tree_a_intervals) in &tree_a {
+        if let Some(tree_b_intervals) = tree_b.get(seqname) {
+            // Query tree A intervals against tree B
+            tree_a_intervals.query(0, i32::MAX, |interval_a| {
+                // Now query each interval in A against the intervals in B
+                tree_b_intervals.query(interval_a.first, interval_a.last, |_| {
+                    // Store the CString in a variable
+                    let c_seqname = CString::new(seqname.clone()).unwrap();
+
+                    unsafe {
+                        libc::printf(
+                            b"%s\t%d\t%d\n\0".as_ptr() as *const libc::c_char,
+                            c_seqname.as_ptr(),
+                            interval_a.first,
+                            interval_a.last + 1,
+                        );
+                    }
+                    total_intersections += 1;
+                });
+            });
+        }
+    }
+
+    eprintln!("total intersections: {}", total_intersections);
+
+    Ok(())
+}
+
 #[derive(Parser, Debug)]
-#[command(about = " Find overlaps between two groups of intervals ")]
+#[command(about = "Find overlaps or intersections between two groups of intervals")]
 struct Args {
-    /// intervals to index
+    /// Intervals to index
     #[arg(value_name = "intervals.bed")]
     input1: String,
 
-    /// query intervals
+    /// Query intervals
     #[arg(value_name = "queries.bed")]
     input2: String,
 
-    /// use alternative search strategy that's faster if queries are sorted and tend to overlap
+    /// Use alternative search strategy that's faster if queries are sorted and tend to overlap
     #[arg(short = 's', long = "sorted")]
     use_sorted_querent: bool,
 
-    /// load both interval sets into memory instead of streaming queries
+    /// Load both interval sets into memory instead of streaming queries
     #[arg(short = 't')]
     tree_vs_tree: bool,
 
-    /// compute proportion of queries covered
+    /// Compute proportion of queries covered
     #[arg(short = 'c', long)]
     coverage: bool,
+
+    /// Find intersections between intervals
+    #[arg(short = 'i', long)]
+    find_intersections: bool,
 }
 
 fn main() {
@@ -365,7 +357,9 @@ fn main() {
 
     let result;
 
-    if matches.coverage {
+    if matches.find_intersections {
+        result = find_intersections(input1, input2);
+    } else if matches.coverage {
         result = query_bed_files_coverage(input1, input2);
     } else if matches.use_sorted_querent {
         result = query_bed_files_with_sorted_querent(input1, input2);
@@ -374,6 +368,7 @@ fn main() {
     } else {
         result = query_bed_files(input1, input2);
     }
+
     if let Err(err) = result {
         println!("error: {}", err)
     }
