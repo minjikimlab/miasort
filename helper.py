@@ -116,3 +116,11 @@ def create_plot_title(id, input_filename, command, anchors):
     anchor_c = f"{r[0]}:{r[1]}-{r[2]}"
 
     return f"{id}\n{input_filename}\nA: {anchor_a}; B: {anchor_b}; C: {anchor_c}\n{command}"
+
+
+def generate_filter_regions(input_bedfile, output_bedfile):
+    with open(input_bedfile, 'r') as infile, open(output_bedfile, 'w') as outfile:
+        for line in infile:
+            anchors = line.strip().split('\t')
+            filter_region = f"{anchors[0]}\t{anchors[1]}\t{anchors[8]}"
+            outfile.write(f"{filter_region}\n")

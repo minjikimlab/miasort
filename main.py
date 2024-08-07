@@ -14,7 +14,7 @@ import csv
 # import dask.dataframe as dd
 from helper import process_multiple_regions, process_graphs_arg, \
     create_plot_filename, process_color_arg, create_histogram_filename, \
-    create_csv_filename
+    create_csv_filename, generate_filter_regions
 
 
 def main(start_time, path1, path2, processing_type, graphs,
@@ -24,23 +24,6 @@ def main(start_time, path1, path2, processing_type, graphs,
 
     ChIA_Drop = BedTool(path1)
 
-    print("Start reading input file.")
-    start = time.time()
-    chunksize = 10**6  # Adjust the chunk size as needed
-    reader = pandas.read_table(
-        path1,
-        names=['chrom', 'start', 'stop', 'num_frag', 'name', 'unused'],
-        engine="c",  # alternatively: pyarrow, python
-        iterator=True,
-        chunksize=chunksize
-    )
-    chunks = []
-    start = time.time()
-    for chunk in reader:
-        chunks.append(chunk)
-    ChIA_Drop_df = pandas.concat(chunks, ignore_index=True)
-    print(f"Finish storing input data Pandas DF w/ {time.time() - start} secs")
-
     colors_flags = process_color_arg(colors)
 
     # delete the out_dir folder if it exists
@@ -49,6 +32,34 @@ def main(start_time, path1, path2, processing_type, graphs,
 
     if processing_type != "multiple":  # abc processing
         Region = BedTool(path2)
+        filter_regions_filename = "filter_regions.bed"
+        generate_filter_regions(path2, filter_regions_filename)
+        filter_regions = BedTool(filter_regions_filename)
+
+        start = time.time()
+        intersected = ChIA_Drop.intersect(filter_regions, wa=True, wb=True)
+        print(f"Intersect a and b: {time.time() - start} secs")
+
+        # Dictionary to store the intersected regions for each line of b
+        filtered_intersections = {i: [] for i in range(len(filter_regions))}
+
+        # Create a lookup table for lines in b
+        b_lines = list(filter_regions)
+
+        # Iterate over each intersection
+        for intersection in intersected:
+            # Extract the fields of the intersected line from b
+            b_fields = intersection.fields[6:]  # Assuming 6 fields in a
+
+            # Find the corresponding line index in bedfile b
+            for i, b_line in enumerate(b_lines):
+                if b_fields == b_line.fields:
+                    filtered_intersections[i].append(intersection)
+
+        # Convert lists to BedTool objects
+        for i in filtered_intersections:
+            filtered_intersections[i] = BedTool(filtered_intersections[i])
+
         graphs_flags = process_graphs_arg(graphs)
 
         csv_file = create_csv_filename(dataset, path2)
@@ -65,7 +76,10 @@ def main(start_time, path1, path2, processing_type, graphs,
             field = ["Region ID", "A", "B", "C", "Region", "Sort Scheme", "Number of Complexes"]
             writer.writerow(field)
 
+        idx = 0
         for anchors in Region:
+            ChIA_Drop_anchor = filtered_intersections[idx]
+            idx += 1
             anchors = anchors.fields
 
             # error check
@@ -79,20 +93,6 @@ def main(start_time, path1, path2, processing_type, graphs,
             B = f"{anchors[3]}\t{anchors[4]}\t{anchors[5]}"
             C = f"{anchors[6]}\t{anchors[7]}\t{anchors[8]}"
             filter_region = f"{anchors[0]}\t{anchors[1]}\t{anchors[8]}"
-
-            filter_dict = {0:[anchors[0]], 1:[anchors[1]], 2:[anchors[8]],
-                3:['1'], 4:['filter_region'], 5:['E']}
-            filter_df = pandas.DataFrame(filter_dict)
-            cols = "Chromosome Start End NumFrag Name Unused".split()
-            # Add column names to the dfs for PyRanges to know
-            ChIA_Drop_df.columns = cols
-            filter_df.columns = cols
-
-            start = time.time()
-            # create PyRanges-objects from the dfs
-            ChIA_Drop_pr, filter_pr = pr.PyRanges(ChIA_Drop_df), pr.PyRanges(filter_df)
-            ChIA_Drop_anchor = BedTool.from_dataframe(ChIA_Drop_pr.intersect(filter_pr, nb_cpu=1).df)  # revise num_cpu
-            print(f"intersect() finishes w/ {time.time() - start} secs")
 
             filter = f"{anchors[0]}\t{anchors[1]}\t{anchors[5]}"
             region_bed = BedTool(filter, from_string=True)
