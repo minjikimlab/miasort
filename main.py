@@ -1,7 +1,6 @@
 import pybedtools
 from pybedtools import BedTool
 import pyranges as pr
-import pandas
 import argparse
 import time
 import plot
@@ -11,7 +10,6 @@ import records
 import os
 import shutil
 import csv
-# import dask.dataframe as dd
 from helper import process_multiple_regions, process_graphs_arg, \
     create_plot_filename, process_color_arg, create_histogram_filename, \
     create_csv_filename, generate_filter_regions
@@ -31,7 +29,6 @@ def main(start_time, path1, path2, processing_type, graphs,
         shutil.rmtree(out_dir)
 
     if processing_type != "multiple":  # abc processing
-        Region = BedTool(path2)
         filter_regions_filename = "filter_regions.bed"
         generate_filter_regions(path2, filter_regions_filename)
         filter_regions = BedTool(filter_regions_filename)

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# test runtime on a large BED file
+# similar setting as the GreatLakes testing
 
 # Stop on errors
 set -Eeuo pipefail
