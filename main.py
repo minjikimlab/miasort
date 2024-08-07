@@ -41,24 +41,23 @@ def main(start_time, path1, path2, processing_type, graphs,
         print(f"Intersect a and b: {time.time() - start} secs")
 
         # Dictionary to store the intersected regions for each line of b
-        filtered_intersections = {i: [] for i in range(len(filter_regions))}
+        filtered_intersections = {}
 
-        # Create a lookup table for lines in b
-        b_lines = list(filter_regions)
-
+        start = time.time()
         # Iterate over each intersection
         for intersection in intersected:
             # Extract the fields of the intersected line from b
             b_fields = intersection.fields[6:]  # Assuming 6 fields in a
-
-            # Find the corresponding line index in bedfile b
-            for i, b_line in enumerate(b_lines):
-                if b_fields == b_line.fields:
-                    filtered_intersections[i].append(intersection)
-
+            b_fields = ' '.join(b_fields)  # Make the key hashable
+            # Check if the key exists, if not, add an empty list
+            if b_fields not in filtered_intersections:
+                filtered_intersections[b_fields] = []
+            # Append the intersection to the list
+            filtered_intersections[b_fields].append(intersection)
         # Convert lists to BedTool objects
         for i in filtered_intersections:
             filtered_intersections[i] = BedTool(filtered_intersections[i])
+        print(f"Process intersected regions: {time.time() - start} secs")
 
         graphs_flags = process_graphs_arg(graphs)
 
@@ -77,10 +76,8 @@ def main(start_time, path1, path2, processing_type, graphs,
             writer.writerow(field)
 
         idx = 0
-        for anchors in Region:
-            ChIA_Drop_anchor = filtered_intersections[idx]
-            idx += 1
-            anchors = anchors.fields
+        for key, ChIA_Drop_anchor in filtered_intersections.items():
+            anchors = key.split(" ")[3:]
 
             # error check
             if anchors[1] >= anchors[2] or anchors[4] >= anchors[5] or anchors[7] >= anchors[8] \

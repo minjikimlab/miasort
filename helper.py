@@ -123,4 +123,4 @@ def generate_filter_regions(input_bedfile, output_bedfile):
         for line in infile:
             anchors = line.strip().split('\t')
             filter_region = f"{anchors[0]}\t{anchors[1]}\t{anchors[8]}"
-            outfile.write(f"{filter_region}\n")
+            outfile.write(f"{filter_region}\t{line}\n")
