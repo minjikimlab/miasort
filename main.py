@@ -77,7 +77,6 @@ def main(start_time, path1, path2, processing_type, graphs,
 
         for key, ChIA_Drop_anchor in filtered_intersections.items():
             anchors = key.split(" ")[3:]
-            print(anchors)
             id = anchors[9]
 
             # error check
