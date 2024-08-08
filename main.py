@@ -44,7 +44,10 @@ def main(start_time, path1, path2, processing_type, graphs,
         # Iterate over each intersection
         for intersection in intersected:
             # Extract the fields of the intersected line from b
-            b_fields = intersection.fields[6:]  # Assuming 6 fields in a
+            if path1[:3] == 'LHG':
+                b_fields = intersection.fields[5:]  # Assuming 5 fields in a
+            else:
+                b_fields = intersection.fields[6:]  # Assuming 5 fields in a
             b_fields = ' '.join(b_fields)  # Make the key hashable
             # Check if the key exists, if not, add an empty list
             if b_fields not in filtered_intersections:
@@ -72,9 +75,10 @@ def main(start_time, path1, path2, processing_type, graphs,
             field = ["Region ID", "A", "B", "C", "Region", "Sort Scheme", "Number of Complexes"]
             writer.writerow(field)
 
-        idx = 0
         for key, ChIA_Drop_anchor in filtered_intersections.items():
             anchors = key.split(" ")[3:]
+            print(anchors)
+            id = anchors[9]
 
             # error check
             if anchors[1] >= anchors[2] or anchors[4] >= anchors[5] or anchors[7] >= anchors[8] \
@@ -82,7 +86,6 @@ def main(start_time, path1, path2, processing_type, graphs,
                 print(f"Error for {id}: left is larger than right, please check the input file")
                 continue
 
-            id = anchors[9]
             A = f"{anchors[0]}\t{anchors[1]}\t{anchors[2]}"
             B = f"{anchors[3]}\t{anchors[4]}\t{anchors[5]}"
             C = f"{anchors[6]}\t{anchors[7]}\t{anchors[8]}"

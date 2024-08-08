@@ -59,7 +59,7 @@ def process_graphs_arg(arg):
 
 def create_plot_filename(dataset, id, command, numfrag_min, numfrag_max, num_gems):
     """Generate the filename for the plot png image."""
-    return f"{dataset}_{id}_{command}_{numfrag_min}_{numfrag_max}_{num_gems}"
+    return f"{dataset}_{id}_{command}_{numfrag_min}_{numfrag_max}_{num_gems}.png"
 
 
 def create_csv_filename(dataset, path2):

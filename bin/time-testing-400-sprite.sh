@@ -10,8 +10,8 @@ set -x
 start_time=$(date +%s)
 
 # Run the Python script with time measurement
-time python main.py --path1 GM12878-cohesin-pooled_comp_FDR_0.1_ALL_motifext4kbboth.region.PEanno --path2 anchors-400.bedte \
---type abc --graphs BtoA\;BtoC\;AtoB\;AtoC\;CtoA\;CtoB\;AandC\;Bcentered --numfrag_min 2  --anchor_options no --out_dir test_folder_400
+time python main.py --path1 GM12878-SPRITE.byChromosome.clusters --path2 anchors-400.bedte \
+--type abc --graphs BtoA\;BtoC\;AtoB\;AtoC\;CtoA\;CtoB\;AandC\;Bcentered --numfrag_min 2  --anchor_options no --out_dir test_folder_400_sprite
 
 # Record the end time
 end_time=$(date +%s)
