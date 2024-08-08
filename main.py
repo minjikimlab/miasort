@@ -44,10 +44,10 @@ def main(start_time, path1, path2, processing_type, graphs,
         # Iterate over each intersection
         for intersection in intersected:
             # Extract the fields of the intersected line from b
-            if path1[:3] == 'LHG':
+            if path1[:3] == 'LHG' or "SPRITE" in path1:
                 b_fields = intersection.fields[5:]  # Assuming 5 fields in a
             else:
-                b_fields = intersection.fields[6:]  # Assuming 5 fields in a
+                b_fields = intersection.fields[6:]  # Assuming 6 fields in a
             b_fields = ' '.join(b_fields)  # Make the key hashable
             # Check if the key exists, if not, add an empty list
             if b_fields not in filtered_intersections:
