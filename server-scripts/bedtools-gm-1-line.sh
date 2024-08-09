@@ -2,7 +2,7 @@
 
 #SBATCH --job-name=bedtools_gm_1_line
 #SBATCH --mail-user=zhangzzc@umich.edu
-#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-type=END,FAIL
 #SBATCH --output=./logs/bedtools_gm_1.log
 
 python main.py --path1 GM12878-cohesin-pooled_comp_FDR_0.1_ALL_motifext4kbboth.region.PEanno --path2 anchors-1.bedte \
