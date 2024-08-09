@@ -32,3 +32,4 @@ target/
 Cargo.lock
 *intersected_line_*
 filter_regions.bed
+logs/
