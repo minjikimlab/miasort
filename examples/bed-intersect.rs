@@ -298,16 +298,18 @@ fn find_intersections(filename_a: &str, filename_b: &str) -> Result<(), GenericE
             // Query tree A intervals against tree B
             tree_a_intervals.query(0, i32::MAX, |interval_a| {
                 // Now query each interval in A against the intervals in B
-                tree_b_intervals.query(interval_a.first, interval_a.last, |_| {
+                tree_b_intervals.query(interval_a.first, interval_a.last, |interval_b| {
                     // Store the CString in a variable
                     let c_seqname = CString::new(seqname.clone()).unwrap();
 
                     unsafe {
                         libc::printf(
-                            b"%s\t%d\t%d\n\0".as_ptr() as *const libc::c_char,
+                            b"%s\t%d\t%d\t%d\t%d\n\0".as_ptr() as *const libc::c_char,
                             c_seqname.as_ptr(),
                             interval_a.first,
                             interval_a.last + 1,
+                            interval_b.first,
+                            interval_b.last + 1,
                         );
                     }
                     total_intersections += 1;

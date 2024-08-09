@@ -17,7 +17,7 @@ from helper import process_multiple_regions, process_graphs_arg, \
 
 def main(start_time, path1, path2, processing_type, graphs,
          num_fragments_min, num_fragments_max, region, operation,
-         dataset, out_dir, colors, anchor_options):
+         dataset, out_dir, colors, anchor_options, intersection_options):
     pybedtools.helpers.cleanup()
 
     ChIA_Drop = BedTool(path1)
@@ -223,6 +223,8 @@ if __name__ == '__main__':
                         help='The color of the anchors, fragments and lines (in order, seperated by semicolons)')
     parser.add_argument('--anchor_options', type=str, default="no",
                         help='Three options: yes_complete (draw anchors complete on the graph), yes_top (draw anchors on the top of the graph) and no (do not draw anchors)')
+    parser.add_argument('--intersection_options', type=str, default="bedtools",
+                        help='Two options: bedtools or rust')
 
     args = parser.parse_args()
 
@@ -238,8 +240,9 @@ if __name__ == '__main__':
     out_dir = args.out_dir
     colors = args.colors
     anchor_options = args.anchor_options
+    intersection_options = args.intersection_options
 
     print("Finish command line parsing.")
 
     main(start_time, path1, path2, processing_type, graphs, num_fragments_min, num_fragments_max,
-         region, operation, dataset, out_dir, colors, anchor_options)
+         region, operation, dataset, out_dir, colors, anchor_options, intersection_options)
