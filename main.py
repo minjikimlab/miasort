@@ -17,7 +17,7 @@ from helper import process_multiple_regions, process_graphs_arg, \
 
 def main(start_time, path1, path2, processing_type, graphs,
          num_fragments_min, num_fragments_max, region, operation,
-         dataset, out_dir, colors, anchor_options, intersection_options):
+         dataset, out_dir, colors, anchor_options, intersection_options, graph_flag):
     pybedtools.helpers.cleanup()
 
     ChIA_Drop = BedTool(path1)
@@ -102,7 +102,8 @@ def main(start_time, path1, path2, processing_type, graphs,
                 start = time.time()
                 ranked_gems = sort.process_left(ChIA_Drop_ab, num_fragments_min, num_fragments_max, A, B, filter_region)
                 output_file = create_plot_filename(dataset, id, "AtoB", num_fragments_min, num_fragments_max, len(ranked_gems))
-                plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, B, C, out_dir,
+                if graph_flag == "yes":
+                    plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, B, C, out_dir,
                                              colors_flags, anchor_options, id, path1, "AtoB")
                 histogram.generate_file(ranked_gems, output_file, out_dir)
                 records.generate_file(id, A, B, C, "AtoB", len(ranked_gems), csv_file, out_dir)
@@ -112,7 +113,8 @@ def main(start_time, path1, path2, processing_type, graphs,
                 start = time.time()
                 ranked_gems = sort.process_left(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region)
                 output_file = create_plot_filename(dataset, id, "AtoC", num_fragments_min, num_fragments_max, len(ranked_gems))
-                plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B, out_dir,
+                if graph_flag == "yes":
+                    plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B, out_dir,
                                              colors_flags, anchor_options, id, path1, "AtoC")
                 histogram.generate_file(ranked_gems, output_file, out_dir)
                 records.generate_file(id, A, B, C, "AtoC", len(ranked_gems), csv_file, out_dir)
@@ -122,7 +124,8 @@ def main(start_time, path1, path2, processing_type, graphs,
                 start = time.time()
                 ranked_gems = sort.process_right(ChIA_Drop_ab, num_fragments_min, num_fragments_max, A, B, filter_region)
                 output_file = create_plot_filename(dataset, id, "BtoA", num_fragments_min, num_fragments_max, len(ranked_gems))
-                plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, B, C, out_dir,
+                if graph_flag == "yes":
+                    plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, B, C, out_dir,
                                              colors_flags, anchor_options, id, path1, "BtoA")
                 histogram.generate_file(ranked_gems, output_file, out_dir)
                 records.generate_file(id, A, B, C, "BtoA", len(ranked_gems), csv_file, out_dir)
@@ -132,7 +135,8 @@ def main(start_time, path1, path2, processing_type, graphs,
                 start = time.time()
                 ranked_gems = sort.process_left(ChIA_Drop_bc, num_fragments_min, num_fragments_max, B, C, filter_region)
                 output_file = create_plot_filename(dataset, id, "BtoC", num_fragments_min, num_fragments_max, len(ranked_gems))
-                plot.plot_ranked_gems_scaled(ranked_gems, output_file, B, C, A, out_dir,
+                if graph_flag == "yes":
+                    plot.plot_ranked_gems_scaled(ranked_gems, output_file, B, C, A, out_dir,
                                              colors_flags, anchor_options, id, path1, "BtoC")
                 histogram.generate_file(ranked_gems, output_file, out_dir)
                 records.generate_file(id, A, B, C, "BtoC", len(ranked_gems), csv_file, out_dir)
@@ -142,7 +146,8 @@ def main(start_time, path1, path2, processing_type, graphs,
                 start = time.time()
                 ranked_gems = sort.process_right(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region)
                 output_file = create_plot_filename(dataset, id, "CtoA", num_fragments_min, num_fragments_max, len(ranked_gems))
-                plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B, out_dir,
+                if graph_flag == "yes":
+                    plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B, out_dir,
                                              colors_flags, anchor_options, id, path1, "CtoA")
                 histogram.generate_file(ranked_gems, output_file, out_dir)
                 records.generate_file(id, A, B, C, "CtoA", len(ranked_gems), csv_file, out_dir)
@@ -152,7 +157,8 @@ def main(start_time, path1, path2, processing_type, graphs,
                 start = time.time()
                 ranked_gems = sort.process_right(ChIA_Drop_bc, num_fragments_min, num_fragments_max, B, C, filter_region)
                 output_file = create_plot_filename(dataset, id, "CtoB", num_fragments_min, num_fragments_max, len(ranked_gems))
-                plot.plot_ranked_gems_scaled(ranked_gems, output_file, B, C, A, out_dir,
+                if graph_flag == "yes":
+                    plot.plot_ranked_gems_scaled(ranked_gems, output_file, B, C, A, out_dir,
                                              colors_flags, anchor_options, id, path1, "CtoB")
                 histogram.generate_file(ranked_gems, output_file, out_dir)
                 records.generate_file(id, A, B, C, "CtoB", len(ranked_gems), csv_file, out_dir)
@@ -164,7 +170,8 @@ def main(start_time, path1, path2, processing_type, graphs,
                 yes_chroms, no_chroms = process_multiple_regions(region, "yes;yes")
                 ranked_gems = sort.process_multiple(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
                 output_file = create_plot_filename(dataset, id, "AandC", num_fragments_min, num_fragments_max, len(ranked_gems))
-                plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B, out_dir,
+                if graph_flag == "yes":
+                    plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B, out_dir,
                                              colors_flags, anchor_options, id, path1, "AandC")
                 histogram.generate_file(ranked_gems, output_file, out_dir)
                 records.generate_file(id, A, B, C, "AandC", len(ranked_gems), csv_file, out_dir)
@@ -174,7 +181,8 @@ def main(start_time, path1, path2, processing_type, graphs,
                 start = time.time()
                 ranked_gems = sort.process_middle(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region, B)
                 output_file = create_plot_filename(dataset, id, "Bcentered", num_fragments_min, num_fragments_max, len(ranked_gems))
-                plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B, out_dir,
+                if graph_flag == "yes":
+                    plot.plot_ranked_gems_scaled(ranked_gems, output_file, A, C, B, out_dir,
                                              colors_flags, anchor_options, id, path1, "Bcentered")
                 histogram.generate_file(ranked_gems, output_file, out_dir)
                 records.generate_file(id, A, B, C, "Bcentered", len(ranked_gems), csv_file, out_dir)
@@ -225,6 +233,8 @@ if __name__ == '__main__':
                         help='Three options: yes_complete (draw anchors complete on the graph), yes_top (draw anchors on the top of the graph) and no (do not draw anchors)')
     parser.add_argument('--intersection_options', type=str, default="bedtools",
                         help='Two options: bedtools or rust')
+    parser.add_argument('--graph_flag', type=str, default="yes",
+                        help='Special graph flag: yes or no - whether or not the toolkit should generate plots')
 
     args = parser.parse_args()
 
@@ -241,8 +251,9 @@ if __name__ == '__main__':
     colors = args.colors
     anchor_options = args.anchor_options
     intersection_options = args.intersection_options
+    graph_flag = args.graph_flag
 
     print("Finish command line parsing.")
 
     main(start_time, path1, path2, processing_type, graphs, num_fragments_min, num_fragments_max,
-         region, operation, dataset, out_dir, colors, anchor_options, intersection_options)
+         region, operation, dataset, out_dir, colors, anchor_options, intersection_options, graph_flag)
