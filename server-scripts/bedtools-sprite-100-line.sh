@@ -4,7 +4,7 @@
 #SBATCH --mail-user=zhangzzc@umich.edu
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=./logs/bedtools_sprite_100.log
-#SBATCH --mem=12000m
+#SBATCH --mem=120000m
 #SBATCH --time=01-02:00:00
 
 python main.py --path1 GM12878-SPRITE.byChromosome.clusters --path2 anchors-100.bedte \
