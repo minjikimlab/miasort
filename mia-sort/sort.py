@@ -1,7 +1,5 @@
 import pybedtools
 from pybedtools import BedTool
-from debug import test_gem_id_difference
-
 
 def process_left(ChIA_Drop, num_fragments_min, num_fragments_max, left_anchor, right_anchor, region):
     right_anchor_start = int(right_anchor.split('\t')[1])
