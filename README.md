@@ -1,6 +1,4 @@
-<div align="center">
-  <h1 align="center">ComplexSorter</h1>
-</div>
+# MIA-Sort: Multiplex Chromatin Interaction Analysis by Efficiently Sorting Chromatin Complexes
 
 ## Installation
 ```Shell
