@@ -33,3 +33,7 @@ Cargo.lock
 *intersected_line_*
 filter_regions.bed
 logs/
+*test_greatlakes_bedtools*
+*default.fragment_alignments.csv*
+porec2regions
+*.dSYM*

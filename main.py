@@ -45,9 +45,11 @@ def main(start_time, path1, path2, processing_type, graphs,
         for intersection in intersected:
             # Extract the fields of the intersected line from b
             if path1[:3] == 'LHG' or "SPRITE" in path1 or "4DNFIACOTIGL" in path1:
-                b_fields = intersection.fields[5:]  # Assuming 5 fields in a
+                b_fields = intersection.fields[5:]  # 5 fields in a
+            elif "PoreC" in path1:
+                b_fields = intersection.fields[4:]  # 4 fields in a
             else:
-                b_fields = intersection.fields[6:]  # Assuming 6 fields in a
+                b_fields = intersection.fields[6:]  # 6 fields in a
             b_fields = ' '.join(b_fields)  # Make the key hashable
             # Check if the key exists, if not, add an empty list
             if b_fields not in filtered_intersections:
@@ -97,7 +99,7 @@ def main(start_time, path1, path2, processing_type, graphs,
             region_bed = BedTool(filter, from_string=True)
             ChIA_Drop_bc = ChIA_Drop_anchor.intersect(region_bed, wa=True, wb=True)
 
-            if graphs_flags["AtoB"]:
+            if graphs_flags["AtoB"]: # This is not needed
                 start = time.time()
                 ranked_gems = sort.process_left(ChIA_Drop_ab, num_fragments_min, num_fragments_max, A, B, filter_region)
                 output_file = create_plot_filename(dataset, id, "AtoB", num_fragments_min, num_fragments_max, len(ranked_gems))
@@ -152,7 +154,7 @@ def main(start_time, path1, path2, processing_type, graphs,
                 records.generate_file(id, A, B, C, "CtoA", len(ranked_gems), csv_file, out_dir)
                 print(f"CtoA: {time.time() - start}")
 
-            if graphs_flags["CtoB"]:
+            if graphs_flags["CtoB"]:  # This is not needed
                 start = time.time()
                 ranked_gems = sort.process_right(ChIA_Drop_bc, num_fragments_min, num_fragments_max, B, C, filter_region)
                 output_file = create_plot_filename(dataset, id, "CtoB", num_fragments_min, num_fragments_max, len(ranked_gems))
