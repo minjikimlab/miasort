@@ -105,6 +105,7 @@ std::vector<std::string> processPairsBatch(const std::vector<std::string>& lines
                 fields.push_back(field);
             }
 
+            std::string gemid = fields[0];
             std::string chrom1 = fields[1];
             int pos1 = std::stoi(fields[2]);
             std::string chrom2 = fields[3];
@@ -122,7 +123,6 @@ std::vector<std::string> processPairsBatch(const std::vector<std::string>& lines
                 int end1 = std::min(pos1 + extbp, chromSize);
                 int start2 = std::max(0, pos2 - extbp);
                 int end2 = std::min(pos2 + extbp, chromSize);
-                std::string gemid = libid + "-100-" + std::to_string(i) + "-HEA-7-4-sub-1-1";
                 ++i;
 
                 result.push_back(chrom1 + "\t" + std::to_string(start1) + "\t" + std::to_string(end1) + "\t2\t" + gemid);

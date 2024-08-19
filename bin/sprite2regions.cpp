@@ -10,6 +10,7 @@
 #include <queue>
 #include <future>
 #include <stdexcept>
+#include <functional>
 
 class ThreadPool {
 public:
@@ -99,26 +100,16 @@ std::vector<std::string> processSpriteBatch(const std::vector<std::string>& line
         if (!line.empty() && line[0] != '#') {
             std::istringstream ss(line);
             std::string barcodes, chrom;
-            int pos;
             std::vector<std::string> fields;
             while (std::getline(ss, barcodes, '\t')) {
                 fields.push_back(barcodes);
             }
             for (size_t j = 1; j < fields.size(); ++j) {
                 std::istringstream loc(fields[j]);
-                loc >> chrom >> pos;
-
-                auto it = chromSizes.find(chrom);
-                if (it == chromSizes.end()) {
-                    // Key not found, continue with the next line
-                    continue;
-                }
-                int chromSize = it->second;
-
-                int start = std::max(0, pos - extbp);
-                int end = std::min(pos + extbp, chromSize);
-                std::string region_id = "SPRITE-" + std::to_string(cluster_id) + "-R" + std::to_string(j);
-                result.push_back(chrom + "\t" + std::to_string(start) + "\t" + std::to_string(end) + "\t" + region_id);
+                int left, right, num;
+                std::string region_id;
+                loc >> chrom >> left >> right >> num >> region_id;
+                result.push_back(chrom + "\t" + std::to_string(left) + "\t" + std::to_string(right) + "\t" + std::to_string(num) + "\t" + region_id);
             }
             ++cluster_id;
         }
