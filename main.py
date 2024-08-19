@@ -64,12 +64,11 @@ def main(start_time, path1, path2, processing_type, graphs,
         csv_file = create_csv_filename(dataset, path2)
         if out_dir != "/":
             if not os.path.exists(out_dir):
-                # create directory
                 os.makedirs(out_dir)
             path = os.path.join(out_dir, csv_file)
         else:
             path = csv_file
-        # write the header of the comp records file
+        # Write the header of the comp records file
         with open(path, 'a', newline='') as file:
             writer = csv.writer(file)
             field = ["Region ID", "A", "B", "C", "Region", "Sort Scheme", "Number of Complexes"]
@@ -79,7 +78,7 @@ def main(start_time, path1, path2, processing_type, graphs,
             anchors = key.split(" ")[3:]
             id = anchors[9]
 
-            # error check
+            # Error check
             if anchors[1] >= anchors[2] or anchors[4] >= anchors[5] or anchors[7] >= anchors[8] \
             or anchors[2] >= anchors[4] or anchors[5] >= anchors[7]:
                 print(f"Error for {id}: left is larger than right, please check the input file")
@@ -191,18 +190,15 @@ def main(start_time, path1, path2, processing_type, graphs,
             print("-------------------------------------")
 
     else:
-        if operation:
-            sort_start_time = time.time()
-            yes_chroms, no_chroms = process_multiple_regions(region, operation)
-            # Process with the specified operation for multiple
-            ranked_gems = sort.process_multiple(ChIA_Drop, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
-            print(f"It took {time.time() - sort_start_time} secs in total to sort the GEMs")
-            plot.plot_ranked_gems_multiple_regions(start_time, ranked_gems, "output_file", yes_chroms+no_chroms)  # TODO: revise file name
-            histogram.generate_file(ranked_gems, "output_file")  # TODO: revise file name
-
-        else:
-            print("Operation is required for type 'multiple'.")
-            return
+        if out_dir != "/" and not os.path.exists(out_dir):
+            os.makedirs(out_dir)
+        yes_chroms, no_chroms = process_multiple_regions(region, operation)
+        # Process with the specified operation for multiple
+        ranked_gems = sort.process_multiple(ChIA_Drop, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
+        plot.plot_ranked_gems_scaled(ranked_gems, "multiple", "", "", "", out_dir,
+                                    colors_flags, anchor_options, 0, path1, "multiple",
+                                    flag="multiple", regions=yes_chroms+no_chroms)
+        histogram.generate_file(ranked_gems, "output_file", out_dir)  # TODO: revise file name
 
 
 if __name__ == '__main__':
