@@ -1,4 +1,0 @@
-#!/bin/sh
-
-cd ~/src/cgranges/test/3rd-party/AIList
-./AIList $2 $1

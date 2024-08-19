@@ -83,14 +83,15 @@ std::vector<std::string> processPoreCDataBatch(const std::vector<std::string>& l
             }
 
             // Correct the column indices based on your file structure
-            std::string pass_filter = fields[17];  // 'pass_filter' column index
-            std::string chrom = fields[3];         // 'chrom' column index
-            std::string start = fields[4];         // 'start' column index
-            std::string end = fields[5];           // 'end' column index
-            std::string readidx = fields[0];       // 'readidx' column index
+            std::string pass_filter = fields[17];             // 'pass_filter' column index
+            std::string chrom = fields[3];                    // 'chrom' column index
+            std::string start = fields[4];                    // 'start' column index
+            std::string end = fields[5];                      // 'end' column index
+            std::string readidx = fields[0];                  // 'readidx' column index
+            std::string num_fragments = fields[20];           // 'num_overlapping_fragments' column index
 
             if (pass_filter == "True") {
-                std::string output = chrom + "\t" + start + "\t" + end + "\t" + readidx + "-" + std::to_string(read_idx);
+                std::string output = chrom + "\t" + start + "\t" + end + "\t" + num_fragments + "\t" + readidx + "-" + std::to_string(read_idx);
                 result.push_back(output);
                 ++read_idx;
             }
