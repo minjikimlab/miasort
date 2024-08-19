@@ -10,6 +10,7 @@
 #include <queue>
 #include <future>
 #include <stdexcept>
+#include <functional>
 
 class ThreadPool {
 public:
