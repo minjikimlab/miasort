@@ -89,8 +89,8 @@ def process_color_arg(colors):
 
 def figsize_height_scaler(x):
     k = 23 / 47
-    b = 189 / 47 + 2
-    # calculate y using the equation y = kx + b
+    b = 90 / 47 + 2
+    # Calculate y using the equation y = kx + b
     y = k * x + b
     return y
 

@@ -18,14 +18,22 @@ $ mamba install -c conda-forge bedtools
 ```Shell
 python main.py \
 --path1 GM12878-cohesin-pooled_comp_FDR_0.1_ALL_motifext4kbboth.region.PEanno \
---path2 test-july-2.bedte --type abc --graphs BtoA --numfrag_min 2 \
---anchor_options no --out_dir test_folder
+--path2 test-july-1.bedte \
+--type abc \
+--graphs AtoC\;CtoA\;AandC\;Bcentered\;BtoA\;BtoC \
+--numfrag_min 2  --anchor_options yes_complete --out_dir test_folder_unit
 ```
 
 ```Shell
-python main.py --path1 test_input.PEanno --type multiple --graphs null --region chr3:100000-108000\;chr3:300000-308000\;chr3:420000-428000 --operation yes\;yes\;yes --anchor_options yes_complete --out_dir test_folder_multiple
+python main.py --path1 test_input.PEanno --type multiple --graphs null \
+--region chr3:100000-108000\;chr3:300000-308000\;chr3:420000-428000 \
+--operation yes\;yes\;yes --anchor_options yes_complete \
+--out_dir test_folder_multiple
 
-python main.py --path1 test_input.PEanno --type multiple --graphs null --region chr3:100000-108000\;chr3:150000-155000\;chr3:300000-308000\;chr3:420000-428000 --operation yes\;no\;yes\;yes --anchor_options yes_top --out_dir test_folder_multiple
+python main.py --path1 test_input.PEanno --type multiple --graphs null \
+--region chr3:100000-108000\;chr3:150000-155000\;chr3:300000-308000\;chr3:420000-428000 \
+--operation yes\;no\;yes\;yes --anchor_options yes_top \
+--out_dir test_folder_multiple
 ```
 
 ## Input Files
