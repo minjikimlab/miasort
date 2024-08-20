@@ -4,10 +4,6 @@ from matplotlib.lines import Line2D
 from matplotlib.gridspec import GridSpec
 from helper import figsize_height_scaler, kb_format, create_plot_title
 
-"""
-
-"""
-
 def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                            right_anchor_list, middle_anchor_list, out_dir, colors_flags,
                            anchor_options, id, path1, commands_list, extension, flag="abc", regions=[]):
@@ -19,7 +15,7 @@ def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
         heights = [round(figsize_height_scaler(len(ranked_gems_list[0]))),
                     round(figsize_height_scaler(len(ranked_gems_list[1]))),
                     round(figsize_height_scaler(len(ranked_gems_list[2])))]
-        fig = plt.figure(figsize=(50, sum(heights)*1.5))
+        fig = plt.figure(figsize=(50, sum(heights)*2))
         # Create GridSpec with custom heights
         gs = GridSpec(3, 1, height_ratios=heights, figure=fig)
     else:
@@ -144,7 +140,7 @@ def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
         if flag == "abc":
             anchors = [left_anchor, middle_anchor, right_anchor]
             anchors.sort(key=lambda x: int(x.split('\t')[1]))
-            ax.set_title(create_plot_title(id, path1, commands_list[idx], anchors),
+            ax.set_title(create_plot_title(id, path1, commands_list[idx], anchors, len(ranked_gems)),
                          fontdict=title_font)
 
             left_end = min(left_start, right_start, middle_start)

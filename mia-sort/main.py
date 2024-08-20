@@ -18,7 +18,7 @@ from helper import process_multiple_regions, process_graphs_arg, \
 def main(start_time, path1, path2, processing_type, graphs,
          num_fragments_min, num_fragments_max, region, operation,
          dataset, out_dir, colors, anchor_options, intersection_options,
-         graph_flag, extension):
+         graph_flag, extension, histogram_options):
     pybedtools.helpers.cleanup()
 
     ChIA_Drop = BedTool(path1)
@@ -77,7 +77,8 @@ def main(start_time, path1, path2, processing_type, graphs,
         # Write the header of the comp records file
         with open(path, 'a', newline='') as file:
             writer = csv.writer(file)
-            field = ["Region ID", "A", "B", "C", "Region", "Sort Scheme", "Number of Complexes"]
+            field = ["Region ID", "A", "B", "C", "Region", "Sort Scheme",
+                     "num_complexes", "num_1frag", "num_2frag", "num_3frag", "num_4frag", "num>=5frag"]
             writer.writerow(field)
 
         for key, ChIA_Drop_anchor in filtered_intersections.items():
@@ -119,8 +120,9 @@ def main(start_time, path1, path2, processing_type, graphs,
                 left_anchor_list.append(A)
                 right_anchor_list.append(C)
                 middle_anchor_list.append(B)
-                histogram.generate_file(ranked_gems, output_file, out_dir)
-                records.generate_file(id, A, B, C, "AtoC", len(ranked_gems), csv_file, out_dir)
+                if histogram_options == "yes":
+                    histogram.generate_file(ranked_gems, output_file, out_dir)
+                records.generate_file(id, A, B, C, "AtoC", len(ranked_gems), csv_file, out_dir, ranked_gems)
                 print(f"AtoC: {time.time() - start}")
 
             if graphs_flags["CtoA"]:
@@ -131,8 +133,9 @@ def main(start_time, path1, path2, processing_type, graphs,
                 left_anchor_list.append(A)
                 right_anchor_list.append(C)
                 middle_anchor_list.append(B)
-                histogram.generate_file(ranked_gems, output_file, out_dir)
-                records.generate_file(id, A, B, C, "CtoA", len(ranked_gems), csv_file, out_dir)
+                if histogram_options == "yes":
+                    histogram.generate_file(ranked_gems, output_file, out_dir)
+                records.generate_file(id, A, B, C, "CtoA", len(ranked_gems), csv_file, out_dir, ranked_gems)
                 print(f"CtoA: {time.time() - start}")
 
             if graphs_flags["AandC"]:
@@ -145,15 +148,16 @@ def main(start_time, path1, path2, processing_type, graphs,
                 left_anchor_list.append(A)
                 right_anchor_list.append(C)
                 middle_anchor_list.append(B)
-                histogram.generate_file(ranked_gems, output_file, out_dir)
-                records.generate_file(id, A, B, C, "AandC", len(ranked_gems), csv_file, out_dir)
+                if histogram_options == "yes":
+                    histogram.generate_file(ranked_gems, output_file, out_dir)
+                records.generate_file(id, A, B, C, "AandC", len(ranked_gems), csv_file, out_dir, ranked_gems)
                 print(f"AandC: {time.time() - start}")
 
             if graph_flag == "yes":
                 output_file = create_plot_filename(dataset, id, "stripes", num_fragments_min, num_fragments_max, len(ranked_gems))
                 plot.plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                                             right_anchor_list, middle_anchor_list, out_dir,
-                                            colors_flags, anchor_options, id, path1, commands_list, extension)
+                                            colors_flags, anchor_options, id, dataset, commands_list, extension)
 
             # ---------------- Second plot ----------------
 
@@ -171,8 +175,9 @@ def main(start_time, path1, path2, processing_type, graphs,
                 left_anchor_list.append(A)
                 right_anchor_list.append(C)
                 middle_anchor_list.append(B)
-                histogram.generate_file(ranked_gems, output_file, out_dir)
-                records.generate_file(id, A, B, C, "Bcentered", len(ranked_gems), csv_file, out_dir)
+                if histogram_options == "yes":
+                    histogram.generate_file(ranked_gems, output_file, out_dir)
+                records.generate_file(id, A, B, C, "BtoAC", len(ranked_gems), csv_file, out_dir, ranked_gems)
                 print(f"Bcentered: {time.time() - start}")
 
             if graphs_flags["BtoA"]:
@@ -183,8 +188,9 @@ def main(start_time, path1, path2, processing_type, graphs,
                 left_anchor_list.append(A)
                 right_anchor_list.append(B)
                 middle_anchor_list.append(C)
-                histogram.generate_file(ranked_gems, output_file, out_dir)
-                records.generate_file(id, A, B, C, "BtoA", len(ranked_gems), csv_file, out_dir)
+                if histogram_options == "yes":
+                    histogram.generate_file(ranked_gems, output_file, out_dir)
+                records.generate_file(id, A, B, C, "BtoA", len(ranked_gems), csv_file, out_dir, ranked_gems)
                 print(f"BtoA: {time.time() - start}")
 
             if graphs_flags["BtoC"]:
@@ -195,15 +201,16 @@ def main(start_time, path1, path2, processing_type, graphs,
                 left_anchor_list.append(B)
                 right_anchor_list.append(C)
                 middle_anchor_list.append(A)
-                histogram.generate_file(ranked_gems, output_file, out_dir)
-                records.generate_file(id, A, B, C, "BtoC", len(ranked_gems), csv_file, out_dir)
+                if histogram_options == "yes":
+                    histogram.generate_file(ranked_gems, output_file, out_dir)
+                records.generate_file(id, A, B, C, "BtoC", len(ranked_gems), csv_file, out_dir, ranked_gems)
                 print(f"BtoC: {time.time() - start}")
 
             if graph_flag == "yes":
                 output_file = create_plot_filename(dataset, id, "jets", num_fragments_min, num_fragments_max, len(ranked_gems))
                 plot.plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                                             right_anchor_list, middle_anchor_list, out_dir,
-                                            colors_flags, anchor_options, id, path1, commands_list, extension)
+                                            colors_flags, anchor_options, id, dataset, commands_list, extension)
 
             print("-------------------------------------")
 
@@ -216,7 +223,8 @@ def main(start_time, path1, path2, processing_type, graphs,
         plot.plot_ranked_gems([ranked_gems], "multiple", [""], [""], [""], out_dir,
                                     colors_flags, anchor_options, 0, path1, ["multiple"],
                                     extension, flag="multiple", regions=yes_chroms+no_chroms)
-        histogram.generate_file(ranked_gems, "output_file", out_dir)  # TODO: revise file name
+        if histogram_options == "yes":
+            histogram.generate_file(ranked_gems, "output_file", out_dir)  # TODO: revise file name
 
 
 if __name__ == '__main__':
@@ -251,6 +259,8 @@ if __name__ == '__main__':
                         help='Special graph flag: yes or no - whether or not the toolkit should generate plots')
     parser.add_argument('--extension', type=str, default="6000",
                         help='Three options: default width=6000b, user-specified width, or natural width')
+    parser.add_argument('--historgram_options', type=str, default="no",
+                        help='Whether or not the program should draw histograms seperately: yes or no')
 
     args = parser.parse_args()
 
@@ -269,8 +279,10 @@ if __name__ == '__main__':
     intersection_options = args.intersection_options
     graph_flag = args.graph_flag
     extension = args.extension
+    histogram_options = args.historgram_options
 
     print("Finish command line parsing.")
 
     main(start_time, path1, path2, processing_type, graphs, num_fragments_min, num_fragments_max,
-         region, operation, dataset, out_dir, colors, anchor_options, intersection_options, graph_flag, extension)
+         region, operation, dataset, out_dir, colors, anchor_options, intersection_options, graph_flag,
+         extension, histogram_options)
