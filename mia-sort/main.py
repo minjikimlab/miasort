@@ -45,7 +45,7 @@ def main(start_time, path1, path2, processing_type, graphs,
         # Iterate over each intersection
         for intersection in intersected:
             # Extract the fields of the intersected line from b
-            if path1[:3] == 'LHG' or "SPRITE" in path1 or "4DNFIACOTIGL" in path1:
+            if path1[:3] == 'LHG' or "SPRITE" in path1 or "4DNFIACOTIGL" or "ChIA-Drop" in path1:
                 b_fields = intersection.fields[5:]  # 5 fields in a
             elif "PoreC" in path1:
                 b_fields = intersection.fields[4:]  # 4 fields in a
