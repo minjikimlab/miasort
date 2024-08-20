@@ -7,7 +7,7 @@ from helper import figsize_height_scaler, kb_format, create_plot_title
 
 def plot_three_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                            right_anchor_list, middle_anchor_list, out_dir, colors_flags,
-                           anchor_options, id, path1, command, extension, flag="abc", regions=[]):
+                           anchor_options, id, path1, commands_list, extension, flag="abc", regions=[]):
     directory_str = output_file
     if out_dir != "/":
         directory_str = f"./{out_dir}/{output_file}"
@@ -39,19 +39,21 @@ def plot_three_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                     width = end - start
                 else:
                     width = int(extension)
-                rect = patches.Rectangle((start, i - 0.225),
+                rect = patches.Rectangle((start - width / 2, i - 0.225),
                                          width, 0.6, linewidth=2,
                                          edgecolor="black",
-                                         facecolor=colors_flags["fragments"])
+                                         facecolor=colors_flags["fragments"],
+                                         zorder=2)
                 ax.add_patch(rect)
 
         count = 0
         for gem_id, fragments in gem_fragments.items():
             start = fragments[0].start
-            end = fragments[-1].end
+            end = fragments[-1].start
             line = Line2D([start, end], [count, count],
                           color=colors_flags["lines"],
-                          linestyle='-', linewidth=0.4)
+                          linestyle='-', linewidth=0.4,
+                          zorder=1)
             ax.add_line(line)
             count += 1
 
@@ -136,7 +138,7 @@ def plot_three_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
         if flag == "abc":
             anchors = [left_anchor, middle_anchor, right_anchor]
             anchors.sort(key=lambda x: int(x.split('\t')[1]))
-            ax.set_title(create_plot_title(id, path1, command, anchors),
+            ax.set_title(create_plot_title(id, path1, commands_list[idx], anchors),
                          fontdict=title_font)
 
             left_end = min(left_start, right_start, middle_start)

@@ -109,6 +109,7 @@ def main(start_time, path1, path2, processing_type, graphs,
             left_anchor_list = []
             right_anchor_list = []
             middle_anchor_list = []
+            commands_list = ["AtoC", "CtoA", "AandC"]
 
             if graphs_flags["AtoC"]:
                 start = time.time()
@@ -152,7 +153,7 @@ def main(start_time, path1, path2, processing_type, graphs,
                 output_file = create_plot_filename(dataset, id, "A-C", num_fragments_min, num_fragments_max, len(ranked_gems))
                 plot.plot_three_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                                             right_anchor_list, middle_anchor_list, out_dir,
-                                            colors_flags, anchor_options, id, path1, "A-C", extension)
+                                            colors_flags, anchor_options, id, path1, commands_list, extension)
 
             # ---------------- Second plot ----------------
 
@@ -160,6 +161,7 @@ def main(start_time, path1, path2, processing_type, graphs,
             left_anchor_list = []
             right_anchor_list = []
             middle_anchor_list = []
+            commands_list = ["Bcentered", "BtoA", "BtoC"]
 
             if graphs_flags["Bcentered"]:  # B centered to A & C
                 start = time.time()
@@ -201,7 +203,7 @@ def main(start_time, path1, path2, processing_type, graphs,
                 output_file = create_plot_filename(dataset, id, "Bcenter+BtoA+BtoC", num_fragments_min, num_fragments_max, len(ranked_gems))
                 plot.plot_three_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                                             right_anchor_list, middle_anchor_list, out_dir,
-                                            colors_flags, anchor_options, id, path1, "Bcenter+BtoA+BtoC", extension)
+                                            colors_flags, anchor_options, id, path1, commands_list, extension)
 
             print("-------------------------------------")
 
