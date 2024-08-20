@@ -38,3 +38,4 @@ logs/
 porec2regions
 *.dSYM*
 testing
+*test_multiple*

@@ -150,8 +150,8 @@ def main(start_time, path1, path2, processing_type, graphs,
                 print(f"AandC: {time.time() - start}")
 
             if graph_flag == "yes":
-                output_file = create_plot_filename(dataset, id, "A-C", num_fragments_min, num_fragments_max, len(ranked_gems))
-                plot.plot_three_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
+                output_file = create_plot_filename(dataset, id, "stripes", num_fragments_min, num_fragments_max, len(ranked_gems))
+                plot.plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                                             right_anchor_list, middle_anchor_list, out_dir,
                                             colors_flags, anchor_options, id, path1, commands_list, extension)
 
@@ -161,7 +161,7 @@ def main(start_time, path1, path2, processing_type, graphs,
             left_anchor_list = []
             right_anchor_list = []
             middle_anchor_list = []
-            commands_list = ["Bcentered", "BtoA", "BtoC"]
+            commands_list = ["BtoAC", "BtoA", "BtoC"]
 
             if graphs_flags["Bcentered"]:  # B centered to A & C
                 start = time.time()
@@ -200,8 +200,8 @@ def main(start_time, path1, path2, processing_type, graphs,
                 print(f"BtoC: {time.time() - start}")
 
             if graph_flag == "yes":
-                output_file = create_plot_filename(dataset, id, "Bcenter+BtoA+BtoC", num_fragments_min, num_fragments_max, len(ranked_gems))
-                plot.plot_three_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
+                output_file = create_plot_filename(dataset, id, "jets", num_fragments_min, num_fragments_max, len(ranked_gems))
+                plot.plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                                             right_anchor_list, middle_anchor_list, out_dir,
                                             colors_flags, anchor_options, id, path1, commands_list, extension)
 
@@ -213,9 +213,9 @@ def main(start_time, path1, path2, processing_type, graphs,
         yes_chroms, no_chroms = process_multiple_regions(region, operation)
         # Process with the specified operation for multiple
         ranked_gems = sort.process_multiple(ChIA_Drop, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
-        plot.plot_three_ranked_gems(ranked_gems, "multiple", "", "", "", out_dir,
-                                    colors_flags, anchor_options, 0, path1, "multiple",
-                                    flag="multiple", regions=yes_chroms+no_chroms)
+        plot.plot_ranked_gems([ranked_gems], "multiple", [""], [""], [""], out_dir,
+                                    colors_flags, anchor_options, 0, path1, ["multiple"],
+                                    extension, flag="multiple", regions=yes_chroms+no_chroms)
         histogram.generate_file(ranked_gems, "output_file", out_dir)  # TODO: revise file name
 
 
@@ -255,7 +255,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     path1 = args.path1
-    dataset = path1.split("/")[-1].split("-")[0]
+    dataset = path1.split("/")[-1].split(".region")[0]
     path2 = args.path2
     processing_type = args.type
     graphs = args.graphs

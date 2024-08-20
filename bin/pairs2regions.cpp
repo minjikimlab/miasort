@@ -75,8 +75,8 @@ auto ThreadPool::enqueue(F&& f, Args&&... args) -> std::future<typename std::res
 }
 
 
-std::map<std::string, int> readChromSizes(const std::string& filepath) {
-    std::map<std::string, int> chromSizes;
+std::unordered_map<std::string, int> readChromSizes(const std::string& filepath) {
+    std::unordered_map<std::string, int> chromSizes;
     std::ifstream file(filepath);
     if (!file.is_open()) {
         throw std::runtime_error("Unable to open chromosome sizes file at " + filepath);
@@ -95,47 +95,42 @@ std::map<std::string, int> readChromSizes(const std::string& filepath) {
 }
 
 
-std::vector<std::string> processPairsBatch(const std::vector<std::string>& lines, const std::map<std::string, int>& chromSizes, const std::string& libid, int extbp, int selfbp, int& i) {
-    std::vector<std::string> result;
-    for (const auto& line : lines) {
-        if (line[0] != '#') {
-            std::istringstream ss(line);
-            std::vector<std::string> fields;
-            std::string field;
-            while (std::getline(ss, field, '\t')) {
-                fields.push_back(field);
+void processLine(const std::string& line, const std::unordered_map<std::string, int>& chromSizes, const std::string& libid, int extbp, int selfbp, std::vector<std::string>& result, int& i) {
+    if (line[0] != '#') {
+        std::istringstream ss(line);
+        std::vector<std::string> fields;
+        std::string field;
+        while (std::getline(ss, field, '\t')) {
+            fields.push_back(field);
+        }
+
+        std::string gemid = fields[0];
+        std::string chrom1 = fields[1];
+        int pos1 = std::stoi(fields[2]);
+        std::string chrom2 = fields[3];
+        int pos2 = std::stoi(fields[4]);
+
+        if (chrom1 == chrom2 && chrom1 != "chrM" && pos2 - pos1 > selfbp) {
+            auto it = chromSizes.find(chrom1);
+            if (it == chromSizes.end()) {
+                return; // Skip if chromosome not found
             }
+            int chromSize = it->second;
 
-            std::string gemid = fields[0];
-            std::string chrom1 = fields[1];
-            int pos1 = std::stoi(fields[2]);
-            std::string chrom2 = fields[3];
-            int pos2 = std::stoi(fields[4]);
+            int start1 = std::max(0, pos1 - extbp);
+            int end1 = std::min(pos1 + extbp, chromSize);
+            int start2 = std::max(0, pos2 - extbp);
+            int end2 = std::min(pos2 + extbp, chromSize);
+            ++i;
 
-            if (chrom1 == chrom2 && chrom1 != "chrM" && pos2 - pos1 > selfbp) {
-                auto it = chromSizes.find(chrom1);
-                if (it == chromSizes.end()) {
-                    // Key not found, continue with the next line
-                    continue;
-                }
-                int chromSize = it->second;
-
-                int start1 = std::max(0, pos1 - extbp);
-                int end1 = std::min(pos1 + extbp, chromSize);
-                int start2 = std::max(0, pos2 - extbp);
-                int end2 = std::min(pos2 + extbp, chromSize);
-                ++i;
-
-                result.push_back(chrom1 + "\t" + std::to_string(start1) + "\t" + std::to_string(end1) + "\t2\t" + gemid);
-                result.push_back(chrom1 + "\t" + std::to_string(start2) + "\t" + std::to_string(end2) + "\t2\t" + gemid);
-            }
+            result.push_back(chrom1 + "\t" + std::to_string(start1) + "\t" + std::to_string(end1) + "\t2\t" + gemid);
+            result.push_back(chrom1 + "\t" + std::to_string(start2) + "\t" + std::to_string(end2) + "\t2\t" + gemid);
         }
     }
-    return result;
 }
 
 
-void readPairsAndWriteRegions(const std::string& directory, const std::string& pairsFile, const std::map<std::string, int>& chromSizes, const std::string& libid, int extbp, int selfbp) {
+void readPairsAndWriteRegions(const std::string& directory, const std::string& pairsFile, const std::unordered_map<std::string, int>& chromSizes, const std::string& libid, int extbp, int selfbp) {
     std::string outputFile = directory + "/" + libid + ".ext" + std::to_string(extbp) + "bp.g" + std::to_string(selfbp) + "bp.region";
     std::ofstream fout(outputFile);
     if (!fout.is_open()) {
@@ -151,34 +146,23 @@ void readPairsAndWriteRegions(const std::string& directory, const std::string& p
     std::string line;
     int i = 100000000;
     std::mutex mtx;
-    ThreadPool pool(std::thread::hardware_concurrency());
-    std::vector<std::future<std::vector<std::string>>> futures;
-    std::vector<std::string> batch;
-    const size_t BATCH_SIZE = 100000;  // hyperparam, TODO: change
+    ThreadPool pool(4); // Reduced number of threads
+    std::vector<std::future<void>> futures;
 
     while (gzgets(gz, buffer, sizeof(buffer)) != Z_NULL) {
         line = buffer;
-        batch.push_back(line);
-        if (batch.size() >= BATCH_SIZE) {
-            futures.emplace_back(pool.enqueue([&chromSizes, libid, extbp, selfbp, batch, &i]() mutable {
-                return processPairsBatch(batch, chromSizes, libid, extbp, selfbp, i);
-            }));
-            batch.clear();
-        }
-    }
-
-    if (!batch.empty()) {
-        futures.emplace_back(pool.enqueue([&chromSizes, libid, extbp, selfbp, batch, &i]() mutable {
-            return processPairsBatch(batch, chromSizes, libid, extbp, selfbp, i);
+        futures.emplace_back(pool.enqueue([&chromSizes, &line, libid, extbp, selfbp, &fout, &mtx, &i]() mutable {
+            std::vector<std::string> result;
+            processLine(line, chromSizes, libid, extbp, selfbp, result, i);
+            std::lock_guard<std::mutex> lock(mtx);
+            for (const auto& res : result) {
+                fout << res << "\n";
+            }
         }));
     }
 
     for (auto& fut : futures) {
-        std::vector<std::string> results = fut.get();
-        std::lock_guard<std::mutex> lock(mtx);
-        for (const auto& res : results) {
-            fout << res << "\n";
-        }
+        fut.get();
     }
 
     gzclose(gz);
@@ -202,7 +186,7 @@ int main(int argc, char* argv[]) {
     std::string libid = pairsFile.substr(pairsFile.find_last_of("/") + 1, pairsFile.find(".bsorted.pairs.gz") - pairsFile.find_last_of("/") - 1);
 
     try {
-        std::map<std::string, int> chromSizes = readChromSizes(chromSizesFile);
+        std::unordered_map<std::string, int> chromSizes = readChromSizes(chromSizesFile);
         readPairsAndWriteRegions(directory, pairsFile, chromSizes, libid, extbp, selfbp);
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;

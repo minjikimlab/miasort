@@ -4,24 +4,30 @@ from matplotlib.lines import Line2D
 from matplotlib.gridspec import GridSpec
 from helper import figsize_height_scaler, kb_format, create_plot_title
 
+"""
 
-def plot_three_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
+"""
+
+def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                            right_anchor_list, middle_anchor_list, out_dir, colors_flags,
                            anchor_options, id, path1, commands_list, extension, flag="abc", regions=[]):
     directory_str = output_file
     if out_dir != "/":
         directory_str = f"./{out_dir}/{output_file}"
 
-    heights = [round(figsize_height_scaler(len(ranked_gems_list[0]))),
-                round(figsize_height_scaler(len(ranked_gems_list[1]))),
-                round(figsize_height_scaler(len(ranked_gems_list[2])))]
+    if flag == "abc":
+        heights = [round(figsize_height_scaler(len(ranked_gems_list[0]))),
+                    round(figsize_height_scaler(len(ranked_gems_list[1]))),
+                    round(figsize_height_scaler(len(ranked_gems_list[2])))]
+        fig = plt.figure(figsize=(50, sum(heights)*1.5))
+        # Create GridSpec with custom heights
+        gs = GridSpec(3, 1, height_ratios=heights, figure=fig)
+    else:
+        height = round(figsize_height_scaler(len(ranked_gems_list[0])))
+        fig = plt.figure(figsize=(50, height * 2))
+        gs = GridSpec(1, 1, height_ratios=[height], figure=fig)
 
-    fig = plt.figure(figsize=(50, sum(heights)*1.5))
-
-    # Create GridSpec with custom heights
-    gs = GridSpec(3, 1, height_ratios=heights, figure=fig)
-
-    for idx in range(3):
+    for idx in range(len(ranked_gems_list)):
         ax = fig.add_subplot(gs[idx])
 
         ranked_gems = ranked_gems_list[idx]
@@ -144,7 +150,13 @@ def plot_three_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
             left_end = min(left_start, right_start, middle_start)
             right_end = max(left_end, right_end, middle_end)
         else:
-            ax.set_title("Multiple")
+            left_end = regions[0][1]
+            right_end = regions[-1][2]
+            for region in regions:
+                l, r = region[1], region[2]
+                left_end = min(left_end, l)
+                right_end = max(right_end, r)
+            ax.set_title("Multiple", fontdict=title_font)
 
         distance = right_end - left_end
         margin = round(0.05 * distance)
@@ -160,6 +172,9 @@ def plot_three_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
 
         ax.xaxis.set_major_formatter(plt.FuncFormatter(kb_format))
 
-    plt.subplots_adjust(top=0.9, bottom=0.05, hspace=0.9)
+    if flag == "abc":
+        plt.subplots_adjust(top=0.9, bottom=0.05, hspace=0.9)
+    else:
+        plt.subplots_adjust(top=0.9, bottom=0.1, hspace=0.9)
     plt.savefig(directory_str)
     plt.close(fig)
