@@ -2,80 +2,13 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <map>
 #include <vector>
+#include <algorithm>
+#include <unordered_map>
 #include <zlib.h>
-#include <thread>
-#include <mutex>
-#include <queue>
-#include <future>
-#include <stdexcept>
-#include <functional>
 
-class ThreadPool {
-public:
-    ThreadPool(size_t threads);
-    ~ThreadPool();
-
-    template<class F, class... Args>
-    auto enqueue(F&& f, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type>;
-
-private:
-    std::vector<std::thread> workers;
-    std::queue<std::function<void()>> tasks;
-    std::mutex queue_mutex;
-    std::condition_variable condition;
-    bool stop;
-};
-
-
-inline ThreadPool::ThreadPool(size_t threads) : stop(false) {
-    for (size_t i = 0; i < threads; ++i)
-        workers.emplace_back([this] {
-            for (;;) {
-                std::function<void()> task;
-                {
-                    std::unique_lock<std::mutex> lock(this->queue_mutex);
-                    this->condition.wait(lock, [this] { return this->stop || !this->tasks.empty(); });
-                    if (this->stop && this->tasks.empty())
-                        return;
-                    task = std::move(this->tasks.front());
-                    this->tasks.pop();
-                }
-                task();
-            }
-        });
-}
-
-
-inline ThreadPool::~ThreadPool() {
-    {
-        std::unique_lock<std::mutex> lock(queue_mutex);
-        stop = true;
-    }
-    condition.notify_all();
-    for (std::thread &worker : workers)
-        worker.join();
-}
-
-
-template<class F, class... Args>
-auto ThreadPool::enqueue(F&& f, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type> {
-    using return_type = typename std::result_of<F(Args...)>::type;
-    auto task = std::make_shared<std::packaged_task<return_type()>>(std::bind(std::forward<F>(f), std::forward<Args>(args)...));
-    std::future<return_type> res = task->get_future();
-    {
-        std::unique_lock<std::mutex> lock(queue_mutex);
-        if (stop)
-            throw std::runtime_error("enqueue on stopped ThreadPool");
-        tasks.emplace([task]() { (*task)(); });
-    }
-    condition.notify_one();
-    return res;
-}
-
-std::map<std::string, int> readChromSizes(const std::string& filepath) {
-    std::map<std::string, int> chromSizes;
+std::unordered_map<std::string, int> readChromSizes(const std::string& filepath) {
+    std::unordered_map<std::string, int> chromSizes;
     std::ifstream file(filepath);
     if (!file.is_open()) {
         throw std::runtime_error("Unable to open chromosome sizes file at " + filepath);
@@ -93,33 +26,89 @@ std::map<std::string, int> readChromSizes(const std::string& filepath) {
     return chromSizes;
 }
 
+void processClusterLine(const std::string& line, const std::unordered_map<std::string, int>& chromSizes, const std::string& libid, int extbp, int selfbp, std::vector<std::string>& result, int& i) {
+    std::istringstream ss(line);
+    std::string id;
+    ss >> id;
 
-std::vector<std::string> processSpriteBatch(const std::vector<std::string>& lines, const std::map<std::string, int>& chromSizes, int extbp, int& cluster_id) {
-    std::vector<std::string> result;
-    for (const auto& line : lines) {
-        if (!line.empty() && line[0] != '#') {
-            std::istringstream ss(line);
-            std::string barcodes, chrom;
-            std::vector<std::string> fields;
-            while (std::getline(ss, barcodes, '\t')) {
-                fields.push_back(barcodes);
-            }
-            for (size_t j = 1; j < fields.size(); ++j) {
-                std::istringstream loc(fields[j]);
-                int left, right, num;
-                std::string region_id;
-                loc >> chrom >> left >> right >> num >> region_id;
-                result.push_back(chrom + "\t" + std::to_string(left) + "\t" + std::to_string(right) + "\t" + std::to_string(num) + "\t" + region_id);
-            }
-            ++cluster_id;
+    std::unordered_map<std::string, std::vector<int>> chromPositions;
+    std::string location;
+    while (ss >> location) {
+        size_t colonPos = location.find(':');
+        if (colonPos == std::string::npos || colonPos == location.length() - 1) {
+            std::cerr << "Error: Malformed location string: " << location << std::endl;
+            continue; // Skip malformed locations
+        }
+
+        std::string chrom = location.substr(0, colonPos);
+        std::string posStr = location.substr(colonPos + 1);
+
+        // Skip malformed position strings
+        if (posStr.empty() || !std::all_of(posStr.begin(), posStr.end(), ::isdigit)) {
+            std::cerr << "Error: Invalid position string: " << posStr << " in line: " << line << std::endl;
+            continue;
+        }
+
+        try {
+            int pos = std::stoi(posStr);
+            chromPositions[chrom].push_back(pos);
+        } catch (const std::invalid_argument& e) {
+            std::cerr << "Error: Invalid position string: " << posStr << " in line: " << line << std::endl;
+            continue; // Skip this location
+        } catch (const std::out_of_range& e) {
+            std::cerr << "Error: Position out of range: " << posStr << " in line: " << line << std::endl;
+            continue; // Skip this location
         }
     }
-    return result;
+
+    // Process valid chromosomal positions
+    for (auto& [chrom, positions] : chromPositions) {
+        if (positions.size() == 1) {
+            int pos1 = positions[0];
+            auto it = chromSizes.find(chrom);
+            if (it == chromSizes.end()) {
+                continue;
+            }
+            int chromSize = it->second;
+            int start1 = std::max(0, pos1 - extbp);
+            int end1 = std::min(pos1 + extbp, chromSize);
+            ++i;
+            result.push_back(chrom + "\t" + std::to_string(start1) + "\t" + std::to_string(end1) + "\t2\t" + id);
+        } else if (positions.size() > 1) {
+            std::sort(positions.begin(), positions.end());
+
+            std::vector<int> validPositions;
+            validPositions.push_back(positions.front());  // Always keep the smallest position
+
+            for (size_t j = 1; j < positions.size(); ++j) {
+                int pos1 = positions[0];
+                int pos2 = positions[j];
+                if (pos2 - pos1 > selfbp) {
+                    validPositions.push_back(positions[j]);
+                }
+            }
+
+            if (validPositions.size() == 1 || validPositions.size() == 2) {
+                validPositions.clear(); // Discard both if only 1 or 2 valid positions
+            }
+
+            for (int pos : validPositions) {
+                auto it = chromSizes.find(chrom);
+                if (it == chromSizes.end()) {
+                    continue;
+                }
+                int chromSize = it->second;
+                int start1 = std::max(0, pos - extbp);
+                int end1 = std::min(pos + extbp, chromSize);
+                ++i;
+                result.push_back(chrom + "\t" + std::to_string(start1) + "\t" + std::to_string(end1) + "\t2\t" + id);
+            }
+        }
+    }
 }
 
-
-void readSpriteAndWriteRegions(const std::string& directory, const std::string& spriteFile, const std::map<std::string, int>& chromSizes, int extbp) {
-    std::string outputFile = directory + "/SPRITE_regions.ext" + std::to_string(extbp) + "bp.region";
+void readSpriteAndWriteRegions(const std::string& directory, const std::string& spriteFile, const std::unordered_map<std::string, int>& chromSizes, const std::string& libid, int extbp, int selfbp) {
+    std::string outputFile = directory + "/" + libid + ".ext" + std::to_string(extbp) + "bp.g" + std::to_string(selfbp) + "bp.region";
     std::ofstream fout(outputFile);
     if (!fout.is_open()) {
         throw std::runtime_error("Unable to open output file at " + outputFile);
@@ -127,39 +116,24 @@ void readSpriteAndWriteRegions(const std::string& directory, const std::string& 
 
     gzFile gz = gzopen(spriteFile.c_str(), "rb");
     if (!gz) {
-        throw std::runtime_error("Unable to open SPRITE file at " + spriteFile);
+        throw std::runtime_error("Unable to open sprite file at " + spriteFile);
     }
 
-    char buffer[8192];
     std::string line;
-    int cluster_id = 1;
-    std::mutex mtx;
-    ThreadPool pool(std::thread::hardware_concurrency());
-    std::vector<std::future<std::vector<std::string>>> futures;
-    std::vector<std::string> batch;
-    const size_t BATCH_SIZE = 100000;  // hyperparam, TODO:
+    int i = 100000000;
+    char buffer[8192];
 
+    // Loop through the file, reading chunks until the end of the file
     while (gzgets(gz, buffer, sizeof(buffer)) != Z_NULL) {
-        line = buffer;
-        batch.push_back(line);
-        if (batch.size() >= BATCH_SIZE) {
-            futures.emplace_back(pool.enqueue([&chromSizes, extbp, batch, &cluster_id]() mutable {
-                return processSpriteBatch(batch, chromSizes, extbp, cluster_id);
-            }));
-            batch.clear();
+        std::string part(buffer);
+        while (part.back() != '\n' && gzgets(gz, buffer, sizeof(buffer)) != Z_NULL) {
+            part.append(buffer);
         }
-    }
+        line = part;
 
-    if (!batch.empty()) {
-        futures.emplace_back(pool.enqueue([&chromSizes, extbp, batch, &cluster_id]() mutable {
-            return processSpriteBatch(batch, chromSizes, extbp, cluster_id);
-        }));
-    }
-
-    for (auto& fut : futures) {
-        std::vector<std::string> results = fut.get();
-        std::lock_guard<std::mutex> lock(mtx);
-        for (const auto& res : results) {
+        std::vector<std::string> result;
+        processClusterLine(line, chromSizes, libid, extbp, selfbp, result, i);
+        for (const auto& res : result) {
             fout << res << "\n";
         }
     }
@@ -168,10 +142,9 @@ void readSpriteAndWriteRegions(const std::string& directory, const std::string& 
     fout.close();
 }
 
-
 int main(int argc, char* argv[]) {
-    if (argc < 4) {
-        std::cerr << "Usage: " << argv[0] << " <directory> <sprite_file> <chrom_sizes_file> [<extbp>]" << std::endl;
+    if (argc < 4 || argc > 6) {
+        std::cerr << "Usage: " << argv[0] << " <directory> <sprite_file> <chrom_sizes_file> [<extbp> [<selfbp>]]" << std::endl;
         return 1;
     }
 
@@ -180,10 +153,13 @@ int main(int argc, char* argv[]) {
     std::string chromSizesFile = argv[3];
 
     int extbp = (argc > 4) ? std::stoi(argv[4]) : 250;
+    int selfbp = (argc > 5) ? std::stoi(argv[5]) : 8000;
+
+    std::string libid = spriteFile.substr(spriteFile.find_last_of("/") + 1, spriteFile.find(".clusters") - spriteFile.find_last_of("/") - 1);
 
     try {
-        std::map<std::string, int> chromSizes = readChromSizes(chromSizesFile);
-        readSpriteAndWriteRegions(directory, spriteFile, chromSizes, extbp);
+        std::unordered_map<std::string, int> chromSizes = readChromSizes(chromSizesFile);
+        readSpriteAndWriteRegions(directory, spriteFile, chromSizes, libid, extbp, selfbp);
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;

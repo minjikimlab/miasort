@@ -28,7 +28,6 @@ private:
     bool stop;
 };
 
-
 inline ThreadPool::ThreadPool(size_t threads) : stop(false) {
     for (size_t i = 0; i < threads; ++i)
         workers.emplace_back([this] {
@@ -47,7 +46,6 @@ inline ThreadPool::ThreadPool(size_t threads) : stop(false) {
         });
 }
 
-
 inline ThreadPool::~ThreadPool() {
     {
         std::unique_lock<std::mutex> lock(queue_mutex);
@@ -57,7 +55,6 @@ inline ThreadPool::~ThreadPool() {
     for (std::thread &worker : workers)
         worker.join();
 }
-
 
 template<class F, class... Args>
 auto ThreadPool::enqueue(F&& f, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type> {
@@ -94,7 +91,6 @@ std::unordered_map<std::string, int> readChromSizes(const std::string& filepath)
     return chromSizes;
 }
 
-
 void processLine(const std::string& line, const std::unordered_map<std::string, int>& chromSizes, const std::string& libid, int extbp, int selfbp, std::vector<std::string>& result, int& i) {
     if (line[0] != '#') {
         std::istringstream ss(line);
@@ -128,7 +124,6 @@ void processLine(const std::string& line, const std::unordered_map<std::string, 
         }
     }
 }
-
 
 void readPairsAndWriteRegions(const std::string& directory, const std::string& pairsFile, const std::unordered_map<std::string, int>& chromSizes, const std::string& libid, int extbp, int selfbp) {
     std::string outputFile = directory + "/" + libid + ".ext" + std::to_string(extbp) + "bp.g" + std::to_string(selfbp) + "bp.region";
@@ -168,7 +163,6 @@ void readPairsAndWriteRegions(const std::string& directory, const std::string& p
     gzclose(gz);
     fout.close();
 }
-
 
 int main(int argc, char* argv[]) {
     if (argc < 4 || argc > 6) {
