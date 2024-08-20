@@ -16,7 +16,7 @@ def plot_three_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                 round(figsize_height_scaler(len(ranked_gems_list[1]))),
                 round(figsize_height_scaler(len(ranked_gems_list[2])))]
 
-    fig = plt.figure(figsize=(50, sum(heights)))
+    fig = plt.figure(figsize=(50, sum(heights)*1.5))
 
     # Create GridSpec with custom heights
     gs = GridSpec(3, 1, height_ratios=heights, figure=fig)
@@ -129,8 +129,8 @@ def plot_three_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
         else:  # anchor_options == "no"
             ax.set_ylim(-1, len(ranked_gems) + 1)
 
-        title_font = {'fontsize': 40, 'fontweight': 'bold'}
-        label_font = {'fontsize': 38}
+        title_font = {'fontsize': 30, 'fontweight': 'bold'}
+        label_font = {'fontsize': 30}
         tick_font_size = 23
 
         if flag == "abc":
@@ -158,6 +158,6 @@ def plot_three_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
 
         ax.xaxis.set_major_formatter(plt.FuncFormatter(kb_format))
 
-    plt.subplots_adjust(top=0.95, bottom=0.05, hspace=0.3)
+    plt.subplots_adjust(top=0.9, bottom=0.05, hspace=0.9)
     plt.savefig(directory_str)
     plt.close(fig)

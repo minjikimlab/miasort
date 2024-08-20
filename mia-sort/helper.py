@@ -64,11 +64,13 @@ def create_plot_filename(dataset, id, command, numfrag_min, numfrag_max, num_gem
 
 def create_csv_filename(dataset, path2):
     """Generate the filename for the csv file."""
+    path2 = path2.split("/")[-1]
     return f"{dataset}_{path2}_comp_records.csv"
 
 
 def create_histogram_filename(dataset, path2):
     """Generate the filename for the histogram text file."""
+    path2 = path2.split("/")[-1]
     return f"{dataset}_{path2}_histogram.txt"
 
 

@@ -250,7 +250,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     path1 = args.path1
-    dataset = path1.split("-")[0]
+    dataset = path1.split("/")[-1].split("-")[0]
     path2 = args.path2
     processing_type = args.type
     graphs = args.graphs
