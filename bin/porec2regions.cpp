@@ -12,7 +12,7 @@ struct Fragment {
     std::string readName;
 };
 
-void processLine(const std::string& line, std::vector<Fragment>& fragments, std::string& currentReadName, int& fragmentCount) {
+void processLine(const std::string& line, std::vector<Fragment>& fragments, std::string& currentReadName, int& fragmentCount, std::ofstream& fout) {
     std::istringstream ss(line);
     std::string field;
     std::vector<std::string> fields;
@@ -29,16 +29,17 @@ void processLine(const std::string& line, std::vector<Fragment>& fragments, std:
 
         if (readName != currentReadName) {
             if (!currentReadName.empty()) {
-                // Write the previous group of fragments to the file
+                // Output all stored fragments for the previous readName
                 for (const auto& fragment : fragments) {
-                    std::cout << fragment.chrom << "\t" << fragment.start << "\t" << fragment.end << "\t" << fragmentCount << "\t" << fragment.readName << "\n";
+                    fout << fragment.chrom << "\t" << fragment.start << "\t" << fragment.end << "\t" << fragmentCount << "\t" << fragment.readName << "\n";
                 }
-                fragments.clear();  // Clear fragments for the next read_name
+                fragments.clear();  // Clear fragments for the next readName
             }
-            // Update the currentReadName and reset fragment count
-            currentReadName = readName;
-            fragmentCount = 0;
+            currentReadName = readName;  // Update currentReadName to the new readName
+            fragmentCount = 0;  // Reset fragment count for the new group
         }
+
+        // Store the current fragment
         fragments.push_back({chrom, start, end, readName});
         fragmentCount++;
     }
@@ -77,7 +78,7 @@ void readCSVAndWriteRegions(const std::string& directory, const std::string& csv
         }
 
         if (!line.empty()) {
-            processLine(line, fragments, currentReadName, fragmentCount);
+            processLine(line, fragments, currentReadName, fragmentCount, fout);
         }
     }
 
