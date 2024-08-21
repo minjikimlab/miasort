@@ -4,7 +4,7 @@
 set -Eeuo pipefail
 set -x
 
-g++ -std=c++11 -o ../mia-sort/bin/pairs2regions ../mia-sort/bin/pairs2regions.cpp -lz -lpthread
+g++ -std=c++11 -o ./bin/pairs2regions ./bin/pairs2regions.cpp -lz -lpthread
 
 # Record the start time
 start_time=$(date +%s)

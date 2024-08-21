@@ -146,27 +146,15 @@ void readPairsAndWriteRegions(const std::string& directory, const std::string& p
     int i = 100000000;
     std::mutex mtx;
     ThreadPool pool(4); // Adjust the number of threads as necessary
-
-    // Process futures in batches to avoid high memory usage
     std::vector<std::future<void>> futures;
-    const size_t max_futures = 1000; // Adjust as needed to control memory usage
 
     while (gzgets(gz, buffer, sizeof(buffer)) != Z_NULL) {
         line = buffer;
         futures.emplace_back(pool.enqueue([&chromSizes, &line, libid, extbp, selfbp, &fout, &mtx, &i]() mutable {
             processLine(line, chromSizes, libid, extbp, selfbp, fout, i, mtx);
         }));
-
-        // If futures exceed max limit, wait for them to complete and clear the vector
-        if (futures.size() >= max_futures) {
-            for (auto& fut : futures) {
-                fut.get();
-            }
-            futures.clear(); // Clear the futures vector to release memory
-        }
     }
 
-    // Wait for remaining futures
     for (auto& fut : futures) {
         fut.get();
     }
