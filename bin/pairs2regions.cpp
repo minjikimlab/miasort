@@ -2,76 +2,11 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <map>
-#include <vector>
-#include <zlib.h>
-#include <thread>
-#include <mutex>
-#include <queue>
-#include <future>
-#include <stdexcept>
-#include <functional>
 #include <unordered_map>
-
-class ThreadPool {
-public:
-    ThreadPool(size_t threads);
-    ~ThreadPool();
-
-    template<class F, class... Args>
-    auto enqueue(F&& f, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type>;
-
-private:
-    std::vector<std::thread> workers;
-    std::queue<std::function<void()>> tasks;
-    std::mutex queue_mutex;
-    std::condition_variable condition;
-    bool stop;
-};
-
-inline ThreadPool::ThreadPool(size_t threads) : stop(false) {
-    for (size_t i = 0; i < threads; ++i)
-        workers.emplace_back([this] {
-            for (;;) {
-                std::function<void()> task;
-                {
-                    std::unique_lock<std::mutex> lock(this->queue_mutex);
-                    this->condition.wait(lock, [this] { return this->stop || !this->tasks.empty(); });
-                    if (this->stop && this->tasks.empty())
-                        return;
-                    task = std::move(this->tasks.front());
-                    this->tasks.pop();
-                }
-                task();
-            }
-        });
-}
-
-inline ThreadPool::~ThreadPool() {
-    {
-        std::unique_lock<std::mutex> lock(queue_mutex);
-        stop = true;
-    }
-    condition.notify_all();
-    for (std::thread &worker : workers)
-        worker.join();
-}
-
-template<class F, class... Args>
-auto ThreadPool::enqueue(F&& f, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type> {
-    using return_type = typename std::result_of<F(Args...)>::type;
-    auto task = std::make_shared<std::packaged_task<return_type()>>(std::bind(std::forward<F>(f), std::forward<Args>(args)...));
-    std::future<return_type> res = task->get_future();
-    {
-        std::unique_lock<std::mutex> lock(queue_mutex);
-        if (stop)
-            throw std::runtime_error("enqueue on stopped ThreadPool");
-        tasks.emplace([task]() { (*task)(); });
-    }
-    condition.notify_one();
-    return res;
-}
-
+#include <zlib.h>
+#include <stdexcept>
+#include <algorithm>
+#include <vector>
 
 std::unordered_map<std::string, int> readChromSizes(const std::string& filepath) {
     std::unordered_map<std::string, int> chromSizes;
@@ -92,40 +27,51 @@ std::unordered_map<std::string, int> readChromSizes(const std::string& filepath)
     return chromSizes;
 }
 
-void processLine(const std::string& line, const std::unordered_map<std::string, int>& chromSizes, const std::string& libid, int extbp, int selfbp, std::ofstream& fout, int& i, std::mutex& mtx) {
-    if (line[0] != '#') {
-        std::istringstream ss(line);
-        std::vector<std::string> fields;
-        std::string field;
-        while (std::getline(ss, field, '\t')) {
-            fields.push_back(field);
+void processLine(const std::string& line, const std::unordered_map<std::string, int>& chromSizes, const std::string& libid, int extbp, int selfbp, std::ofstream& fout, int& i) {
+    if (line.empty() || line[0] == '#') {
+        return;
+    }
+
+    std::istringstream ss(line);
+    std::vector<std::string> fields;
+    std::string field;
+    while (std::getline(ss, field, '\t')) {
+        fields.push_back(field);
+    }
+
+    if (fields.size() < 5) {
+        std::cerr << "Skipping malformed line: " << line << std::endl;
+        return;
+    }
+
+    std::string gemid = fields[0];
+    std::string chrom1 = fields[1];
+    std::string chrom2 = fields[3];
+
+    int pos1, pos2;
+    try {
+        pos1 = std::stoi(fields[2]);
+        pos2 = std::stoi(fields[4]);
+    } catch (const std::invalid_argument& e) {
+        std::cerr << "Invalid position value in line: " << line << std::endl;
+        return;
+    }
+
+    if (chrom1 == chrom2 && chrom1 != "chrM" && pos2 - pos1 > selfbp) {
+        auto it = chromSizes.find(chrom1);
+        if (it == chromSizes.end()) {
+            return; // Skip if chromosome not found
         }
+        int chromSize = it->second;
 
-        std::string gemid = fields[0];
-        std::string chrom1 = fields[1];
-        int pos1 = std::stoi(fields[2]);
-        std::string chrom2 = fields[3];
-        int pos2 = std::stoi(fields[4]);
+        int start1 = std::max(0, pos1 - extbp);
+        int end1 = std::min(pos1 + extbp, chromSize);
+        int start2 = std::max(0, pos2 - extbp);
+        int end2 = std::min(pos2 + extbp, chromSize);
+        ++i;
 
-        if (chrom1 == chrom2 && chrom1 != "chrM" && pos2 - pos1 > selfbp) {
-            auto it = chromSizes.find(chrom1);
-            if (it == chromSizes.end()) {
-                return; // Skip if chromosome not found
-            }
-            int chromSize = it->second;
-
-            int start1 = std::max(0, pos1 - extbp);
-            int end1 = std::min(pos1 + extbp, chromSize);
-            int start2 = std::max(0, pos2 - extbp);
-            int end2 = std::min(pos2 + extbp, chromSize);
-            ++i;
-
-            {
-                std::lock_guard<std::mutex> lock(mtx);
-                fout << chrom1 << "\t" << start1 << "\t" << end1 << "\t2\t" << gemid << "\n";
-                fout << chrom1 << "\t" << start2 << "\t" << end2 << "\t2\t" << gemid << "\n";
-            }
-        }
+        fout << chrom1 << "\t" << start1 << "\t" << end1 << "\t2\t" << gemid << "\n";
+        fout << chrom1 << "\t" << start2 << "\t" << end2 << "\t2\t" << gemid << "\n";
     }
 }
 
@@ -144,19 +90,14 @@ void readPairsAndWriteRegions(const std::string& directory, const std::string& p
     char buffer[8192];
     std::string line;
     int i = 100000000;
-    std::mutex mtx;
-    ThreadPool pool(4); // Adjust the number of threads as necessary
-    std::vector<std::future<void>> futures;
 
     while (gzgets(gz, buffer, sizeof(buffer)) != Z_NULL) {
         line = buffer;
-        futures.emplace_back(pool.enqueue([&chromSizes, &line, libid, extbp, selfbp, &fout, &mtx, &i]() mutable {
-            processLine(line, chromSizes, libid, extbp, selfbp, fout, i, mtx);
-        }));
-    }
-
-    for (auto& fut : futures) {
-        fut.get();
+        // Remove newline character if it exists
+        if (!line.empty() && line.back() == '\n') {
+            line.pop_back();
+        }
+        processLine(line, chromSizes, libid, extbp, selfbp, fout, i);
     }
 
     gzclose(gz);
