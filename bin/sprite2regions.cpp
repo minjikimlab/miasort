@@ -26,7 +26,7 @@ std::unordered_map<std::string, int> readChromSizes(const std::string& filepath)
     return chromSizes;
 }
 
-void processClusterLine(const std::string& line, const std::unordered_map<std::string, int>& chromSizes, const std::string& libid, int extbp, int selfbp, std::vector<std::string>& result, int& i) {
+void processClusterLine(const std::string& line, const std::unordered_map<std::string, int>& chromSizes, const std::string& libid, int extbp, int selfbp, std::ofstream& fout, int& i) {
     std::istringstream ss(line);
     std::string id;
     ss >> id;
@@ -73,7 +73,7 @@ void processClusterLine(const std::string& line, const std::unordered_map<std::s
             int start1 = std::max(0, pos1 - extbp);
             int end1 = std::min(pos1 + extbp, chromSize);
             ++i;
-            result.push_back(chrom + "\t" + std::to_string(start1) + "\t" + std::to_string(end1) + "\t2\t" + id);
+            fout << chrom << "\t" << start1 << "\t" << end1 << "\t2\t" << id << "\n";
         } else if (positions.size() > 1) {
             std::sort(positions.begin(), positions.end());
 
@@ -101,7 +101,7 @@ void processClusterLine(const std::string& line, const std::unordered_map<std::s
                 int start1 = std::max(0, pos - extbp);
                 int end1 = std::min(pos + extbp, chromSize);
                 ++i;
-                result.push_back(chrom + "\t" + std::to_string(start1) + "\t" + std::to_string(end1) + "\t2\t" + id);
+                fout << chrom << "\t" << start1 << "\t" << end1 << "\t2\t" << id << "\n";
             }
         }
     }
@@ -131,11 +131,7 @@ void readSpriteAndWriteRegions(const std::string& directory, const std::string& 
         }
         line = part;
 
-        std::vector<std::string> result;
-        processClusterLine(line, chromSizes, libid, extbp, selfbp, result, i);
-        for (const auto& res : result) {
-            fout << res << "\n";
-        }
+        processClusterLine(line, chromSizes, libid, extbp, selfbp, fout, i);
     }
 
     gzclose(gz);
