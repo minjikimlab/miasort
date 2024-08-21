@@ -11,6 +11,7 @@
 #include <future>
 #include <stdexcept>
 #include <functional>
+#include <unordered_map>
 
 class ThreadPool {
 public:
@@ -91,7 +92,7 @@ std::unordered_map<std::string, int> readChromSizes(const std::string& filepath)
     return chromSizes;
 }
 
-void processLine(const std::string& line, const std::unordered_map<std::string, int>& chromSizes, const std::string& libid, int extbp, int selfbp, std::vector<std::string>& result, int& i) {
+void processLine(const std::string& line, const std::unordered_map<std::string, int>& chromSizes, const std::string& libid, int extbp, int selfbp, std::ofstream& fout, int& i, std::mutex& mtx) {
     if (line[0] != '#') {
         std::istringstream ss(line);
         std::vector<std::string> fields;
@@ -119,8 +120,11 @@ void processLine(const std::string& line, const std::unordered_map<std::string, 
             int end2 = std::min(pos2 + extbp, chromSize);
             ++i;
 
-            result.push_back(chrom1 + "\t" + std::to_string(start1) + "\t" + std::to_string(end1) + "\t2\t" + gemid);
-            result.push_back(chrom1 + "\t" + std::to_string(start2) + "\t" + std::to_string(end2) + "\t2\t" + gemid);
+            {
+                std::lock_guard<std::mutex> lock(mtx);
+                fout << chrom1 << "\t" << start1 << "\t" << end1 << "\t2\t" << gemid << "\n";
+                fout << chrom1 << "\t" << start2 << "\t" << end2 << "\t2\t" << gemid << "\n";
+            }
         }
     }
 }
@@ -141,21 +145,28 @@ void readPairsAndWriteRegions(const std::string& directory, const std::string& p
     std::string line;
     int i = 100000000;
     std::mutex mtx;
-    ThreadPool pool(4); // Reduced number of threads
+    ThreadPool pool(4); // Adjust the number of threads as necessary
+
+    // Process futures in batches to avoid high memory usage
     std::vector<std::future<void>> futures;
+    const size_t max_futures = 1000; // Adjust as needed to control memory usage
 
     while (gzgets(gz, buffer, sizeof(buffer)) != Z_NULL) {
         line = buffer;
         futures.emplace_back(pool.enqueue([&chromSizes, &line, libid, extbp, selfbp, &fout, &mtx, &i]() mutable {
-            std::vector<std::string> result;
-            processLine(line, chromSizes, libid, extbp, selfbp, result, i);
-            std::lock_guard<std::mutex> lock(mtx);
-            for (const auto& res : result) {
-                fout << res << "\n";
-            }
+            processLine(line, chromSizes, libid, extbp, selfbp, fout, i, mtx);
         }));
+
+        // If futures exceed max limit, wait for them to complete and clear the vector
+        if (futures.size() >= max_futures) {
+            for (auto& fut : futures) {
+                fut.get();
+            }
+            futures.clear(); // Clear the futures vector to release memory
+        }
     }
 
+    // Wait for remaining futures
     for (auto& fut : futures) {
         fut.get();
     }
