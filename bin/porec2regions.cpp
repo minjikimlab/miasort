@@ -5,10 +5,19 @@
 #include <vector>
 #include <zlib.h>
 
-void processLine(const std::string& line, std::ofstream& fout, std::string& currentReadName, int& fragmentCount) {
+struct Fragment {
+    std::string chrom;
+    std::string start;
+    std::string end;
+    std::string readName;
+};
+
+// Function to process each line and store it in the current group of fragments
+void processLine(const std::string& line, std::vector<Fragment>& fragments, std::string& currentReadName, int& fragmentCount) {
     std::istringstream ss(line);
     std::string field;
     std::vector<std::string> fields;
+
     while (std::getline(ss, field, ',')) {
         fields.push_back(field);
     }
@@ -16,25 +25,36 @@ void processLine(const std::string& line, std::ofstream& fout, std::string& curr
     if (fields.size() > 17 && fields[17] == "True") {  // Column 18: pass_filter == "True"
         std::string chrom = fields[3];  // Column 4: chrom
         std::string start = fields[4];  // Column 5: start
-        std::string end = fields[5];  // Column 6: end
+        std::string end = fields[5];    // Column 6: end
         std::string readName = fields[7];  // Column 8: read_name
 
         if (readName != currentReadName) {
             if (!currentReadName.empty()) {
                 // Write the previous group of fragments to the file
-                fout << chrom << "\t" << start << "\t" << end << "\t" << fragmentCount << "\t" << currentReadName << "\n";
+                for (const auto& fragment : fragments) {
+                    std::cout << fragment.chrom << "\t" << fragment.start << "\t" << fragment.end << "\t" << fragmentCount << "\t" << fragment.readName << "\n";
+                }
+                fragments.clear();  // Clear fragments for the next read_name
             }
-            // Reset for the new group
+            // Update the currentReadName and reset fragment count
             currentReadName = readName;
-            fragmentCount = 1;
-        } else {
-            fragmentCount++;
+            fragmentCount = 0;
         }
+        fragments.push_back({chrom, start, end, readName});
+        fragmentCount++;
     }
 }
 
+// Function to write the collected fragments to the output file
+void writeFragments(std::ofstream& fout, const std::vector<Fragment>& fragments, int fragmentCount) {
+    for (const auto& fragment : fragments) {
+        fout << fragment.chrom << "\t" << fragment.start << "\t" << fragment.end << "\t" << fragmentCount << "\t" << fragment.readName << "\n";
+    }
+}
+
+// Function to read the gzipped CSV and convert it to region format
 void readCSVAndWriteRegions(const std::string& directory, const std::string& csvFile) {
-    std::string outputFile = directory + "/GM12878_Pore-C_GSM4490689.hg38.region";  // TODO: revise hand-crafted filename
+    std::string outputFile = directory + "/GM12878_Pore-C_GSM4490689.hg38.region";
     std::ofstream fout(outputFile);
     if (!fout.is_open()) {
         throw std::runtime_error("Unable to open output file at " + outputFile);
@@ -48,6 +68,7 @@ void readCSVAndWriteRegions(const std::string& directory, const std::string& csv
     std::string line;
     std::string currentReadName;
     int fragmentCount = 0;
+    std::vector<Fragment> fragments;
 
     char buffer[8192];
     while (gzgets(gz, buffer, sizeof(buffer)) != Z_NULL) {
@@ -58,18 +79,21 @@ void readCSVAndWriteRegions(const std::string& directory, const std::string& csv
             line.append(buffer);
         }
 
-        processLine(line, fout, currentReadName, fragmentCount);
+        if (!line.empty()) {
+            processLine(line, fragments, currentReadName, fragmentCount);
+        }
     }
 
-    // Add the last group to the output file
-    if (!currentReadName.empty()) {
-        fout << currentReadName << "\t" << fragmentCount << "\n";
+    // Write the last group of fragments to the output file
+    if (!fragments.empty()) {
+        writeFragments(fout, fragments, fragmentCount);
     }
 
     gzclose(gz);
     fout.close();
 }
 
+// Main function
 int main(int argc, char* argv[]) {
     if (argc != 3) {
         std::cerr << "Usage: " << argv[0] << " <directory> <csv_file>" << std::endl;
