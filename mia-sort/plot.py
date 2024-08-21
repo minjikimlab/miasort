@@ -140,8 +140,8 @@ def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
         if flag == "abc":
             anchors = [left_anchor, middle_anchor, right_anchor]
             anchors.sort(key=lambda x: int(x.split('\t')[1]))
-            ax.set_title(create_plot_title(id, path1, commands_list[idx], anchors, len(ranked_gems)),
-                         fontdict=title_font)
+            title = create_plot_title(id, path1, commands_list[idx], anchors, len(ranked_gems))
+            ax.set_title(title, fontdict=title_font)
 
             left_end = min(left_start, right_start, middle_start)
             right_end = max(left_end, right_end, middle_end)
@@ -152,7 +152,9 @@ def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                 l, r = region[1], region[2]
                 left_end = min(left_end, l)
                 right_end = max(right_end, r)
-            ax.set_title("Multiple", fontdict=title_font)
+            title = create_plot_title(id, path1, commands_list[idx],
+                                      regions, len(ranked_gems), flag=flag)
+            ax.set_title(title, fontdict=title_font)
 
         distance = right_end - left_end
         margin = round(0.05 * distance)
@@ -162,7 +164,7 @@ def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
         ax.set_ylabel("Chromatin Complexes", fontdict=label_font)
         ax.set_yticks([i for i in range(len(ranked_gems))], labels=range(1, len(ranked_gems) + 1))
 
-        ax.invert_yaxis()  # labels read top-to-bottom
+        ax.invert_yaxis()
         ax.tick_params(axis='x', labelsize=tick_font_size)
         ax.tick_params(axis='y', labelsize=tick_font_size)
 
@@ -171,6 +173,6 @@ def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
     if flag == "abc":
         plt.subplots_adjust(top=0.9, bottom=0.05, hspace=0.9)
     else:
-        plt.subplots_adjust(top=0.9, bottom=0.1, hspace=0.9)
+        plt.subplots_adjust(top=0.65, bottom=0.15, hspace=0.9)
     plt.savefig(directory_str)
     plt.close(fig)

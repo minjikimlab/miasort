@@ -220,8 +220,10 @@ def main(start_time, path1, path2, processing_type, graphs,
         yes_chroms, no_chroms = process_multiple_regions(region, operation)
         # Process with the specified operation for multiple
         ranked_gems = sort.process_multiple(ChIA_Drop, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
-        plot.plot_ranked_gems([ranked_gems], "multiple", [""], [""], [""], out_dir,
-                                    colors_flags, anchor_options, 0, path1, ["multiple"],
+        output_file = create_plot_filename(dataset, None, "multiple", num_fragments_min,
+                                           num_fragments_max, len(ranked_gems))
+        plot.plot_ranked_gems([ranked_gems], output_file, [""], [""], [""], out_dir,
+                                    colors_flags, anchor_options, 0, dataset, ["multiple"],
                                     extension, flag="multiple", regions=yes_chroms+no_chroms)
         if histogram_options == "yes":
             histogram.generate_file(ranked_gems, "output_file", out_dir)  # TODO: revise file name

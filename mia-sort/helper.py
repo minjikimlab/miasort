@@ -1,3 +1,5 @@
+import string
+
 def process_multiple_regions(regions, operations):
     """
     Processes regions and operations to classify them into "Yes" and "No" chromosome tuples.
@@ -59,6 +61,8 @@ def process_graphs_arg(arg):
 
 def create_plot_filename(dataset, id, command, numfrag_min, numfrag_max, num_gems):
     """Generate the filename for the plot png image."""
+    if id == None:
+        return f"{dataset}_{command}_{numfrag_min}_{numfrag_max}.png"
     return f"{dataset}_{id}_{command}_{numfrag_min}_{numfrag_max}.png"
 
 
@@ -107,17 +111,35 @@ def kb_format(x, pos):
         return f'{kb_value:,.1f} kb'
 
 
-def create_plot_title(id, input_filename, command, anchors, num_complexes):
-    l = anchors[0].split('\t')
-    anchor_a = f"{l[0]}:{l[1]}-{l[2]}"
+def create_plot_title(id, input_filename, command, anchors, num_complexes, flag="abc"):
+    if flag == "abc":
+        l = anchors[0].split('\t')
+        anchor_a = f"{l[0]}:{l[1]}-{l[2]}"
 
-    m = anchors[1].split('\t')
-    anchor_b = f"{m[0]}:{m[1]}-{m[2]}"
+        m = anchors[1].split('\t')
+        anchor_b = f"{m[0]}:{m[1]}-{m[2]}"
 
-    r = anchors[2].split('\t')
-    anchor_c = f"{r[0]}:{r[1]}-{r[2]}"
+        r = anchors[2].split('\t')
+        anchor_c = f"{r[0]}:{r[1]}-{r[2]}"
 
-    return f"{id}\n{input_filename}\nA: {anchor_a}; B: {anchor_b}; C: {anchor_c}\n{command}; num_complexes: {num_complexes}\n"  # TODO
+        return f"{id}\n{input_filename}\nA: {anchor_a}; B: {anchor_b}; C: {anchor_c}\n{command}; num_complexes: {num_complexes}\n"
+    else:  # flag == "multiple"
+        sorted_regions = sorted(anchors, key=lambda x: int(x[1]))
+
+        # Generate labels using the alphabet
+        labels = list(string.ascii_uppercase)  # ['A', 'B', 'C', ..., 'Z']
+
+        # If there're more than 26 regions,
+        # extend with combinations: AA, AB, etc.
+        if len(sorted_regions) > len(labels):
+            for first_letter in string.ascii_uppercase:
+                for second_letter in string.ascii_uppercase:
+                    labels.append(first_letter + second_letter)
+
+        # Construct the formatted string
+        formatted_string = "; ".join([f"{labels[i]}: {chr_id}:{left}-{right}"
+                                    for i, (chr_id, left, right) in enumerate(sorted_regions)])
+        return f"{input_filename}\n{formatted_string}\n{command}; num_complexes: {num_complexes}\n"
 
 
 def generate_filter_regions(input_bedfile, output_bedfile):
