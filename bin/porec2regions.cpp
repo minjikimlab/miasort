@@ -12,7 +12,6 @@ struct Fragment {
     std::string readName;
 };
 
-// Function to process each line and store it in the current group of fragments
 void processLine(const std::string& line, std::vector<Fragment>& fragments, std::string& currentReadName, int& fragmentCount) {
     std::istringstream ss(line);
     std::string field;
@@ -25,7 +24,7 @@ void processLine(const std::string& line, std::vector<Fragment>& fragments, std:
     if (fields.size() > 17 && fields[17] == "True") {  // Column 18: pass_filter == "True"
         std::string chrom = fields[3];  // Column 4: chrom
         std::string start = fields[4];  // Column 5: start
-        std::string end = fields[5];    // Column 6: end
+        std::string end = fields[5];  // Column 6: end
         std::string readName = fields[7];  // Column 8: read_name
 
         if (readName != currentReadName) {
@@ -45,14 +44,12 @@ void processLine(const std::string& line, std::vector<Fragment>& fragments, std:
     }
 }
 
-// Function to write the collected fragments to the output file
 void writeFragments(std::ofstream& fout, const std::vector<Fragment>& fragments, int fragmentCount) {
     for (const auto& fragment : fragments) {
         fout << fragment.chrom << "\t" << fragment.start << "\t" << fragment.end << "\t" << fragmentCount << "\t" << fragment.readName << "\n";
     }
 }
 
-// Function to read the gzipped CSV and convert it to region format
 void readCSVAndWriteRegions(const std::string& directory, const std::string& csvFile) {
     std::string outputFile = directory + "/GM12878_Pore-C_GSM4490689.hg38.region";
     std::ofstream fout(outputFile);
@@ -93,7 +90,6 @@ void readCSVAndWriteRegions(const std::string& directory, const std::string& csv
     fout.close();
 }
 
-// Main function
 int main(int argc, char* argv[]) {
     if (argc != 3) {
         std::cerr << "Usage: " << argv[0] << " <directory> <csv_file>" << std::endl;
