@@ -136,6 +136,9 @@ def create_plot_title(id, input_filename, command, anchors, num_complexes, flag=
                 for second_letter in string.ascii_uppercase:
                     labels.append(first_letter + second_letter)
 
+        if flag == "multiple_abc":
+            input_filename = f"{id}\n{input_filename}"
+
         # Construct the formatted string
         formatted_string = "; ".join([f"{labels[i]}: {chr_id}:{left}-{right}"
                                     for i, (chr_id, left, right) in enumerate(sorted_regions)])

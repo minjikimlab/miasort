@@ -29,7 +29,7 @@ def main(start_time, path1, path2, processing_type, graphs,
     if out_dir != "/" and os.path.exists(out_dir):
         shutil.rmtree(out_dir)
 
-    if processing_type != "multiple":  # abc processing
+    if processing_type == "abc":
         filter_regions_filename = "filter_regions.bed"
         generate_filter_regions(path2, filter_regions_filename)
         filter_regions = BedTool(filter_regions_filename)
@@ -214,11 +214,35 @@ def main(start_time, path1, path2, processing_type, graphs,
 
             print("-------------------------------------")
 
+    elif processing_type == "AandBandC":
+        regions = BedTool(path2)
+
+        if out_dir != "/" and not os.path.exists(out_dir):
+            os.makedirs(out_dir)
+
+        for region in regions:
+            region = region.fields
+            id = region[9]
+            region = f"{region[0]}:{region[1]}-{region[2]};{region[3]}:{region[4]}-{region[5]};{region[6]}:{region[7]}-{region[8]}"
+
+            if operation != "yes;yes;yes":
+                print("The operation is automatically set as `yes;yes;yes`")
+            operation = "yes;yes;yes"
+
+            yes_chroms, no_chroms = process_multiple_regions(region, operation)
+            ranked_gems = sort.process_multiple(ChIA_Drop, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
+            output_file = create_plot_filename(dataset, id, "AandBandC", num_fragments_min,
+                                            num_fragments_max, len(ranked_gems))
+            plot.plot_ranked_gems([ranked_gems], output_file, [""], [""], [""], out_dir,
+                                        colors_flags, anchor_options, id, dataset, ["multiple"],
+                                        extension, flag="multiple_abc", regions=yes_chroms+no_chroms)
+            if histogram_options == "yes":
+                histogram.generate_file(ranked_gems, "output_file", out_dir)  # TODO: revise file name
+
     else:
         if out_dir != "/" and not os.path.exists(out_dir):
             os.makedirs(out_dir)
         yes_chroms, no_chroms = process_multiple_regions(region, operation)
-        # Process with the specified operation for multiple
         ranked_gems = sort.process_multiple(ChIA_Drop, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
         output_file = create_plot_filename(dataset, None, "multiple", num_fragments_min,
                                            num_fragments_max, len(ranked_gems))
@@ -238,7 +262,7 @@ if __name__ == '__main__':
     parser.add_argument('--path2', type=str,
                         help='Path to the regions file')
     parser.add_argument('--type', type=str, required=True,
-                        help='Type of processing: abc or multiple')
+                        help='Type of processing: abc, AandBandC, or random_multiple')
     parser.add_argument('--graphs', type=str, required=True,
                         help='Graphs to genereate when type is abc')
     parser.add_argument('--numfrag_min', type=str, default="2",
