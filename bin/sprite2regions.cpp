@@ -88,8 +88,8 @@ void processClusterLine(const std::string& line, const std::unordered_map<std::s
                 }
             }
 
-            if (validPositions.size() == 1 || validPositions.size() == 2) {
-                validPositions.clear(); // Discard both if only 1 or 2 valid positions
+            if (validPositions.size() == 1) {
+                validPositions.clear(); // Discard the smallest position both if no other valid positions
             }
 
             for (int pos : validPositions) {
