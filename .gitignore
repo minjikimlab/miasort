@@ -39,5 +39,7 @@ porec2regions
 *.dSYM*
 testing
 *test_multiple*
+!test_multiple_sort.py
+!test_unlimited_multiple_sort.py
 *4DNFIBEVVTN5*
 miasort.egg-info
