@@ -1,7 +1,7 @@
 import os
 import csv
 
-def generate_file(id, A, B, C, command, num_complexes, csv_file, out_dir, ranked_gems):
+def write_to_csv_file(id, A, B, C, command, num_complexes, csv_file, out_dir, ranked_gems):
     # Determine the output path
     if out_dir != "/":
         output_path = os.path.join(out_dir, csv_file)

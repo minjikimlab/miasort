@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.lines import Line2D
 from matplotlib.gridspec import GridSpec
-from helper import figsize_height_scaler, kb_format, create_plot_title
+from .helper import figsize_height_scaler, kb_format, create_plot_title
 
 def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                            right_anchor_list, middle_anchor_list, out_dir, colors_flags,

@@ -1,23 +1,22 @@
 import pybedtools
 from pybedtools import BedTool
-import pyranges as pr
-import argparse
 import time
-import plot
-import histogram
-import sort
-import records
 import os
 import shutil
 import csv
-from helper import process_multiple_regions, process_graphs_arg, \
-    create_plot_filename, process_color_arg, create_histogram_filename, \
+
+from .plot import plot_ranked_gems
+from .histogram import generate_file
+from .sort import *
+from .records import write_to_csv_file
+from .helper import process_multiple_regions, process_graphs_arg, \
+    create_plot_filename, process_color_arg, \
     create_csv_filename, generate_filter_regions
 
 
-def main(start_time, path1, path2, processing_type, graphs,
+def main(path1, path2, processing_type, graphs,
          num_fragments_min, num_fragments_max, region, operation,
-         dataset, out_dir, colors, anchor_options, intersection_options,
+         dataset, out_dir, colors, anchor_options,
          graph_flag, extension, histogram_options):
     pybedtools.helpers.cleanup()
 
@@ -114,48 +113,48 @@ def main(start_time, path1, path2, processing_type, graphs,
 
             if graphs_flags["AtoC"]:
                 start = time.time()
-                ranked_gems = sort.process_left(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region)
+                ranked_gems = process_left(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region)
                 output_file = create_plot_filename(dataset, id, "AtoC", num_fragments_min, num_fragments_max, len(ranked_gems))
                 ranked_gems_list.append(ranked_gems)
                 left_anchor_list.append(A)
                 right_anchor_list.append(C)
                 middle_anchor_list.append(B)
                 if histogram_options == "yes":
-                    histogram.generate_file(ranked_gems, output_file, out_dir)
-                records.generate_file(id, A, B, C, "AtoC", len(ranked_gems), csv_file, out_dir, ranked_gems)
+                    generate_file(ranked_gems, output_file, out_dir)
+                write_to_csv_file(id, A, B, C, "AtoC", len(ranked_gems), csv_file, out_dir, ranked_gems)
                 print(f"AtoC: {time.time() - start}")
 
             if graphs_flags["CtoA"]:
                 start = time.time()
-                ranked_gems = sort.process_right(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region)
+                ranked_gems = process_right(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region)
                 output_file = create_plot_filename(dataset, id, "CtoA", num_fragments_min, num_fragments_max, len(ranked_gems))
                 ranked_gems_list.append(ranked_gems)
                 left_anchor_list.append(A)
                 right_anchor_list.append(C)
                 middle_anchor_list.append(B)
                 if histogram_options == "yes":
-                    histogram.generate_file(ranked_gems, output_file, out_dir)
-                records.generate_file(id, A, B, C, "CtoA", len(ranked_gems), csv_file, out_dir, ranked_gems)
+                    generate_file(ranked_gems, output_file, out_dir)
+                write_to_csv_file(id, A, B, C, "CtoA", len(ranked_gems), csv_file, out_dir, ranked_gems)
                 print(f"CtoA: {time.time() - start}")
 
             if graphs_flags["AandC"]:
                 start = time.time()
                 region = f"{anchors[0]}:{anchors[1]}-{anchors[2]};{anchors[6]}:{anchors[7]}-{anchors[8]}"
                 yes_chroms, no_chroms = process_multiple_regions(region, "yes;yes")
-                ranked_gems = sort.process_multiple(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
+                ranked_gems = process_multiple(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
                 output_file = create_plot_filename(dataset, id, "AandC", num_fragments_min, num_fragments_max, len(ranked_gems))
                 ranked_gems_list.append(ranked_gems)
                 left_anchor_list.append(A)
                 right_anchor_list.append(C)
                 middle_anchor_list.append(B)
                 if histogram_options == "yes":
-                    histogram.generate_file(ranked_gems, output_file, out_dir)
-                records.generate_file(id, A, B, C, "AandC", len(ranked_gems), csv_file, out_dir, ranked_gems)
+                    generate_file(ranked_gems, output_file, out_dir)
+                write_to_csv_file(id, A, B, C, "AandC", len(ranked_gems), csv_file, out_dir, ranked_gems)
                 print(f"AandC: {time.time() - start}")
 
             if graph_flag == "yes":
                 output_file = create_plot_filename(dataset, id, "stripes", num_fragments_min, num_fragments_max, len(ranked_gems))
-                plot.plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
+                plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                                             right_anchor_list, middle_anchor_list, out_dir,
                                             colors_flags, anchor_options, id, dataset, commands_list, extension)
 
@@ -169,46 +168,46 @@ def main(start_time, path1, path2, processing_type, graphs,
 
             if graphs_flags["Bcentered"]:  # B centered to A & C
                 start = time.time()
-                ranked_gems = sort.process_middle(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region, B)
+                ranked_gems = process_middle(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region, B)
                 output_file = create_plot_filename(dataset, id, "Bcentered", num_fragments_min, num_fragments_max, len(ranked_gems))
                 ranked_gems_list.append(ranked_gems)
                 left_anchor_list.append(A)
                 right_anchor_list.append(C)
                 middle_anchor_list.append(B)
                 if histogram_options == "yes":
-                    histogram.generate_file(ranked_gems, output_file, out_dir)
-                records.generate_file(id, A, B, C, "BtoAC", len(ranked_gems), csv_file, out_dir, ranked_gems)
+                    generate_file(ranked_gems, output_file, out_dir)
+                write_to_csv_file(id, A, B, C, "BtoAC", len(ranked_gems), csv_file, out_dir, ranked_gems)
                 print(f"Bcentered: {time.time() - start}")
 
             if graphs_flags["BtoA"]:
                 start = time.time()
-                ranked_gems = sort.process_right(ChIA_Drop_ab, num_fragments_min, num_fragments_max, A, B, filter_region)
+                ranked_gems = process_right(ChIA_Drop_ab, num_fragments_min, num_fragments_max, A, B, filter_region)
                 output_file = create_plot_filename(dataset, id, "BtoA", num_fragments_min, num_fragments_max, len(ranked_gems))
                 ranked_gems_list.append(ranked_gems)
                 left_anchor_list.append(A)
                 right_anchor_list.append(B)
                 middle_anchor_list.append(C)
                 if histogram_options == "yes":
-                    histogram.generate_file(ranked_gems, output_file, out_dir)
-                records.generate_file(id, A, B, C, "BtoA", len(ranked_gems), csv_file, out_dir, ranked_gems)
+                    generate_file(ranked_gems, output_file, out_dir)
+                write_to_csv_file(id, A, B, C, "BtoA", len(ranked_gems), csv_file, out_dir, ranked_gems)
                 print(f"BtoA: {time.time() - start}")
 
             if graphs_flags["BtoC"]:
                 start = time.time()
-                ranked_gems = sort.process_left(ChIA_Drop_bc, num_fragments_min, num_fragments_max, B, C, filter_region)
+                ranked_gems = process_left(ChIA_Drop_bc, num_fragments_min, num_fragments_max, B, C, filter_region)
                 output_file = create_plot_filename(dataset, id, "BtoC", num_fragments_min, num_fragments_max, len(ranked_gems))
                 ranked_gems_list.append(ranked_gems)
                 left_anchor_list.append(B)
                 right_anchor_list.append(C)
                 middle_anchor_list.append(A)
                 if histogram_options == "yes":
-                    histogram.generate_file(ranked_gems, output_file, out_dir)
-                records.generate_file(id, A, B, C, "BtoC", len(ranked_gems), csv_file, out_dir, ranked_gems)
+                    generate_file(ranked_gems, output_file, out_dir)
+                write_to_csv_file(id, A, B, C, "BtoC", len(ranked_gems), csv_file, out_dir, ranked_gems)
                 print(f"BtoC: {time.time() - start}")
 
             if graph_flag == "yes":
                 output_file = create_plot_filename(dataset, id, "jets", num_fragments_min, num_fragments_max, len(ranked_gems))
-                plot.plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
+                plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                                             right_anchor_list, middle_anchor_list, out_dir,
                                             colors_flags, anchor_options, id, dataset, commands_list, extension)
 
@@ -230,85 +229,104 @@ def main(start_time, path1, path2, processing_type, graphs,
             operation = "yes;yes;yes"
 
             yes_chroms, no_chroms = process_multiple_regions(region, operation)
-            ranked_gems = sort.process_multiple(ChIA_Drop, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
+            ranked_gems = process_multiple(ChIA_Drop, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
             output_file = create_plot_filename(dataset, id, "AandBandC", num_fragments_min,
                                             num_fragments_max, len(ranked_gems))
-            plot.plot_ranked_gems([ranked_gems], output_file, [""], [""], [""], out_dir,
+            plot_ranked_gems([ranked_gems], output_file, [""], [""], [""], out_dir,
                                         colors_flags, anchor_options, id, dataset, ["multiple"],
                                         extension, flag="multiple_abc", regions=yes_chroms+no_chroms)
             if histogram_options == "yes":
-                histogram.generate_file(ranked_gems, "output_file", out_dir)  # TODO: revise file name
+                generate_file(ranked_gems, "output_file", out_dir)  # TODO: revise file name
 
     else:
         if out_dir != "/" and not os.path.exists(out_dir):
             os.makedirs(out_dir)
         yes_chroms, no_chroms = process_multiple_regions(region, operation)
-        ranked_gems = sort.process_multiple(ChIA_Drop, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
+        ranked_gems = process_multiple(ChIA_Drop, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
         output_file = create_plot_filename(dataset, None, "multiple", num_fragments_min,
                                            num_fragments_max, len(ranked_gems))
-        plot.plot_ranked_gems([ranked_gems], output_file, [""], [""], [""], out_dir,
+        plot_ranked_gems([ranked_gems], output_file, [""], [""], [""], out_dir,
                                     colors_flags, anchor_options, 0, dataset, ["multiple"],
                                     extension, flag="multiple", regions=yes_chroms+no_chroms)
         if histogram_options == "yes":
-            histogram.generate_file(ranked_gems, "output_file", out_dir)  # TODO: revise file name
+            generate_file(ranked_gems, "output_file", out_dir)  # TODO: revise file name
 
 
-if __name__ == '__main__':
-    start_time = time.time()
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--path1', type=str, required=True,
-                        help='Path to the GEMs file (.PEanno)')
-    parser.add_argument('--path2', type=str,
-                        help='Path to the regions file')
-    parser.add_argument('--type', type=str, required=True,
-                        help='Type of processing: abc, AandBandC, or random_multiple')
-    parser.add_argument('--graphs', type=str, required=True,
-                        help='Graphs to genereate when type is abc')
-    parser.add_argument('--numfrag_min', type=str, default="2",
-                        help='Minimum number of fragments allowed in the region')
-    parser.add_argument('--numfrag_max', type=str, default="1000",
-                        help='Maximum number of fragments allowed in the region')
-    parser.add_argument('--region', type=str,
-                        help='Specific region to process when type is middle, only-middle, only-middle-1frag, or multiple')
-    parser.add_argument('--operation', type=str,
-                        help='Operation to perform when type is multiple')
-    parser.add_argument('--out_dir', type=str, default="/",
-                        help='The output directory name that the output files will be put in')
-    parser.add_argument('--colors', type=str, default="red;green;#525252",
-                        help='The color of the anchors, fragments and lines (in order, seperated by semicolons)')
-    parser.add_argument('--anchor_options', type=str, default="no",
-                        help='Three options: yes_complete (draw anchors complete on the graph), yes_top (draw anchors on the top of the graph) and no (do not draw anchors)')
-    parser.add_argument('--intersection_options', type=str, default="bedtools",
-                        help='Two options: bedtools or rust')
-    parser.add_argument('--graph_flag', type=str, default="yes",
-                        help='Special graph flag: yes or no - whether or not the toolkit should generate plots')
-    parser.add_argument('--extension', type=str, default="6000",
-                        help='Three options: default width=6000b, user-specified width, or natural width')
-    parser.add_argument('--historgram_options', type=str, default="no",
-                        help='Whether or not the program should draw histograms seperately: yes or no')
-
-    args = parser.parse_args()
-
-    path1 = args.path1
+def abc_sort(path1, path2, graphs, out_dir='/', plot=True, histogram=False, anchor_option='no',
+             colors='red;green;#525252', num_frag_min=2, num_frag_max=1000, extension='6000'):
+    """Sort Three Regions."""
     dataset = path1.split("/")[-1].split(".region")[0]
-    path2 = args.path2
-    processing_type = args.type
-    graphs = args.graphs
-    num_fragments_min = int(args.numfrag_min)
-    num_fragments_max = int(args.numfrag_max)
-    region = args.region
-    operation = args.operation
-    out_dir = args.out_dir
-    colors = args.colors
-    anchor_options = args.anchor_options
-    intersection_options = args.intersection_options
-    graph_flag = args.graph_flag
-    extension = args.extension
-    histogram_options = args.historgram_options
 
-    print("Finish command line parsing.")
+    if plot:
+        graph_flag = "yes"
+    else:
+        graph_flag = "no"
 
-    main(start_time, path1, path2, processing_type, graphs, num_fragments_min, num_fragments_max,
-         region, operation, dataset, out_dir, colors, anchor_options, intersection_options, graph_flag,
+    if histogram:
+        histogram_options = "yes"
+    else:
+        histogram_options = "no"
+
+    main(path1, path2, "abc", graphs, num_frag_min, num_frag_max,
+         "", "", dataset, out_dir, colors, anchor_option, graph_flag,
          extension, histogram_options)
+
+
+# if __name__ == '__main__':
+#     start_time = time.time()
+
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument('--path1', type=str, required=True,
+#                         help='Path to the GEMs file (.PEanno)')
+#     parser.add_argument('--path2', type=str,
+#                         help='Path to the regions file')
+#     parser.add_argument('--type', type=str, required=True,
+#                         help='Type of processing: abc, AandBandC, or random_multiple')
+#     parser.add_argument('--graphs', type=str, required=True,
+#                         help='Graphs to genereate when type is abc')
+#     parser.add_argument('--numfrag_min', type=str, default="2",
+#                         help='Minimum number of fragments allowed in the region')
+#     parser.add_argument('--numfrag_max', type=str, default="1000",
+#                         help='Maximum number of fragments allowed in the region')
+#     parser.add_argument('--region', type=str,
+#                         help='Specific region to process when type is middle, only-middle, only-middle-1frag, or multiple')
+#     parser.add_argument('--operation', type=str,
+#                         help='Operation to perform when type is multiple')
+#     parser.add_argument('--out_dir', type=str, default="/",
+#                         help='The output directory name that the output files will be put in')
+#     parser.add_argument('--colors', type=str, default="red;green;#525252",
+#                         help='The color of the anchors, fragments and lines (in order, seperated by semicolons)')
+#     parser.add_argument('--anchor_options', type=str, default="no",
+#                         help='Three options: yes_complete (draw anchors complete on the graph), yes_top (draw anchors on the top of the graph) and no (do not draw anchors)')
+#     parser.add_argument('--intersection_options', type=str, default="bedtools",
+#                         help='Two options: bedtools or rust')
+#     parser.add_argument('--graph_flag', type=str, default="yes",
+#                         help='Special graph flag: yes or no - whether or not the toolkit should generate plots')
+#     parser.add_argument('--extension', type=str, default="6000",
+#                         help='Three options: default width=6000b, user-specified width, or natural width')
+#     parser.add_argument('--historgram_options', type=str, default="no",
+#                         help='Whether or not the program should draw histograms seperately: yes or no')
+
+#     args = parser.parse_args()
+
+#     path1 = args.path1
+#     dataset = path1.split("/")[-1].split(".region")[0]
+#     path2 = args.path2
+#     processing_type = args.type
+#     graphs = args.graphs
+#     num_fragments_min = int(args.numfrag_min)
+#     num_fragments_max = int(args.numfrag_max)
+#     region = args.region
+#     operation = args.operation
+#     out_dir = args.out_dir
+#     colors = args.colors
+#     anchor_options = args.anchor_options
+#     graph_flag = args.graph_flag
+#     extension = args.extension
+#     histogram_options = args.historgram_options
+
+#     print("Finish command line parsing.")
+
+#     main(path1, path2, processing_type, graphs, num_fragments_min, num_fragments_max,
+#          region, operation, dataset, out_dir, colors, anchor_options, graph_flag,
+#          extension, histogram_options)
