@@ -40,17 +40,13 @@ def start(path1, path2, processing_type, graphs,
         filtered_intersections = {}
 
         start = time.time()
-        # Iterate over each intersection
         for intersection in intersected:
             # Extract the fields of the intersected line from b
             if path1[:3] == 'LHG' or "SPRITE" in path1 or "4DNFIACOTIGL" in path1 or "ChIA-Drop" in path1:
-                # print("Assume 5 fields in region file")
                 b_fields = intersection.fields[5:]  # 5 fields in a
             elif "PoreC" in path1:
-                # print("Assume 4 fields in region file")
                 b_fields = intersection.fields[4:]  # 4 fields in a
             else:
-                # print("Assume 6 fields in region file")
                 b_fields = intersection.fields[6:]  # 6 fields in a
             b_fields = ' '.join(b_fields)  # Make the key hashable
             # Check if the key exists, if not, add an empty list
@@ -76,7 +72,8 @@ def start(path1, path2, processing_type, graphs,
         with open(path, 'a', newline='') as file:
             writer = csv.writer(file)
             field = ["Region ID", "A", "B", "C", "Region", "Sort Scheme",
-                     "num_complexes", "num_1frag", "num_2frag", "num_3frag", "num_4frag", "num>=5frag"]
+                     "num_complexes", "num_1frag", "num_2frag", "num_3frag",
+                     "num_4frag", "num>=5frag"]
             writer.writerow(field)
 
         for key, ChIA_Drop_anchor in filtered_intersections.items():
