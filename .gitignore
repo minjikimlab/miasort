@@ -43,3 +43,5 @@ testing
 !test_unlimited_multiple_sort.py
 *4DNFIBEVVTN5*
 miasort.egg-info
+build
+dist
