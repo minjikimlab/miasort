@@ -15,11 +15,25 @@ def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
         heights = [round(figsize_height_scaler(len(ranked_gems_list[0]))),
                     round(figsize_height_scaler(len(ranked_gems_list[1]))),
                     round(figsize_height_scaler(len(ranked_gems_list[2])))]
-        fig = plt.figure(figsize=(50, sum(heights)*2))
+        total_height = sum(heights) * 2
+        max_height = 32768 / 50  # Matplotlib limit for the height
+
+        if total_height > max_height:
+            scaling_factor = max_height / total_height
+            heights = [int(h * scaling_factor) for h in heights]
+            total_height = sum(heights) * 2
+
+        fig = plt.figure(figsize=(50, total_height))
         # Create GridSpec with custom heights
         gs = GridSpec(3, 1, height_ratios=heights, figure=fig)
+
     else:
         height = round(figsize_height_scaler(len(ranked_gems_list[0])))
+        max_height = 32768 / 50  # Matplotlib limit for the height
+
+        if height * 2 > max_height:
+            height = max_height / 2  # Adjust height to not exceed the limit
+
         fig = plt.figure(figsize=(50, height * 2))
         gs = GridSpec(1, 1, height_ratios=[height], figure=fig)
 
