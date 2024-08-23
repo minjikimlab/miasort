@@ -41,6 +41,7 @@ testing
 *test_multiple*
 !test_multiple_sort.py
 !test_unlimited_multiple_sort.py
+!GM12878_SPRITE_4DNFIBEVVTN5.hg38_multiple_AandBandC_sort_with_plots.py
 *4DNFIBEVVTN5*
 miasort.egg-info
 build
