@@ -54,7 +54,7 @@ def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
             end = fragments[-1].start
             line = Line2D([start, end], [count, count],
                           color=colors_flags["lines"],
-                          linestyle='-', linewidth=0.4,
+                          linestyle='-', linewidth=0.7,
                           zorder=1)
             ax.add_line(line)
             count += 1
@@ -173,6 +173,6 @@ def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
     if flag == "abc":
         plt.subplots_adjust(top=0.9, bottom=0.05, hspace=0.9)
     else:
-        plt.subplots_adjust(top=0.65, bottom=0.15, hspace=0.9)
+        plt.subplots_adjust(top=0.9, bottom=0.05, hspace=0.9)
     plt.savefig(directory_str)
     plt.close(fig)
