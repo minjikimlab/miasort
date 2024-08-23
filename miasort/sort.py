@@ -273,12 +273,12 @@ def process_multiple(ChIA_Drop, num_fragments_min, num_fragments_max, yes_chroms
 
     # Further filter valid GEMs based on the leftmost fragment and right anchor
     for gem_id, fragments in gem_fragments.items():
-        leftmost_fragment_start = int(fragments[0][1])
-        leftmost_fragment_end = int(fragments[0][2])
-        _, end = gem_lengths[gem_id]
-
+        # leftmost_fragment_start = int(fragments[0][1])
+        # leftmost_fragment_end = int(fragments[0][2])
+        start, end = gem_lengths[gem_id]
+        fragments.sort(key=lambda x: x[1])
         if len(fragments) >= num_fragments_min and len(fragments) <= num_fragments_max:
-            valid_gems.append((gem_id, fragments, end - leftmost_fragment_start))
+            valid_gems.append((gem_id, fragments, end - start))
 
     # Sort GEMs by their length
     valid_gems.sort(key=lambda x: x[2])
