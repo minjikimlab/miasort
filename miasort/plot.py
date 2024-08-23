@@ -7,7 +7,7 @@ from .helper import figsize_height_scaler, kb_format, create_plot_title
 def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                            right_anchor_list, middle_anchor_list, out_dir, colors_flags,
                            anchor_options, id, path1, commands_list, extension,
-                           frag_height, line_width, plot_width, subplots_margins,
+                           frag_height, line_width, plot_width, subplots_margins, frag_description,
                            flag="abc", regions=[]):
     directory_str = output_file
     if out_dir != "/":
@@ -156,7 +156,7 @@ def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
         if flag == "abc":
             anchors = [left_anchor, middle_anchor, right_anchor]
             anchors.sort(key=lambda x: int(x.split('\t')[1]))
-            title = create_plot_title(id, path1, commands_list[idx], anchors, len(ranked_gems))
+            title = create_plot_title(id, path1, commands_list[idx], anchors, len(ranked_gems), frag_description)
             ax.set_title(title, fontdict=title_font)
 
             left_end = min(left_start, right_start, middle_start)
@@ -169,7 +169,7 @@ def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                 left_end = min(left_end, l)
                 right_end = max(right_end, r)
             title = create_plot_title(id, path1, commands_list[idx],
-                                      regions, len(ranked_gems), flag=flag)
+                                      regions, len(ranked_gems), frag_description, flag=flag)
             ax.set_title(title, fontdict=title_font)
 
         distance = right_end - left_end

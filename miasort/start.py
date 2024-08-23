@@ -23,6 +23,12 @@ def start(path1, path2, processing_type, graphs,
 
     colors_flags = process_color_arg(colors)
 
+    frag_description = ""
+    if extension == "natural":
+        frag_description = "fragexact"
+    else:
+        frag_description = f"frag{extension}bp"
+
     # delete the out_dir folder if it exists
     if out_dir != "/" and os.path.exists(out_dir):
         shutil.rmtree(out_dir)
@@ -51,7 +57,7 @@ def start(path1, path2, processing_type, graphs,
 
         graphs_flags = process_graphs_arg(graphs)
 
-        csv_file = create_csv_filename(dataset, path2)
+        csv_file = create_csv_filename(dataset, path2, frag_description)
         if out_dir != "/":
             if not os.path.exists(out_dir):
                 os.makedirs(out_dir)
@@ -99,7 +105,7 @@ def start(path1, path2, processing_type, graphs,
 
             if graphs_flags["AtoC"]:
                 ranked_gems = process_left(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region)
-                output_file = create_plot_filename(dataset, id, "AtoC", num_fragments_min, num_fragments_max, len(ranked_gems))
+                output_file = create_plot_filename(dataset, id, "AtoC", num_fragments_min, num_fragments_max, len(ranked_gems), frag_description)
                 ranked_gems_list.append(ranked_gems)
                 left_anchor_list.append(A)
                 right_anchor_list.append(C)
@@ -110,7 +116,7 @@ def start(path1, path2, processing_type, graphs,
 
             if graphs_flags["CtoA"]:
                 ranked_gems = process_right(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region)
-                output_file = create_plot_filename(dataset, id, "CtoA", num_fragments_min, num_fragments_max, len(ranked_gems))
+                output_file = create_plot_filename(dataset, id, "CtoA", num_fragments_min, num_fragments_max, len(ranked_gems), frag_description)
                 ranked_gems_list.append(ranked_gems)
                 left_anchor_list.append(A)
                 right_anchor_list.append(C)
@@ -123,7 +129,7 @@ def start(path1, path2, processing_type, graphs,
                 region = f"{anchors[0]}:{anchors[1]}-{anchors[2]};{anchors[6]}:{anchors[7]}-{anchors[8]}"
                 yes_chroms, no_chroms = process_multiple_regions(region, "yes;yes")
                 ranked_gems = process_multiple(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
-                output_file = create_plot_filename(dataset, id, "AandC", num_fragments_min, num_fragments_max, len(ranked_gems))
+                output_file = create_plot_filename(dataset, id, "AandC", num_fragments_min, num_fragments_max, len(ranked_gems), frag_description)
                 ranked_gems_list.append(ranked_gems)
                 left_anchor_list.append(A)
                 right_anchor_list.append(C)
@@ -133,11 +139,12 @@ def start(path1, path2, processing_type, graphs,
                 write_to_csv_file(id, A, B, C, "AandC", len(ranked_gems), csv_file, out_dir, ranked_gems)
 
             if graph_flag == "yes":
-                output_file = create_plot_filename(dataset, id, "stripes", num_fragments_min, num_fragments_max, len(ranked_gems))
+                output_file = create_plot_filename(dataset, id, "stripes", num_fragments_min, num_fragments_max,
+                                                   len(ranked_gems), frag_description)
                 plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                                             right_anchor_list, middle_anchor_list, out_dir,
                                             colors_flags, anchor_options, id, dataset, commands_list, extension,
-                                            frag_height, line_width, plot_width, subplots_margins)
+                                            frag_height, line_width, plot_width, subplots_margins, frag_description)
 
             # ---------------- Second plot ----------------
 
@@ -149,7 +156,7 @@ def start(path1, path2, processing_type, graphs,
 
             if graphs_flags["Bcentered"]:  # B centered to A & C
                 ranked_gems = process_middle(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region, B)
-                output_file = create_plot_filename(dataset, id, "Bcentered", num_fragments_min, num_fragments_max, len(ranked_gems))
+                output_file = create_plot_filename(dataset, id, "Bcentered", num_fragments_min, num_fragments_max, len(ranked_gems), frag_description)
                 ranked_gems_list.append(ranked_gems)
                 left_anchor_list.append(A)
                 right_anchor_list.append(C)
@@ -160,7 +167,7 @@ def start(path1, path2, processing_type, graphs,
 
             if graphs_flags["BtoA"]:
                 ranked_gems = process_right(ChIA_Drop_ab, num_fragments_min, num_fragments_max, A, B, filter_region)
-                output_file = create_plot_filename(dataset, id, "BtoA", num_fragments_min, num_fragments_max, len(ranked_gems))
+                output_file = create_plot_filename(dataset, id, "BtoA", num_fragments_min, num_fragments_max, len(ranked_gems), frag_description)
                 ranked_gems_list.append(ranked_gems)
                 left_anchor_list.append(A)
                 right_anchor_list.append(B)
@@ -171,7 +178,7 @@ def start(path1, path2, processing_type, graphs,
 
             if graphs_flags["BtoC"]:
                 ranked_gems = process_left(ChIA_Drop_bc, num_fragments_min, num_fragments_max, B, C, filter_region)
-                output_file = create_plot_filename(dataset, id, "BtoC", num_fragments_min, num_fragments_max, len(ranked_gems))
+                output_file = create_plot_filename(dataset, id, "BtoC", num_fragments_min, num_fragments_max, len(ranked_gems), frag_description)
                 ranked_gems_list.append(ranked_gems)
                 left_anchor_list.append(B)
                 right_anchor_list.append(C)
@@ -181,11 +188,12 @@ def start(path1, path2, processing_type, graphs,
                 write_to_csv_file(id, A, B, C, "BtoC", len(ranked_gems), csv_file, out_dir, ranked_gems)
 
             if graph_flag == "yes":
-                output_file = create_plot_filename(dataset, id, "jets", num_fragments_min, num_fragments_max, len(ranked_gems))
+                output_file = create_plot_filename(dataset, id, "jets", num_fragments_min, num_fragments_max,
+                                                   len(ranked_gems), frag_description)
                 plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                                             right_anchor_list, middle_anchor_list, out_dir,
                                             colors_flags, anchor_options, id, dataset, commands_list, extension,
-                                            frag_height, line_width, plot_width, subplots_margins)
+                                            frag_height, line_width, plot_width, subplots_margins, frag_description)
 
     elif processing_type == "AandBandC":
         filter_regions_filename = "filter_regions.bed"
@@ -212,7 +220,7 @@ def start(path1, path2, processing_type, graphs,
         if out_dir != "/" and not os.path.exists(out_dir):
             os.makedirs(out_dir)
 
-        csv_file = create_csv_filename(dataset, path2)
+        csv_file = create_csv_filename(dataset, path2, frag_description)
         path = os.path.join(out_dir, csv_file)
         # Write the header of the comp records file
         with open(path, 'a', newline='') as file:
@@ -245,10 +253,10 @@ def start(path1, path2, processing_type, graphs,
             yes_chroms, no_chroms = process_multiple_regions(region, operation)
             ranked_gems = process_multiple(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
             output_file = create_plot_filename(dataset, id, "AandBandC", num_fragments_min,
-                                            num_fragments_max, len(ranked_gems))
+                                            num_fragments_max, len(ranked_gems), frag_description)
             plot_ranked_gems([ranked_gems], output_file, [""], [""], [""], out_dir,
                                         colors_flags, anchor_options, id, dataset, ["multiple"],
-                                        extension, frag_height, line_width, plot_width, subplots_margins,
+                                        extension, frag_height, line_width, plot_width, subplots_margins, frag_description,
                                         flag="multiple_abc", regions=yes_chroms+no_chroms)
             if histogram_options == "yes":
                 generate_file(ranked_gems, "output_file", out_dir)  # TODO: revise file name
@@ -260,10 +268,10 @@ def start(path1, path2, processing_type, graphs,
         yes_chroms, no_chroms = process_multiple_regions(region, operation)
         ranked_gems = process_multiple(ChIA_Drop, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
         output_file = create_plot_filename(dataset, None, "multiple", num_fragments_min,
-                                           num_fragments_max, len(ranked_gems))
+                                           num_fragments_max, len(ranked_gems), frag_description)
         plot_ranked_gems([ranked_gems], output_file, [""], [""], [""], out_dir,
                                     colors_flags, anchor_options, 0, dataset, ["multiple"],
-                                    extension, frag_height, line_width, plot_width, subplots_margins,
+                                    extension, frag_height, line_width, plot_width, subplots_margins, frag_description,
                                     flag="multiple", regions=yes_chroms+no_chroms)
         if histogram_options == "yes":
             generate_file(ranked_gems, "output_file", out_dir)  # TODO: revise file name

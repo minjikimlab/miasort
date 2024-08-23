@@ -59,17 +59,17 @@ def process_graphs_arg(arg):
     return graphs_flags
 
 
-def create_plot_filename(dataset, id, command, numfrag_min, numfrag_max, num_gems):
+def create_plot_filename(dataset, id, command, numfrag_min, numfrag_max, num_gems, frag_description):
     """Generate the filename for the plot png image."""
     if id == None:
-        return f"{dataset}_{command}_minfrag_{numfrag_min}_maxfrag_{numfrag_max}.png"
-    return f"{dataset}_{id}_{command}_minfrag_{numfrag_min}_maxfrag_{numfrag_max}.png"
+        return f"{dataset}_{command}_minfrag_{numfrag_min}_maxfrag_{numfrag_max}_{frag_description}.png"
+    return f"{dataset}_{id}_{command}_minfrag_{numfrag_min}_maxfrag_{numfrag_max}_{frag_description}.png"
 
 
-def create_csv_filename(dataset, path2):
+def create_csv_filename(dataset, path2, frag_description):
     """Generate the filename for the csv file."""
     path2 = path2.split("/")[-1]
-    return f"{dataset}_{path2}_comp_records.csv"
+    return f"{dataset}_{path2}_{frag_description}_comp_records.csv"
 
 
 def create_histogram_filename(dataset, path2):
@@ -111,7 +111,7 @@ def kb_format(x, pos):
         return f'{kb_value:,.1f} kb'
 
 
-def create_plot_title(id, input_filename, command, anchors, num_complexes, flag="abc"):
+def create_plot_title(id, input_filename, command, anchors, num_complexes, frag_description, flag="abc"):
     if flag == "abc":
         l = anchors[0].split('\t')
         anchor_a = f"{l[0]}:{l[1]}-{l[2]}"
@@ -122,7 +122,7 @@ def create_plot_title(id, input_filename, command, anchors, num_complexes, flag=
         r = anchors[2].split('\t')
         anchor_c = f"{r[0]}:{r[1]}-{r[2]}"
 
-        return f"{id}\n{input_filename}\nA: {anchor_a}; B: {anchor_b}; C: {anchor_c}\n{command}; num_complexes: {num_complexes}\n"
+        return f"{id}\n{input_filename}\nA: {anchor_a}; B: {anchor_b}; C: {anchor_c}\n{command}; {frag_description}; num_complexes: {num_complexes}\n"
     else:  # flag == "multiple"
         sorted_regions = sorted(anchors, key=lambda x: int(x[1]))
 
