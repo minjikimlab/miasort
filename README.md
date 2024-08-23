@@ -36,6 +36,34 @@ python main.py --path1 test_input.PEanno --type multiple --graphs null \
 --out_dir test_folder_multiple
 ```
 
+## Usage
+### 1. `abc_sort`
+
+**Purpose**:
+Sorts three regions and generates plots or histograms as needed.
+
+**Parameters**:
+- `path1` (str): Path to the first input file.
+- `path2` (str): Path to the second input file.
+- `graphs` (str): Graph configuration for sorting.
+- `out_dir` (str, optional): Output directory for the results. Default is `'/'`.
+- `plot` (bool, optional): Whether to generate plots. Default is `True`.
+- `histogram` (bool, optional): Whether to generate histograms. Default is `False`.
+- `anchor_option` (str, optional): Anchor option for sorting. Default is `'no'`.
+- `colors` (str, optional): Colors for the plots, separated by semicolons. Default is `'red;green;#525252'`.
+- `num_frag_min` (int, optional): Minimum number of fragments. Default is `2`.
+- `num_frag_max` (int, optional): Maximum number of fragments. Default is `1000`.
+- `extension` (str, optional): Extension value for sorting. Default is `'6000'`.
+- `frag_height` (float, optional): Fragment height for plots. Default is `0.6`.
+- `line_width` (float, optional): Line width for plots. Default is `2.0`.
+- `plot_width` (int, optional): Width of the plots. Default is `50`.
+- `subplots_margins` (tuple, optional): Margins for subplots. Default is `(0.9, 0.05, 0.9)`.
+
+**Usage**:
+```python
+abc_sort('path/to/input1.region', 'path/to/input2.region', 'graph_configuration', out_dir='/output', plot=True)
+
+
 ## Input Files
 ### Anchors and Regions (`.domains`)
 
