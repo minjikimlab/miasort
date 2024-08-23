@@ -60,7 +60,7 @@ def start(path1, path2, processing_type, graphs,
         # Write the header of the comp records file
         with open(path, 'a', newline='') as file:
             writer = csv.writer(file)
-            field = ["Region ID", "A", "B", "C", "Region", "Sort Scheme",
+            field = ["Region ID", "Site A", "Site B", "Site C", "Region", "Sort Scheme",
                      "num_complexes", "num_1frag", "num_2frag", "num_3frag",
                      "num_4frag", "num>=5frag"]
             writer.writerow(field)
@@ -185,8 +185,6 @@ def start(path1, path2, processing_type, graphs,
                                             colors_flags, anchor_options, id, dataset, commands_list, extension)
 
     elif processing_type == "AandBandC":
-        regions = BedTool(path2)
-
         filter_regions_filename = "filter_regions.bed"
         generate_filter_regions(path2, filter_regions_filename)
         filter_regions = BedTool(filter_regions_filename)
@@ -216,7 +214,7 @@ def start(path1, path2, processing_type, graphs,
         # Write the header of the comp records file
         with open(path, 'a', newline='') as file:
             writer = csv.writer(file)
-            field = ["Region ID", "A", "B", "C", "Region", "Sort Scheme",
+            field = ["Region ID", "Site A", "Site B", "Site C", "Region", "Sort Scheme",
                      "num_complexes", "num_1frag", "num_2frag", "num_3frag",
                      "num_4frag", "num>=5frag"]
             writer.writerow(field)

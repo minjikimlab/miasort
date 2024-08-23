@@ -68,8 +68,8 @@ def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
             end = fragments[-1].start
             line = Line2D([start, end], [count, count],
                           color=colors_flags["lines"],
-                          linestyle='-', linewidth=0.7,
-                          zorder=1)
+                          linestyle='-', linewidth=1.5,
+                          zorder=1) 
             ax.add_line(line)
             count += 1
 
