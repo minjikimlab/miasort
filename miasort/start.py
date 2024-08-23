@@ -1,6 +1,5 @@
 import pybedtools
 from pybedtools import BedTool
-import time
 import os
 import shutil
 import csv
@@ -32,22 +31,13 @@ def start(path1, path2, processing_type, graphs,
         generate_filter_regions(path2, filter_regions_filename)
         filter_regions = BedTool(filter_regions_filename)
 
-        start = time.time()
         intersected = ChIA_Drop.intersect(filter_regions, wa=True, wb=True)
-        print(f"Intersect a and b: {time.time() - start} secs")
 
         # Dictionary to store the intersected regions for each line of b
         filtered_intersections = {}
 
-        start = time.time()
         for intersection in intersected:
-            # Extract the fields of the intersected line from b
-            if path1[:3] == 'LHG' or "SPRITE" in path1 or "4DNFIACOTIGL" in path1 or "ChIA-Drop" in path1:
-                b_fields = intersection.fields[5:]  # 5 fields in a
-            elif "PoreC" in path1:
-                b_fields = intersection.fields[4:]  # 4 fields in a
-            else:
-                b_fields = intersection.fields[6:]  # 6 fields in a
+            b_fields = intersection.fields[5:]  # 5 fields in a
             b_fields = ' '.join(b_fields)  # Make the key hashable
             # Check if the key exists, if not, add an empty list
             if b_fields not in filtered_intersections:
@@ -57,7 +47,6 @@ def start(path1, path2, processing_type, graphs,
         # Convert lists to BedTool objects
         for i in filtered_intersections:
             filtered_intersections[i] = BedTool(filtered_intersections[i])
-        print(f"Process intersected regions: {time.time() - start} secs\n-------------------------------------\n")
 
         graphs_flags = process_graphs_arg(graphs)
 
@@ -108,7 +97,6 @@ def start(path1, path2, processing_type, graphs,
             commands_list = ["AtoC", "CtoA", "AandC"]
 
             if graphs_flags["AtoC"]:
-                start = time.time()
                 ranked_gems = process_left(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region)
                 output_file = create_plot_filename(dataset, id, "AtoC", num_fragments_min, num_fragments_max, len(ranked_gems))
                 ranked_gems_list.append(ranked_gems)
@@ -118,10 +106,8 @@ def start(path1, path2, processing_type, graphs,
                 if histogram_options == "yes":
                     generate_file(ranked_gems, output_file, out_dir)
                 write_to_csv_file(id, A, B, C, "AtoC", len(ranked_gems), csv_file, out_dir, ranked_gems)
-                print(f"AtoC: {time.time() - start}")
 
             if graphs_flags["CtoA"]:
-                start = time.time()
                 ranked_gems = process_right(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region)
                 output_file = create_plot_filename(dataset, id, "CtoA", num_fragments_min, num_fragments_max, len(ranked_gems))
                 ranked_gems_list.append(ranked_gems)
@@ -131,10 +117,8 @@ def start(path1, path2, processing_type, graphs,
                 if histogram_options == "yes":
                     generate_file(ranked_gems, output_file, out_dir)
                 write_to_csv_file(id, A, B, C, "CtoA", len(ranked_gems), csv_file, out_dir, ranked_gems)
-                print(f"CtoA: {time.time() - start}")
 
             if graphs_flags["AandC"]:
-                start = time.time()
                 region = f"{anchors[0]}:{anchors[1]}-{anchors[2]};{anchors[6]}:{anchors[7]}-{anchors[8]}"
                 yes_chroms, no_chroms = process_multiple_regions(region, "yes;yes")
                 ranked_gems = process_multiple(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
@@ -146,7 +130,6 @@ def start(path1, path2, processing_type, graphs,
                 if histogram_options == "yes":
                     generate_file(ranked_gems, output_file, out_dir)
                 write_to_csv_file(id, A, B, C, "AandC", len(ranked_gems), csv_file, out_dir, ranked_gems)
-                print(f"AandC: {time.time() - start}")
 
             if graph_flag == "yes":
                 output_file = create_plot_filename(dataset, id, "stripes", num_fragments_min, num_fragments_max, len(ranked_gems))
@@ -163,7 +146,6 @@ def start(path1, path2, processing_type, graphs,
             commands_list = ["BtoAC", "BtoA", "BtoC"]
 
             if graphs_flags["Bcentered"]:  # B centered to A & C
-                start = time.time()
                 ranked_gems = process_middle(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region, B)
                 output_file = create_plot_filename(dataset, id, "Bcentered", num_fragments_min, num_fragments_max, len(ranked_gems))
                 ranked_gems_list.append(ranked_gems)
@@ -173,10 +155,8 @@ def start(path1, path2, processing_type, graphs,
                 if histogram_options == "yes":
                     generate_file(ranked_gems, output_file, out_dir)
                 write_to_csv_file(id, A, B, C, "BtoAC", len(ranked_gems), csv_file, out_dir, ranked_gems)
-                print(f"Bcentered: {time.time() - start}")
 
             if graphs_flags["BtoA"]:
-                start = time.time()
                 ranked_gems = process_right(ChIA_Drop_ab, num_fragments_min, num_fragments_max, A, B, filter_region)
                 output_file = create_plot_filename(dataset, id, "BtoA", num_fragments_min, num_fragments_max, len(ranked_gems))
                 ranked_gems_list.append(ranked_gems)
@@ -186,10 +166,8 @@ def start(path1, path2, processing_type, graphs,
                 if histogram_options == "yes":
                     generate_file(ranked_gems, output_file, out_dir)
                 write_to_csv_file(id, A, B, C, "BtoA", len(ranked_gems), csv_file, out_dir, ranked_gems)
-                print(f"BtoA: {time.time() - start}")
 
             if graphs_flags["BtoC"]:
-                start = time.time()
                 ranked_gems = process_left(ChIA_Drop_bc, num_fragments_min, num_fragments_max, B, C, filter_region)
                 output_file = create_plot_filename(dataset, id, "BtoC", num_fragments_min, num_fragments_max, len(ranked_gems))
                 ranked_gems_list.append(ranked_gems)
@@ -199,7 +177,6 @@ def start(path1, path2, processing_type, graphs,
                 if histogram_options == "yes":
                     generate_file(ranked_gems, output_file, out_dir)
                 write_to_csv_file(id, A, B, C, "BtoC", len(ranked_gems), csv_file, out_dir, ranked_gems)
-                print(f"BtoC: {time.time() - start}")
 
             if graph_flag == "yes":
                 output_file = create_plot_filename(dataset, id, "jets", num_fragments_min, num_fragments_max, len(ranked_gems))
@@ -207,10 +184,29 @@ def start(path1, path2, processing_type, graphs,
                                             right_anchor_list, middle_anchor_list, out_dir,
                                             colors_flags, anchor_options, id, dataset, commands_list, extension)
 
-            print("-------------------------------------")
-
     elif processing_type == "AandBandC":
         regions = BedTool(path2)
+
+        filter_regions_filename = "filter_regions.bed"
+        generate_filter_regions(path2, filter_regions_filename)
+        filter_regions = BedTool(filter_regions_filename)
+
+        intersected = ChIA_Drop.intersect(filter_regions, wa=True, wb=True)
+
+        # Dictionary to store the intersected regions for each line of b
+        filtered_intersections = {}
+
+        for intersection in intersected:
+            b_fields = intersection.fields[5:]  # 5 fields in a
+            b_fields = ' '.join(b_fields)  # Make the key hashable
+            # Check if the key exists, if not, add an empty list
+            if b_fields not in filtered_intersections:
+                filtered_intersections[b_fields] = []
+            # Append the intersection to the list
+            filtered_intersections[b_fields].append(intersection)
+        # Convert lists to BedTool objects
+        for i in filtered_intersections:
+            filtered_intersections[i] = BedTool(filtered_intersections[i])
 
         if out_dir != "/" and not os.path.exists(out_dir):
             os.makedirs(out_dir)
@@ -225,9 +221,16 @@ def start(path1, path2, processing_type, graphs,
                      "num_4frag", "num>=5frag"]
             writer.writerow(field)
 
-        for region in regions:
-            region = region.fields
+        for key, ChIA_Drop_anchor in filtered_intersections.items():
+            region = key.split(" ")[3:]
             id = region[9]
+
+            # Error check
+            if region[1] >= region[2] or region[4] >= region[5] or region[7] >= region[8] \
+            or region[2] >= region[4] or region[5] >= region[7]:
+                print(f"Error for {id}: left is larger than right, please check the input file")
+                continue
+
             A = f"{region[0]}:{region[1]}-{region[2]}"
             B = f"{region[3]}:{region[4]}-{region[5]}"
             C = f"{region[6]}:{region[7]}-{region[8]}"
@@ -239,7 +242,7 @@ def start(path1, path2, processing_type, graphs,
             operation = "yes;yes;yes"
 
             yes_chroms, no_chroms = process_multiple_regions(region, operation)
-            ranked_gems = process_multiple(ChIA_Drop, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
+            ranked_gems = process_multiple(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
             output_file = create_plot_filename(dataset, id, "AandBandC", num_fragments_min,
                                             num_fragments_max, len(ranked_gems))
             plot_ranked_gems([ranked_gems], output_file, [""], [""], [""], out_dir,
