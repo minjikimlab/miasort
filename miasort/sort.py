@@ -280,7 +280,4 @@ def process_multiple(ChIA_Drop, num_fragments_min, num_fragments_max, yes_chroms
         if len(fragments) >= num_fragments_min and len(fragments) <= num_fragments_max:
             valid_gems.append((gem_id, fragments, end - start))
 
-    # Sort GEMs by their length
-    valid_gems.sort(key=lambda x: x[2])
-
     return valid_gems
