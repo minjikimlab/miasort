@@ -15,7 +15,8 @@ from .helper import process_multiple_regions, process_graphs_arg, \
 def start(path1, path2, processing_type, graphs,
          num_fragments_min, num_fragments_max, region, operation,
          dataset, out_dir, colors, anchor_options,
-         graph_flag, extension, histogram_options):
+         graph_flag, extension, histogram_options, frag_height,
+         line_width, plot_width, subplots_margins):
     pybedtools.helpers.cleanup()
 
     ChIA_Drop = BedTool(path1)
@@ -135,7 +136,8 @@ def start(path1, path2, processing_type, graphs,
                 output_file = create_plot_filename(dataset, id, "stripes", num_fragments_min, num_fragments_max, len(ranked_gems))
                 plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                                             right_anchor_list, middle_anchor_list, out_dir,
-                                            colors_flags, anchor_options, id, dataset, commands_list, extension)
+                                            colors_flags, anchor_options, id, dataset, commands_list, extension,
+                                            frag_height, line_width, plot_width, subplots_margins)
 
             # ---------------- Second plot ----------------
 
@@ -182,7 +184,8 @@ def start(path1, path2, processing_type, graphs,
                 output_file = create_plot_filename(dataset, id, "jets", num_fragments_min, num_fragments_max, len(ranked_gems))
                 plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                                             right_anchor_list, middle_anchor_list, out_dir,
-                                            colors_flags, anchor_options, id, dataset, commands_list, extension)
+                                            colors_flags, anchor_options, id, dataset, commands_list, extension,
+                                            frag_height, line_width, plot_width, subplots_margins)
 
     elif processing_type == "AandBandC":
         filter_regions_filename = "filter_regions.bed"
@@ -245,7 +248,8 @@ def start(path1, path2, processing_type, graphs,
                                             num_fragments_max, len(ranked_gems))
             plot_ranked_gems([ranked_gems], output_file, [""], [""], [""], out_dir,
                                         colors_flags, anchor_options, id, dataset, ["multiple"],
-                                        extension, flag="multiple_abc", regions=yes_chroms+no_chroms)
+                                        extension, frag_height, line_width, plot_width, subplots_margins,
+                                        flag="multiple_abc", regions=yes_chroms+no_chroms)
             if histogram_options == "yes":
                 generate_file(ranked_gems, "output_file", out_dir)  # TODO: revise file name
             write_to_csv_file_multiple(id, A, B, C, r, "AandBandC", len(ranked_gems), csv_file, out_dir, ranked_gems)
@@ -259,6 +263,7 @@ def start(path1, path2, processing_type, graphs,
                                            num_fragments_max, len(ranked_gems))
         plot_ranked_gems([ranked_gems], output_file, [""], [""], [""], out_dir,
                                     colors_flags, anchor_options, 0, dataset, ["multiple"],
-                                    extension, flag="multiple", regions=yes_chroms+no_chroms)
+                                    extension, frag_height, line_width, plot_width, subplots_margins,
+                                    flag="multiple", regions=yes_chroms+no_chroms)
         if histogram_options == "yes":
             generate_file(ranked_gems, "output_file", out_dir)  # TODO: revise file name

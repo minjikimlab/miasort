@@ -6,7 +6,9 @@ from .helper import figsize_height_scaler, kb_format, create_plot_title
 
 def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                            right_anchor_list, middle_anchor_list, out_dir, colors_flags,
-                           anchor_options, id, path1, commands_list, extension, flag="abc", regions=[]):
+                           anchor_options, id, path1, commands_list, extension,
+                           frag_height, line_width, plot_width, subplots_margins,
+                           flag="abc", regions=[]):
     directory_str = output_file
     if out_dir != "/":
         directory_str = f"./{out_dir}/{output_file}"
@@ -16,25 +18,25 @@ def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                     round(figsize_height_scaler(len(ranked_gems_list[1]))),
                     round(figsize_height_scaler(len(ranked_gems_list[2])))]
         total_height = sum(heights) * 2
-        max_height = 32767 / 50  # Matplotlib limit for the height
+        max_height = 32767 / plot_width  # Matplotlib limit for the height
 
         if total_height > max_height:
             scaling_factor = max_height / total_height
             heights = [int(h * scaling_factor) for h in heights]
             total_height = sum(heights) * 2
 
-        fig = plt.figure(figsize=(50, total_height))
+        fig = plt.figure(figsize=(plot_width, total_height))
         # Create GridSpec with custom heights
         gs = GridSpec(3, 1, height_ratios=heights, figure=fig)
 
     else:
         height = round(figsize_height_scaler(len(ranked_gems_list[0])))
-        max_height = 32767 / 50  # Matplotlib limit for the height
+        max_height = 32767 / plot_width  # Matplotlib limit for the height
 
         if height * 2 > max_height:
             height = max_height / 2  # Adjust height to not exceed the limit
 
-        fig = plt.figure(figsize=(50, height * 2))
+        fig = plt.figure(figsize=(plot_width, height * 2))
         gs = GridSpec(1, 1, height_ratios=[height], figure=fig)
 
     for idx in range(len(ranked_gems_list)):
@@ -56,7 +58,7 @@ def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                 else:
                     width = int(extension)
                 rect = patches.Rectangle((start - width / 2, i - 0.225),
-                                         width, 0.6, linewidth=2,
+                                         width, frag_height, linewidth=2,
                                          edgecolor="black",
                                          facecolor=colors_flags["fragments"],
                                          zorder=2)
@@ -68,8 +70,8 @@ def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
             end = fragments[-1].start
             line = Line2D([start, end], [count, count],
                           color=colors_flags["lines"],
-                          linestyle='-', linewidth=1.5,
-                          zorder=1) 
+                          linestyle='-', linewidth=line_width,
+                          zorder=1)
             ax.add_line(line)
             count += 1
 
@@ -184,9 +186,6 @@ def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
 
         ax.xaxis.set_major_formatter(plt.FuncFormatter(kb_format))
 
-    if flag == "abc":
-        plt.subplots_adjust(top=0.9, bottom=0.05, hspace=0.9)
-    else:
-        plt.subplots_adjust(top=0.9, bottom=0.05, hspace=0.9)
+    plt.subplots_adjust(top=subplots_margins[0], bottom=subplots_margins[1], hspace=subplots_margins[2])
     plt.savefig(directory_str)
     plt.close(fig)
