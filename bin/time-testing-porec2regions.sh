@@ -4,12 +4,12 @@
 set -Eeuo pipefail
 set -x
 
-g++ -std=c++17 -o ./bin/porec2regions ./bin/porec2regions.cpp -lz
+g++ -std=c++17 -o ./bin/porec2complexes ./bin/porec2complexes.cpp -lz
 
 # Record the start time
 start_time=$(date +%s)
 
-./bin/porec2regions . ./data/GSM4490689_GM12878_DpnII_100db_GRCh38_bwa_0.7.17_sensitive_GIABhiconf_whatshap_0.19.c01520_default.fragment_alignments.csv.gz
+./bin/porec2complexes . ./data/GSM4490689_GM12878_DpnII_100db_GRCh38_bwa_0.7.17_sensitive_GIABhiconf_whatshap_0.19.c01520_default.fragment_alignments.csv.gz
 
 # Record the end time
 end_time=$(date +%s)

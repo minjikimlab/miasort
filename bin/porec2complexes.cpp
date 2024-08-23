@@ -52,7 +52,7 @@ void writeFragments(std::ofstream& fout, const std::vector<Fragment>& fragments,
 }
 
 void readCSVAndWriteRegions(const std::string& directory, const std::string& csvFile) {
-    std::string outputFile = directory + "/GM12878_Pore-C_GSM4490689.hg38.region";
+    std::string outputFile = directory + "/GM12878_Pore-C_GSM4490689.hg38.complexes";
     std::ofstream fout(outputFile);
     if (!fout.is_open()) {
         throw std::runtime_error("Unable to open output file at " + outputFile);

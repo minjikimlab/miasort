@@ -73,7 +73,7 @@ void processClusterLine(const std::string& line, const std::unordered_map<std::s
             int start1 = std::max(0, pos1 - extbp);
             int end1 = std::min(pos1 + extbp, chromSize);
             ++i;
-            fout << chrom << "\t" << start1 << "\t" << end1 << "\t2\t" << id << "\n";
+            fout << chrom << "\t" << start1 << "\t" << end1 << "\t1\t" << id << "\n";
         } else if (positions.size() > 1) {
             std::sort(positions.begin(), positions.end());
 
@@ -92,6 +92,7 @@ void processClusterLine(const std::string& line, const std::unordered_map<std::s
                 validPositions.clear(); // Discard the smallest position both if no other valid positions
             }
 
+            int len = validPositions.size();
             for (int pos : validPositions) {
                 auto it = chromSizes.find(chrom);
                 if (it == chromSizes.end()) {
@@ -101,14 +102,14 @@ void processClusterLine(const std::string& line, const std::unordered_map<std::s
                 int start1 = std::max(0, pos - extbp);
                 int end1 = std::min(pos + extbp, chromSize);
                 ++i;
-                fout << chrom << "\t" << start1 << "\t" << end1 << "\t2\t" << id << "\n";
+                fout << chrom << "\t" << start1 << "\t" << end1 << "\t" << len << "\t" << id << "\n";
             }
         }
     }
 }
 
 void readSpriteAndWriteRegions(const std::string& directory, const std::string& spriteFile, const std::unordered_map<std::string, int>& chromSizes, const std::string& libid, int extbp, int selfbp) {
-    std::string outputFile = directory + "/" + libid + ".ext" + std::to_string(extbp) + "bp.g" + std::to_string(selfbp) + "bp.region";
+    std::string outputFile = directory + "/" + libid + ".ext" + std::to_string(extbp) + "bp.g" + std::to_string(selfbp) + "bp.complexes";
     std::ofstream fout(outputFile);
     if (!fout.is_open()) {
         throw std::runtime_error("Unable to open output file at " + outputFile);

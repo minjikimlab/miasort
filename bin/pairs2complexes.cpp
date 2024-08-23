@@ -76,7 +76,7 @@ void processLine(const std::string& line, const std::unordered_map<std::string, 
 }
 
 void readPairsAndWriteRegions(const std::string& directory, const std::string& pairsFile, const std::unordered_map<std::string, int>& chromSizes, const std::string& libid, int extbp, int selfbp) {
-    std::string outputFile = directory + "/" + libid + ".ext" + std::to_string(extbp) + "bp.g" + std::to_string(selfbp) + "bp.region";
+    std::string outputFile = directory + "/" + libid + ".ext" + std::to_string(extbp) + "bp.g" + std::to_string(selfbp) + "bp.complexes";
     std::ofstream fout(outputFile);
     if (!fout.is_open()) {
         throw std::runtime_error("Unable to open output file at " + outputFile);

@@ -142,7 +142,7 @@ def create_plot_title(id, input_filename, command, anchors, num_complexes, frag_
         # Construct the formatted string
         formatted_string = "; ".join([f"{labels[i]}: {chr_id}:{left}-{right}"
                                     for i, (chr_id, left, right) in enumerate(sorted_regions)])
-        return f"{input_filename}\n{formatted_string}\n{command}; num_complexes: {num_complexes}\n"
+        return f"{input_filename}\n{formatted_string}\n{command}; {frag_description}; num_complexes: {num_complexes}\n"
 
 
 def generate_filter_regions(input_bedfile, output_bedfile):
