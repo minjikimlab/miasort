@@ -8,7 +8,7 @@ import csv
 from .plot import plot_ranked_gems
 from .histogram import generate_file
 from .sort import *
-from .records import write_to_csv_file
+from .records import write_to_csv_file, write_to_csv_file_multiple
 from .helper import process_multiple_regions, process_graphs_arg, \
     create_plot_filename, process_color_arg, \
     create_csv_filename, generate_filter_regions
@@ -215,10 +215,24 @@ def start(path1, path2, processing_type, graphs,
         if out_dir != "/" and not os.path.exists(out_dir):
             os.makedirs(out_dir)
 
+        csv_file = create_csv_filename(dataset, path2)
+        path = os.path.join(out_dir, csv_file)
+        # Write the header of the comp records file
+        with open(path, 'a', newline='') as file:
+            writer = csv.writer(file)
+            field = ["Region ID", "A", "B", "C", "Region", "Sort Scheme",
+                     "num_complexes", "num_1frag", "num_2frag", "num_3frag",
+                     "num_4frag", "num>=5frag"]
+            writer.writerow(field)
+
         for region in regions:
             region = region.fields
             id = region[9]
-            region = f"{region[0]}:{region[1]}-{region[2]};{region[3]}:{region[4]}-{region[5]};{region[6]}:{region[7]}-{region[8]}"
+            A = f"{region[0]}:{region[1]}-{region[2]}"
+            B = f"{region[3]}:{region[4]}-{region[5]}"
+            C = f"{region[6]}:{region[7]}-{region[8]}"
+            r = f"{region[0]}:{region[1]}-{region[8]}"
+            region = f"{A};{B};{C}"
 
             if operation != "yes;yes;yes":
                 print("The operation is automatically set as `yes;yes;yes`")
@@ -233,6 +247,7 @@ def start(path1, path2, processing_type, graphs,
                                         extension, flag="multiple_abc", regions=yes_chroms+no_chroms)
             if histogram_options == "yes":
                 generate_file(ranked_gems, "output_file", out_dir)  # TODO: revise file name
+            write_to_csv_file_multiple(id, A, B, C, r, "AandBandC", len(ranked_gems), csv_file, out_dir, ranked_gems)
 
     else:
         if out_dir != "/" and not os.path.exists(out_dir):

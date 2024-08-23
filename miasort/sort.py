@@ -258,13 +258,12 @@ def process_multiple(ChIA_Drop, num_fragments_min, num_fragments_max, yes_chroms
 
     for fragment in ChIA_Drop:
         gem_id = fragment[4]
-        if gem_id in valid_gem_ids:
+        start = int(fragment[1])
+        end = int(fragment[2])
+        if gem_id in valid_gem_ids and start >= left_most_end and end <= right_most_end:
             if gem_id not in gem_fragments:
                 gem_fragments[gem_id] = []
             gem_fragments[gem_id].append(fragment)
-
-            start = int(fragment[1])
-            end = int(fragment[2])
 
             if gem_id in gem_lengths:
                 gem_lengths[gem_id] = (min(gem_lengths[gem_id][0], start),

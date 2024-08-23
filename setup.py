@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="miasort",
-    version="0.1.0",
+    version="0.1.1",
     author="Zichen Zhang",
     author_email="zhangzzc@umich.edu",
     description="A Tool for Multiplex Chromatin Interaction Analysis by Efficiently Sorting Chromatin Complexes",
