@@ -29,7 +29,7 @@ def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
 
     else:
         height = round(figsize_height_scaler(len(ranked_gems_list[0])))
-        max_height = 32768 / 50  # Matplotlib limit for the height
+        max_height = 32767 / 50  # Matplotlib limit for the height
 
         if height * 2 > max_height:
             height = max_height / 2  # Adjust height to not exceed the limit
