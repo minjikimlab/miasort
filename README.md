@@ -8,6 +8,8 @@ Code for the Paper "MIA-Sort: Multiplex Chromatin Interaction Analysis by Effici
 
 `miasort` is a Python Library for multiplex chromatin interaction analysis by efficiently sorting chromatin complexes.
 
+![image](./imgs/pypl.png)
+
 To start using `miasort`, you need to install `bedtools`. To do so, follow instructions on https://bedtools.readthedocs.io/en/latest/content/installation.html#. One of the options is:
 
 ```Shell
