@@ -246,6 +246,7 @@ int main(int argc, char* argv[]) {
 
     std::string inputFileName = spriteFile.substr(spriteFile.find_last_of("/") + 1);
     inputFileName = inputFileName.substr(0, inputFileName.find(".clusters.gz"));
+    inputFileName = inputFileName.substr(0, inputFileName.find(".clusters"));
     std::string logFile = directory + "/sprite2complexes_" + inputFileName + ".log";
 
     try {

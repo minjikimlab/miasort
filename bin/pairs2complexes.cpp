@@ -173,6 +173,7 @@ int main(int argc, char* argv[]) {
 
     std::string inputFileName = pairsFile.substr(pairsFile.find_last_of("/") + 1);
     inputFileName = inputFileName.substr(0, inputFileName.find(".pairs.gz"));
+    inputFileName = inputFileName.substr(0, inputFileName.find(".pairs"));
     std::string logFile = directory + "/pairs2complexes_" + inputFileName + ".log";
 
     try {
