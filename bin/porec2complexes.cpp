@@ -17,20 +17,13 @@ struct Fragment {
 };
 
 std::string get_current_time() {
-    // Get the current time
     auto now = std::chrono::system_clock::now();
-
-    // Convert to time_t to get a time that we can format
     std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
-
-    // Convert to local time
     std::tm* localTime = std::localtime(&currentTime);
 
-    // Create a string stream to hold the formatted time
     std::ostringstream oss;
     oss << std::put_time(localTime, "%Y-%m-%d %H:%M:%S");
 
-    // Return the formatted string
     return oss.str();
 }
 
@@ -74,7 +67,6 @@ void processLine(const std::string& line, std::vector<Fragment>& fragments,
                     min_frag = num_frag_in_complex;
                 }
 
-                // Output all stored fragments for the previous readName
                 for (const auto& fragment : fragments) {
                     fout << fragment.chrom << "\t" << fragment.start << "\t" << fragment.end << "\t" << fragmentCount << "\t" << fragment.readName << "\n";
                 }
@@ -84,7 +76,6 @@ void processLine(const std::string& line, std::vector<Fragment>& fragments,
             fragmentCount = 0;  // Reset fragment count for the new group
         }
 
-        // Store the current fragment
         fragments.push_back({chrom, start, end, readName});
         fragmentCount++;
     } else {
@@ -117,12 +108,7 @@ void writeFragments(std::ofstream& fout, const std::vector<Fragment>& fragments,
     }
 }
 
-void readCSVAndWriteRegions(const std::string& directory, const std::string& csvFile, const std::string& logFile) {
-    // Extract the filename without extension
-    std::string baseName = csvFile.substr(csvFile.find_last_of("/") + 1);
-    baseName = baseName.substr(0, baseName.find("."));
-
-    std::string outputFile = directory + "/" + baseName + ".complexes";
+void readCSVAndWriteRegions(const std::string& csvFile, const std::string& outputFile, const std::string& logFile, int argc, char* argv[]) {
     std::ofstream fout(outputFile);
     if (!fout.is_open()) {
         throw std::runtime_error("Unable to open output file at " + outputFile);
@@ -133,9 +119,17 @@ void readCSVAndWriteRegions(const std::string& directory, const std::string& csv
         throw std::runtime_error("Unable to open log file at " + logFile);
     }
 
-    // Log the version number and timestamp
-    std::string version = "MIA-Sort porec2complexes Version 0.1.1\n-------------------------------";
+    std::string version = "MIA-Sort porec2complexes Version 0.1.2\n-------------------------------";
     logfout << version << "\n";
+
+    std::string command;
+    for (int i = 0; i < argc; ++i) {
+        command += argv[i];
+        if (i < argc - 1) {
+            command += " ";
+        }
+    }
+    logfout << "User Command: " << command << "\n\n";
 
     gzFile gz = gzopen(csvFile.c_str(), "rb");
     if (!gz) {
@@ -161,7 +155,6 @@ void readCSVAndWriteRegions(const std::string& directory, const std::string& csv
     while (gzgets(gz, buffer, sizeof(buffer)) != Z_NULL) {
         line = buffer;
 
-        // Continue reading the line until the newline character is found
         while (!line.empty() && line.back() != '\n' && gzgets(gz, buffer, sizeof(buffer)) != Z_NULL) {
             line.append(buffer);
         }
@@ -172,13 +165,11 @@ void readCSVAndWriteRegions(const std::string& directory, const std::string& csv
         }
     }
 
-    // Write the last group of fragments to the output file
     if (!fragments.empty()) {
         writeFragments(fout, fragments, fragmentCount, histogram, min_frag, max_frag);
     }
 
     long long int num_complexes = 0;
-    // Iterate through the map and sum all the values
     for (const auto& pair : histogram) {
         num_complexes += pair.second;
     }
@@ -208,19 +199,21 @@ void readCSVAndWriteRegions(const std::string& directory, const std::string& csv
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << " <directory> <csv_file>" << std::endl;
+    if (argc != 4) {
+        std::cerr << "Usage: " << argv[0] << " <directory> <csv_file> <output_file>" << std::endl;
         return 1;
     }
 
     std::string directory = argv[1];
     std::string csvFile = argv[2];
+    std::string outputFile = argv[3];
 
-    // Construct log file name based on the input file name
-    std::string logFile = directory + "/" + csvFile.substr(csvFile.find_last_of("/") + 1, csvFile.find(".") - csvFile.find_last_of("/") - 1) + ".log";
+    std::string inputFileName = csvFile.substr(csvFile.find_last_of("/") + 1);
+    inputFileName = inputFileName.substr(0, inputFileName.find(".csv.gz"));
+    std::string logFile = directory + "/porec2complexes_" + inputFileName + ".log";
 
     try {
-        readCSVAndWriteRegions(directory, csvFile, logFile);
+        readCSVAndWriteRegions(csvFile, outputFile, logFile, argc, argv);
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;

@@ -6,22 +6,16 @@
 #include <algorithm>
 #include <unordered_map>
 #include <zlib.h>
+#include <ctime>
 
 std::string get_current_time() {
-    // Get the current time
     auto now = std::chrono::system_clock::now();
-
-    // Convert to time_t to get a time that we can format
     std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
-
-    // Convert to local time
     std::tm* localTime = std::localtime(&currentTime);
 
-    // Create a string stream to hold the formatted time
     std::ostringstream oss;
     oss << std::put_time(localTime, "%Y-%m-%d %H:%M:%S");
 
-    // Return the formatted string
     return oss.str();
 }
 
@@ -65,7 +59,6 @@ void processClusterLine(const std::string& line, const std::unordered_map<std::s
         std::string chrom = location.substr(0, colonPos);
         std::string posStr = location.substr(colonPos + 1);
 
-        // Skip malformed position strings
         if (posStr.empty() || !std::all_of(posStr.begin(), posStr.end(), ::isdigit)) {
             std::cerr << "Error: Invalid position string: " << posStr << " in line: " << line << std::endl;
             continue;
@@ -76,15 +69,14 @@ void processClusterLine(const std::string& line, const std::unordered_map<std::s
             chromPositions[chrom].push_back(pos);
         } catch (const std::invalid_argument& e) {
             std::cerr << "Error: Invalid position string: " << posStr << " in line: " << line << std::endl;
-            continue; // Skip this location
+            continue;
         } catch (const std::out_of_range& e) {
             std::cerr << "Error: Position out of range: " << posStr << " in line: " << line << std::endl;
-            continue; // Skip this location
+            continue;
         }
     }
 
     int num_frag_in_complex = 0;
-    // Process valid chromosomal positions
     for (auto& [chrom, positions] : chromPositions) {
         num_frag += positions.size();
         if (positions.size() == 1) {
@@ -103,21 +95,20 @@ void processClusterLine(const std::string& line, const std::unordered_map<std::s
             std::sort(positions.begin(), positions.end());
 
             std::vector<int> validPositions;
-            validPositions.push_back(positions.front());  // Always keep the smallest position
+            validPositions.push_back(positions.front());
 
             for (size_t j = 1; j < positions.size(); ++j) {
                 int pos1 = validPositions.back();
                 int pos2 = positions[j];
                 if (pos2 - pos1 > selfbp) {
                     validPositions.push_back(positions[j]);
-                }
-                else {
+                } else {
                     num_filtered++;
                 }
             }
 
             if (validPositions.size() == 1) {
-                validPositions.clear(); // Discard the smallest position both if no other valid positions
+                validPositions.clear();
             }
 
             int len = validPositions.size();
@@ -155,10 +146,9 @@ void processClusterLine(const std::string& line, const std::unordered_map<std::s
     }
 }
 
-void readSpriteAndWriteRegions(const std::string& directory, const std::string& spriteFile,
-                                const std::unordered_map<std::string, int>& chromSizes, const std::string& libid,
-                                int extbp, int selfbp, const std::string& logFile) {
-    std::string outputFile = directory + "/" + libid + ".complexes";
+void readSpriteAndWriteRegions(const std::string& spriteFile, const std::unordered_map<std::string, int>& chromSizes,
+                                const std::string& libid, int extbp, int selfbp, const std::string& outputFile,
+                                const std::string& logFile, int argc, char* argv[]) {
     std::ofstream fout(outputFile);
     if (!fout.is_open()) {
         throw std::runtime_error("Unable to open output file at " + outputFile);
@@ -169,9 +159,17 @@ void readSpriteAndWriteRegions(const std::string& directory, const std::string& 
         throw std::runtime_error("Unable to open log file at " + logFile);
     }
 
-    // Log the version number
-    std::string version = "MIA-Sort sprite2complexes Version 0.1.1\n-------------------------------";
+    std::string version = "MIA-Sort sprite2complexes Version 0.1.2\n-------------------------------";
     logfout << version << std::endl;
+
+    std::string command;
+    for (int i = 0; i < argc; ++i) {
+        command += argv[i];
+        if (i < argc - 1) {
+            command += " ";
+        }
+    }
+    logfout << "User Command: " << command << "\n\n";
 
     gzFile gz = gzopen(spriteFile.c_str(), "rb");
     if (!gz) {
@@ -191,7 +189,6 @@ void readSpriteAndWriteRegions(const std::string& directory, const std::string& 
     long long int num_lines = 0;
 
     logfout << get_current_time() << " sprite2complexes starts\n" << std::endl;
-    // Loop through the file, reading chunks until the end of the file
     while (gzgets(gz, buffer, sizeof(buffer)) != Z_NULL) {
         std::string part(buffer);
         while (part.back() != '\n' && gzgets(gz, buffer, sizeof(buffer)) != Z_NULL) {
@@ -203,7 +200,6 @@ void readSpriteAndWriteRegions(const std::string& directory, const std::string& 
     }
 
     long long int num_complexes = 0;
-    // Iterate through the map and sum all the values
     for (const auto& pair : histogram) {
         num_complexes += pair.second;
     }
@@ -233,25 +229,28 @@ void readSpriteAndWriteRegions(const std::string& directory, const std::string& 
 }
 
 int main(int argc, char* argv[]) {
-    if (argc < 4 || argc > 6) {
-        std::cerr << "Usage: " << argv[0] << " <directory> <sprite_file> <chrom_sizes_file> [<extbp> [<selfbp>]]" << std::endl;
+    if (argc < 5 || argc > 7) {
+        std::cerr << "Usage: " << argv[0] << " <directory> <sprite_file> <chrom_sizes_file> <output_file> [<extbp> [<selfbp>]]" << std::endl;
         return 1;
     }
 
     std::string directory = argv[1];
     std::string spriteFile = argv[2];
     std::string chromSizesFile = argv[3];
+    std::string outputFile = argv[4];
 
-    int extbp = (argc > 4) ? std::stoi(argv[4]) : 250;
-    int selfbp = (argc > 5) ? std::stoi(argv[5]) : 8000;
+    int extbp = (argc > 5) ? std::stoi(argv[5]) : 250;
+    int selfbp = (argc > 6) ? std::stoi(argv[6]) : 8000;
 
     std::string libid = spriteFile.substr(spriteFile.find_last_of("/") + 1, spriteFile.find(".clusters") - spriteFile.find_last_of("/") - 1);
 
-    std::string logFile = directory + "/" + libid + ".log";
+    std::string inputFileName = spriteFile.substr(spriteFile.find_last_of("/") + 1);
+    inputFileName = inputFileName.substr(0, inputFileName.find(".clusters.gz"));
+    std::string logFile = directory + "/sprite2complexes_" + inputFileName + ".log";
 
     try {
         std::unordered_map<std::string, int> chromSizes = readChromSizes(chromSizesFile);
-        readSpriteAndWriteRegions(directory, spriteFile, chromSizes, libid, extbp, selfbp, logFile);
+        readSpriteAndWriteRegions(spriteFile, chromSizes, libid, extbp, selfbp, outputFile, logFile, argc, argv);
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;

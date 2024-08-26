@@ -12,23 +12,15 @@
 #include <ctime>
 
 std::string get_current_time() {
-    // Get the current time
     auto now = std::chrono::system_clock::now();
-
-    // Convert to time_t to get a time that we can format
     std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
-
-    // Convert to local time
     std::tm* localTime = std::localtime(&currentTime);
 
-    // Create a string stream to hold the formatted time
     std::ostringstream oss;
     oss << std::put_time(localTime, "%Y-%m-%d %H:%M:%S");
 
-    // Return the formatted string
     return oss.str();
 }
-
 
 std::unordered_map<std::string, int> readChromSizes(const std::string& filepath) {
     std::unordered_map<std::string, int> chromSizes;
@@ -99,16 +91,13 @@ void processLine(const std::string& line, const std::unordered_map<std::string, 
         fout << chrom1 << "\t" << start1 << "\t" << end1 << "\t2\t" << gemid << "\n";
         fout << chrom1 << "\t" << start2 << "\t" << end2 << "\t2\t" << gemid << "\n";
         num_complexes++;
-    }
-    else {
+    } else {
         num_filtered++;
     }
 }
 
-void readPairsAndWriteRegions(const std::string& directory, const std::string& pairsFile,
-                            const std::unordered_map<std::string, int>& chromSizes, const std::string& libid,
-                            int extbp, int selfbp, const std::string& logFile, int argc, char* argv[]) {
-    std::string outputFile = directory + "/" + libid + ".complexes";
+void readPairsAndWriteRegions(const std::string& pairsFile, const std::unordered_map<std::string, int>& chromSizes, const std::string& libid,
+                            int extbp, int selfbp, const std::string& outputFile, const std::string& logFile, int argc, char* argv[]) {
 
     long long int num_filtered = 0;
     long long int num_complexes = 0;
@@ -124,20 +113,17 @@ void readPairsAndWriteRegions(const std::string& directory, const std::string& p
         throw std::runtime_error("Unable to open log file at " + logFile);
     }
 
-    // Log the version number
-    std::string version = "MIA-Sort pairs2complexes Version 0.1.1\n-----------------------------------";
+    std::string version = "MIA-Sort pairs2complexes Version 0.1.2\n-----------------------------------";
     logfout << version << std::endl;
 
     std::string command;
-    // Loop through all arguments and concatenate them into a single string
     for (int i = 0; i < argc; ++i) {
         command += argv[i];
         if (i < argc - 1) {
-            command += " "; // Add a space between arguments
+            command += " ";
         }
     }
 
-    // Output the exact command the user ran
     logfout << "User Command: " << command << "\n\n";
 
     gzFile gz = gzopen(pairsFile.c_str(), "rb");
@@ -152,12 +138,10 @@ void readPairsAndWriteRegions(const std::string& directory, const std::string& p
     logfout << get_current_time() << " pairs2complexes starts\n" << std::endl;
     while (gzgets(gz, buffer, sizeof(buffer)) != Z_NULL) {
         line = buffer;
-        // Remove newline character if it exists
         if (!line.empty() && line.back() == '\n') {
             line.pop_back();
         }
-        processLine(line, chromSizes, libid, extbp, selfbp, fout,
-                    i, num_filtered, num_complexes, num_lines);
+        processLine(line, chromSizes, libid, extbp, selfbp, fout, i, num_filtered, num_complexes, num_lines);
     }
 
     logfout << "The total number of processed lines in the pairs file: " << num_lines << std::endl;
@@ -172,25 +156,28 @@ void readPairsAndWriteRegions(const std::string& directory, const std::string& p
 }
 
 int main(int argc, char* argv[]) {
-    if (argc < 4 || argc > 6) {
-        std::cerr << "Usage: " << argv[0] << " <directory> <pairs_file> <chrom_sizes_file> [<extbp> [<selfbp>]]" << std::endl;
+    if (argc < 5 || argc > 7) {
+        std::cerr << "Usage: " << argv[0] << " <directory> <pairs_file> <chrom_sizes_file> <output_file> [<extbp> [<selfbp>]]" << std::endl;
         return 1;
     }
 
     std::string directory = argv[1];
     std::string pairsFile = argv[2];
     std::string chromSizesFile = argv[3];
+    std::string outputFile = argv[4];
 
-    int extbp = (argc > 4) ? std::stoi(argv[4]) : 250;
-    int selfbp = (argc > 5) ? std::stoi(argv[5]) : 8000;
+    int extbp = (argc > 5) ? std::stoi(argv[5]) : 250;
+    int selfbp = (argc > 6) ? std::stoi(argv[6]) : 8000;
 
     std::string libid = pairsFile.substr(pairsFile.find_last_of("/") + 1, pairsFile.find(".bsorted.pairs.gz") - pairsFile.find_last_of("/") - 1);
 
-    std::string logFile = directory + "/" + libid + ".log";
+    std::string inputFileName = pairsFile.substr(pairsFile.find_last_of("/") + 1);
+    inputFileName = inputFileName.substr(0, inputFileName.find(".pairs.gz"));
+    std::string logFile = directory + "/pairs2complexes_" + inputFileName + ".log";
 
     try {
         std::unordered_map<std::string, int> chromSizes = readChromSizes(chromSizesFile);
-        readPairsAndWriteRegions(directory, pairsFile, chromSizes, libid, extbp, selfbp, logFile, argc, argv);
+        readPairsAndWriteRegions(pairsFile, chromSizes, libid, extbp, selfbp, outputFile, logFile, argc, argv);
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
