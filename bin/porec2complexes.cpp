@@ -8,6 +8,7 @@
 #include <ctime>
 #include <unordered_map>
 #include <iomanip>
+#include <algorithm>
 
 struct Fragment {
     std::string chrom;
