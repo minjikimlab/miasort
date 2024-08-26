@@ -238,6 +238,7 @@ int main(int argc, char* argv[]) {
     std::string spriteFile = argv[2];
     std::string chromSizesFile = argv[3];
     std::string outputFile = argv[4];
+    outputFile += ".complexes";
 
     int extbp = (argc > 5) ? std::stoi(argv[5]) : 250;
     int selfbp = (argc > 6) ? std::stoi(argv[6]) : 8000;

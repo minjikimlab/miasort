@@ -16,6 +16,18 @@ struct Fragment {
     std::string readName;
 };
 
+// Helper function to calculate the midpoint
+float calculateMidpoint(const Fragment& fragment) {
+    int start = std::stoi(fragment.start);
+    int end = std::stoi(fragment.end);
+    return start + (static_cast<float>(end - start) / 2);
+}
+
+// Comparison function for sorting
+bool compareFragments(const Fragment& a, const Fragment& b) {
+    return calculateMidpoint(a) < calculateMidpoint(b);
+}
+
 std::string get_current_time() {
     auto now = std::chrono::system_clock::now();
     std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
@@ -27,10 +39,30 @@ std::string get_current_time() {
     return oss.str();
 }
 
+std::unordered_map<std::string, int> readChromSizes(const std::string& filepath) {
+    std::unordered_map<std::string, int> chromSizes;
+    std::ifstream file(filepath);
+    if (!file.is_open()) {
+        throw std::runtime_error("Unable to open chromosome sizes file at " + filepath);
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        std::istringstream ss(line);
+        std::string chrom;
+        int size;
+        ss >> chrom >> size;
+        chromSizes[chrom] = size;
+    }
+    file.close();
+    return chromSizes;
+}
+
 void processLine(const std::string& line, std::vector<Fragment>& fragments,
                 std::string& currentReadName, long long int& fragmentCount, std::ofstream& fout,
                 long long int& num_frag, long long int& num_filtered, std::unordered_map<int, long long int>& histogram,
-                long long int& max_frag, long long int& min_frag) {
+                long long int& max_frag, long long int& min_frag, int extbp, int selfbp,
+                std::unordered_map<std::string, int>& chromSizes) {
     std::istringstream ss(line);
     std::string field;
     std::vector<std::string> fields;
@@ -49,7 +81,44 @@ void processLine(const std::string& line, std::vector<Fragment>& fragments,
 
         if (readName != currentReadName) {
             if (!currentReadName.empty()) {
-                int num_frag_in_complex = fragments.size();
+                std::unordered_map<std::string, std::vector<Fragment>> chromMap;
+
+                for (const auto& fragment : fragments) {
+                    chromMap[fragment.chrom].push_back(fragment);
+                }
+
+                int num_frag_in_complex = 0;
+                for (auto&[chrom, fragment_vec] : chromMap) {
+                    if (fragment_vec.size() == 1) {
+                        auto fragment = fragment_vec[0];
+                        num_frag_in_complex++;
+                        fout << fragment.chrom << "\t" << fragment.start << "\t" << fragment.end << "\t" << "1" << "\t" << fragment.readName << "\n";
+                    } else {
+                        std::sort(fragment_vec.begin(), fragment_vec.end(), compareFragments);
+                        std::vector<Fragment> validPositions;
+                        validPositions.push_back(fragment_vec.front());
+
+                        for (size_t j = 1; j < fragment_vec.size(); ++j) {
+                            int pos1 = std::stoi(validPositions.back().end);
+                            int pos2 = std::stoi(fragment_vec[j].start);
+                            if (pos2 - pos1 > selfbp) {
+                                validPositions.push_back(fragment_vec[j]);
+                            } else {
+                                num_filtered++;
+                            }
+                        }
+
+                        if (validPositions.size() == 1) {
+                            validPositions.clear();
+                        }
+
+                        int len = validPositions.size();
+                        num_frag_in_complex += len;
+                        for (auto& fragment : validPositions) {
+                            fout << fragment.chrom << "\t" << fragment.start << "\t" << fragment.end << "\t" << len << "\t" << fragment.readName << "\n";
+                        }
+                    }
+                }
                 if (num_frag_in_complex >= 6 && num_frag_in_complex <= 10) {
                     histogram[6]++;
                 } else if (num_frag_in_complex >= 11 && num_frag_in_complex <= 50) {
@@ -66,27 +135,57 @@ void processLine(const std::string& line, std::vector<Fragment>& fragments,
                 if (num_frag_in_complex < min_frag && num_frag_in_complex != 0) {
                     min_frag = num_frag_in_complex;
                 }
-
-                for (const auto& fragment : fragments) {
-                    fout << fragment.chrom << "\t" << fragment.start << "\t" << fragment.end << "\t" << fragmentCount << "\t" << fragment.readName << "\n";
-                }
                 fragments.clear();  // Clear fragments for the next readName
             }
             currentReadName = readName;  // Update currentReadName to the new readName
-            fragmentCount = 0;  // Reset fragment count for the new group
         }
-
         fragments.push_back({chrom, start, end, readName});
-        fragmentCount++;
-    } else {
-        num_filtered++;
     }
 }
 
 void writeFragments(std::ofstream& fout, const std::vector<Fragment>& fragments,
                     int fragmentCount, std::unordered_map<int, long long int>& histogram,
-                    long long int& min_frag, long long int& max_frag) {
-    int num_frag_in_complex = fragments.size();
+                    long long int& min_frag, long long int& max_frag, int extbp, int selfbp,
+                    std::unordered_map<std::string, int>& chromSizes, long long int& num_filtered) {
+    std::unordered_map<std::string, std::vector<Fragment>> chromMap;
+
+    for (const auto& fragment : fragments) {
+        chromMap[fragment.chrom].push_back(fragment);
+    }
+
+    int num_frag_in_complex = 0;
+    for (auto&[chrom, fragment_vec] : chromMap) {
+        if (fragment_vec.size() == 1) {
+            auto fragment = fragment_vec[0];
+            num_frag_in_complex++;
+            fout << fragment.chrom << "\t" << fragment.start << "\t" << fragment.end << "\t" << "1" << "\t" << fragment.readName << "\n";
+        } else {
+            std::sort(fragment_vec.begin(), fragment_vec.end(), compareFragments);
+            std::vector<Fragment> validPositions;
+            validPositions.push_back(fragment_vec.front());
+
+            for (size_t j = 1; j < fragment_vec.size(); ++j) {
+                std::cout << validPositions.back().end << " " << fragment_vec[j].start << std::endl;
+                int pos1 = std::stoi(validPositions.back().end);
+                int pos2 = std::stoi(fragment_vec[j].start);
+                if (pos2 - pos1 > selfbp) {
+                    validPositions.push_back(fragment_vec[j]);
+                } else {
+                    num_filtered++;
+                }
+            }
+
+            if (validPositions.size() == 1) {
+                validPositions.clear();
+            }
+
+            int len = validPositions.size();
+            num_frag_in_complex += len;
+            for (auto& fragment : validPositions) {
+                fout << fragment.chrom << "\t" << fragment.start << "\t" << fragment.end << "\t" << len << "\t" << fragment.readName << "\n";
+            }
+        }
+    }
     if (num_frag_in_complex >= 6 && num_frag_in_complex <= 10) {
         histogram[6]++;
     } else if (num_frag_in_complex >= 11 && num_frag_in_complex <= 50) {
@@ -103,12 +202,10 @@ void writeFragments(std::ofstream& fout, const std::vector<Fragment>& fragments,
     if (num_frag_in_complex < min_frag && num_frag_in_complex != 0) {
         min_frag = num_frag_in_complex;
     }
-    for (const auto& fragment : fragments) {
-        fout << fragment.chrom << "\t" << fragment.start << "\t" << fragment.end << "\t" << fragmentCount << "\t" << fragment.readName << "\n";
-    }
 }
 
-void readCSVAndWriteRegions(const std::string& csvFile, const std::string& outputFile, const std::string& logFile, int argc, char* argv[]) {
+void readCSVAndWriteRegions(const std::string& csvFile, const std::string& outputFile, const std::string& logFile,
+                            int argc, char* argv[], int extbp, int selfbp, std::unordered_map<std::string, int>& chromSizes) {
     std::ofstream fout(outputFile);
     if (!fout.is_open()) {
         throw std::runtime_error("Unable to open output file at " + outputFile);
@@ -161,12 +258,13 @@ void readCSVAndWriteRegions(const std::string& csvFile, const std::string& outpu
 
         if (!line.empty()) {
             num_lines++;
-            processLine(line, fragments, currentReadName, fragmentCount, fout, num_frag, num_filtered, histogram, max_frag, min_frag);
+            processLine(line, fragments, currentReadName, fragmentCount, fout, num_frag, num_filtered,
+            histogram, max_frag, min_frag, extbp, selfbp, chromSizes);
         }
     }
 
     if (!fragments.empty()) {
-        writeFragments(fout, fragments, fragmentCount, histogram, min_frag, max_frag);
+        writeFragments(fout, fragments, fragmentCount, histogram, min_frag, max_frag, extbp, selfbp, chromSizes, num_filtered);
     }
 
     long long int num_complexes = 0;
@@ -174,9 +272,9 @@ void readCSVAndWriteRegions(const std::string& csvFile, const std::string& outpu
         num_complexes += pair.second;
     }
 
-    logfout << "The number of fragments in the pore-c file: " << num_frag << std::endl;
+    logfout << "The number of fragments in the pore-c file: " << num_frag - 1 << std::endl;
     logfout << "The total number of processed lines in the pore-c file: " << num_lines << std::endl;
-    logfout << "The number of lines filtered out due to pass_filter: " << num_filtered << std::endl;
+    logfout << "The number of lines filtered out due to selfbp: " << num_filtered << std::endl;
     logfout << "Total number of complexes written in the output complexes file: " << num_complexes << std::endl;
 
     logfout << "Histogram of fragments/complex in the output complexes file: " << std::endl;
@@ -199,14 +297,19 @@ void readCSVAndWriteRegions(const std::string& csvFile, const std::string& outpu
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 4) {
-        std::cerr << "Usage: " << argv[0] << " <directory> <csv_file> <output_file>" << std::endl;
+    if (argc < 5 || argc > 7) {
+        std::cerr << "Usage: " << argv[0] << " <directory> <csv_file>  <chrom_sizes_file> <output_file> [<extbp> [<selfbp>]]" << std::endl;
         return 1;
     }
 
     std::string directory = argv[1];
     std::string csvFile = argv[2];
-    std::string outputFile = argv[3];
+    std::string chromSizesFile = argv[3];
+    std::string outputFile = argv[4];
+    outputFile += ".complexes";
+
+    int extbp = (argc > 5) ? std::stoi(argv[4]) : 250;
+    int selfbp = (argc > 6) ? std::stoi(argv[5]) : 8000;
 
     std::string inputFileName = csvFile.substr(csvFile.find_last_of("/") + 1);
     inputFileName = inputFileName.substr(0, inputFileName.find(".csv.gz"));
@@ -214,7 +317,8 @@ int main(int argc, char* argv[]) {
     std::string logFile = directory + "/porec2complexes_" + inputFileName + ".log";
 
     try {
-        readCSVAndWriteRegions(csvFile, outputFile, logFile, argc, argv);
+        std::unordered_map<std::string, int> chromSizes = readChromSizes(chromSizesFile);
+        readCSVAndWriteRegions(csvFile, outputFile, logFile, argc, argv, extbp, selfbp, chromSizes);
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
