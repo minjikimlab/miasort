@@ -35,9 +35,9 @@ std::string get_current_time() {
 }
 
 void processLine(const std::string& line, std::vector<Fragment>& fragments,
-                std::string& currentReadName, int& fragmentCount, std::ofstream& fout,
-                int& num_frag, int& num_filtered, std::unordered_map<int, int>& histogram,
-                int& max_frag, int& min_frag) {
+                std::string& currentReadName, long long int& fragmentCount, std::ofstream& fout,
+                long long int& num_frag, long long int& num_filtered, std::unordered_map<int, long long int>& histogram,
+                long long int& max_frag, long long int& min_frag) {
     std::istringstream ss(line);
     std::string field;
     std::vector<std::string> fields;
@@ -93,8 +93,8 @@ void processLine(const std::string& line, std::vector<Fragment>& fragments,
 }
 
 void writeFragments(std::ofstream& fout, const std::vector<Fragment>& fragments,
-                    int fragmentCount, std::unordered_map<int, int>& histogram,
-                    int& min_frag, int& max_frag) {
+                    int fragmentCount, std::unordered_map<int, long long int>& histogram,
+                    long long int& min_frag, long long int& max_frag) {
     int num_frag_in_complex = fragments.size();
     if (num_frag_in_complex >= 6 && num_frag_in_complex <= 10) {
         histogram[6]++;
@@ -144,16 +144,16 @@ void readCSVAndWriteRegions(const std::string& directory, const std::string& csv
 
     std::string line;
     std::string currentReadName;
-    int fragmentCount = 0;
+    long long int fragmentCount = 0;
     std::vector<Fragment> fragments;
 
-    std::unordered_map<int, int> histogram;
+    std::unordered_map<int, long long int> histogram;
 
-    int num_frag = 0;
-    int num_filtered = 0;
-    int max_frag = INT_MIN;
-    int min_frag = INT_MAX;
-    int num_lines = 0;
+    long long int num_frag = 0;
+    long long int num_filtered = 0;
+    long long int max_frag = LLONG_MIN;
+    long long int min_frag = LLONG_MAX;
+    long long int num_lines = 0;
 
     logfout << get_current_time() << " porec2complexes starts\n" << std::endl;
 
@@ -177,7 +177,7 @@ void readCSVAndWriteRegions(const std::string& directory, const std::string& csv
         writeFragments(fout, fragments, fragmentCount, histogram, min_frag, max_frag);
     }
 
-    int num_complexes = 0;
+    long long int num_complexes = 0;
     // Iterate through the map and sum all the values
     for (const auto& pair : histogram) {
         num_complexes += pair.second;

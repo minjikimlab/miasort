@@ -46,7 +46,9 @@ std::unordered_map<std::string, int> readChromSizes(const std::string& filepath)
 
 void processClusterLine(const std::string& line, const std::unordered_map<std::string, int>& chromSizes,
                         const std::string& libid, int extbp, int selfbp, std::ofstream& fout, int& i,
-                        int& num_frag, int& num_filtered, std::unordered_map<int, int>& histogram, int& max_frag, int& min_frag) {
+                        long long int& num_frag, long long int& num_filtered,
+                        std::unordered_map<int, long long int>& histogram,
+                        long long int& max_frag, long long int& min_frag) {
     std::istringstream ss(line);
     std::string id;
     ss >> id;
@@ -104,7 +106,7 @@ void processClusterLine(const std::string& line, const std::unordered_map<std::s
             validPositions.push_back(positions.front());  // Always keep the smallest position
 
             for (size_t j = 1; j < positions.size(); ++j) {
-                int pos1 = positions[0];
+                int pos1 = validPositions.back();
                 int pos2 = positions[j];
                 if (pos2 - pos1 > selfbp) {
                     validPositions.push_back(positions[j]);
@@ -180,13 +182,13 @@ void readSpriteAndWriteRegions(const std::string& directory, const std::string& 
     int i = 100000000;
     char buffer[8192];
 
-    std::unordered_map<int, int> histogram;
+    std::unordered_map<int, long long int> histogram;
 
-    int num_frag = 0;
-    int num_filtered = 0;
-    int max_frag = INT_MIN;
-    int min_frag = INT_MAX;
-    int num_lines = 0;
+    long long int num_frag = 0;
+    long long int num_filtered = 0;
+    long long int max_frag = LLONG_MIN;
+    long long int min_frag = LLONG_MAX;
+    long long int num_lines = 0;
 
     logfout << get_current_time() << " sprite2complexes starts\n" << std::endl;
     // Loop through the file, reading chunks until the end of the file
@@ -200,7 +202,7 @@ void readSpriteAndWriteRegions(const std::string& directory, const std::string& 
         processClusterLine(line, chromSizes, libid, extbp, selfbp, fout, i, num_frag, num_filtered, histogram, max_frag, min_frag);
     }
 
-    int num_complexes = 0;
+    long long int num_complexes = 0;
     // Iterate through the map and sum all the values
     for (const auto& pair : histogram) {
         num_complexes += pair.second;

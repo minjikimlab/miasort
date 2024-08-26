@@ -50,7 +50,8 @@ std::unordered_map<std::string, int> readChromSizes(const std::string& filepath)
 }
 
 void processLine(const std::string& line, const std::unordered_map<std::string, int>& chromSizes, const std::string& libid,
-                int extbp, int selfbp, std::ofstream& fout, int& i, int& num_filtered, int& num_complexes, int& num_lines) {
+                int extbp, int selfbp, std::ofstream& fout, int& i, long long int& num_filtered, long long int& num_complexes,
+                long long int& num_lines) {
     if (line.empty() || line[0] == '#') {
         return;
     }
@@ -109,9 +110,9 @@ void readPairsAndWriteRegions(const std::string& directory, const std::string& p
                             int extbp, int selfbp, const std::string& logFile, int argc, char* argv[]) {
     std::string outputFile = directory + "/" + libid + ".complexes";
 
-    int num_filtered = 0;
-    int num_complexes = 0;
-    int num_lines = 0;
+    long long int num_filtered = 0;
+    long long int num_complexes = 0;
+    long long int num_lines = 0;
 
     std::ofstream fout(outputFile);
     if (!fout.is_open()) {
