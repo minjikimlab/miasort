@@ -77,8 +77,8 @@ def start(path1, path2, processing_type, graphs,
             id = anchors[9]
 
             # Error check
-            if anchors[1] >= anchors[2] or anchors[4] >= anchors[5] or anchors[7] >= anchors[8] \
-            or anchors[2] >= anchors[4] or anchors[5] >= anchors[7]:
+            if int(anchors[1]) >= int(anchors[2]) or int(anchors[4]) >= int(anchors[5]) or int(anchors[7]) >= int(anchors[8]) \
+            or int(anchors[2]) >= int(anchors[4]) or int(anchors[5]) >= int(anchors[7]):
                 print(f"Error for {id}: left is larger than right, please check the input file")
                 continue
 
