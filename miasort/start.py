@@ -39,7 +39,6 @@ def start(path1, path2, processing_type, graphs,
         filter_regions_filename = os.path.join(out_dir, "filter_regions.bed")
         generate_filter_regions(path2, filter_regions_filename)
         filter_regions = BedTool(filter_regions_filename)
-        os.remove(filter_regions_filename)
 
         intersected = ChIA_Drop.intersect(filter_regions, wa=True, wb=True)
 
@@ -197,6 +196,7 @@ def start(path1, path2, processing_type, graphs,
                                                 right_anchor_list, middle_anchor_list, out_dir,
                                                 colors_flags, anchor_options, id, dataset, commands_list, extension,
                                                 frag_height, line_width, plot_width, subplots_margins, frag_description)
+        os.remove(filter_regions_filename)
 
     elif processing_type == "AandBandC":
         filter_regions_filename = "filter_regions.bed"
