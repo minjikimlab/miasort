@@ -103,48 +103,49 @@ def start(path1, path2, processing_type, graphs,
             middle_anchor_list = []
             commands_list = ["AtoC", "CtoA", "AandC"]
 
-            if graphs_flags["AtoC"]:
-                ranked_gems = process_left(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region)
-                output_file = create_plot_filename(dataset, id, "AtoC", num_fragments_min, num_fragments_max, len(ranked_gems), frag_description)
-                ranked_gems_list.append(ranked_gems)
-                left_anchor_list.append(A)
-                right_anchor_list.append(C)
-                middle_anchor_list.append(B)
-                if histogram_options == "yes":
-                    generate_file(ranked_gems, output_file, out_dir)
-                write_to_csv_file(id, A, B, C, "AtoC", len(ranked_gems), csv_file, out_dir, ranked_gems)
+            if graphs_flags["AtoC"] or graphs_flags["CtoA"] or graphs_flags["AandC"]:
+                if graphs_flags["AtoC"]:
+                    ranked_gems = process_left(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region)
+                    output_file = create_plot_filename(dataset, id, "AtoC", num_fragments_min, num_fragments_max, len(ranked_gems), frag_description)
+                    ranked_gems_list.append(ranked_gems)
+                    left_anchor_list.append(A)
+                    right_anchor_list.append(C)
+                    middle_anchor_list.append(B)
+                    if histogram_options == "yes":
+                        generate_file(ranked_gems, output_file, out_dir)
+                    write_to_csv_file(id, A, B, C, "AtoC", len(ranked_gems), csv_file, out_dir, ranked_gems)
 
-            if graphs_flags["CtoA"]:
-                ranked_gems = process_right(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region)
-                output_file = create_plot_filename(dataset, id, "CtoA", num_fragments_min, num_fragments_max, len(ranked_gems), frag_description)
-                ranked_gems_list.append(ranked_gems)
-                left_anchor_list.append(A)
-                right_anchor_list.append(C)
-                middle_anchor_list.append(B)
-                if histogram_options == "yes":
-                    generate_file(ranked_gems, output_file, out_dir)
-                write_to_csv_file(id, A, B, C, "CtoA", len(ranked_gems), csv_file, out_dir, ranked_gems)
+                if graphs_flags["CtoA"]:
+                    ranked_gems = process_right(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region)
+                    output_file = create_plot_filename(dataset, id, "CtoA", num_fragments_min, num_fragments_max, len(ranked_gems), frag_description)
+                    ranked_gems_list.append(ranked_gems)
+                    left_anchor_list.append(A)
+                    right_anchor_list.append(C)
+                    middle_anchor_list.append(B)
+                    if histogram_options == "yes":
+                        generate_file(ranked_gems, output_file, out_dir)
+                    write_to_csv_file(id, A, B, C, "CtoA", len(ranked_gems), csv_file, out_dir, ranked_gems)
 
-            if graphs_flags["AandC"]:
-                region = f"{anchors[0]}:{anchors[1]}-{anchors[2]};{anchors[6]}:{anchors[7]}-{anchors[8]}"
-                yes_chroms, no_chroms = process_multiple_regions(region, "yes;yes")
-                ranked_gems = process_multiple(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
-                output_file = create_plot_filename(dataset, id, "AandC", num_fragments_min, num_fragments_max, len(ranked_gems), frag_description)
-                ranked_gems_list.append(ranked_gems)
-                left_anchor_list.append(A)
-                right_anchor_list.append(C)
-                middle_anchor_list.append(B)
-                if histogram_options == "yes":
-                    generate_file(ranked_gems, output_file, out_dir)
-                write_to_csv_file(id, A, B, C, "AandC", len(ranked_gems), csv_file, out_dir, ranked_gems)
+                if graphs_flags["AandC"]:
+                    region = f"{anchors[0]}:{anchors[1]}-{anchors[2]};{anchors[6]}:{anchors[7]}-{anchors[8]}"
+                    yes_chroms, no_chroms = process_multiple_regions(region, "yes;yes")
+                    ranked_gems = process_multiple(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
+                    output_file = create_plot_filename(dataset, id, "AandC", num_fragments_min, num_fragments_max, len(ranked_gems), frag_description)
+                    ranked_gems_list.append(ranked_gems)
+                    left_anchor_list.append(A)
+                    right_anchor_list.append(C)
+                    middle_anchor_list.append(B)
+                    if histogram_options == "yes":
+                        generate_file(ranked_gems, output_file, out_dir)
+                    write_to_csv_file(id, A, B, C, "AandC", len(ranked_gems), csv_file, out_dir, ranked_gems)
 
-            if graph_flag == "yes":
-                output_file = create_plot_filename(dataset, id, "stripes", num_fragments_min, num_fragments_max,
-                                                   len(ranked_gems), frag_description)
-                plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
-                                            right_anchor_list, middle_anchor_list, out_dir,
-                                            colors_flags, anchor_options, id, dataset, commands_list, extension,
-                                            frag_height, line_width, plot_width, subplots_margins, frag_description)
+                if graph_flag == "yes":
+                    output_file = create_plot_filename(dataset, id, "stripes", num_fragments_min, num_fragments_max,
+                                                    len(ranked_gems), frag_description)
+                    plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
+                                                right_anchor_list, middle_anchor_list, out_dir,
+                                                colors_flags, anchor_options, id, dataset, commands_list, extension,
+                                                frag_height, line_width, plot_width, subplots_margins, frag_description)
 
             # ---------------- Second plot ----------------
 
@@ -154,46 +155,47 @@ def start(path1, path2, processing_type, graphs,
             middle_anchor_list = []
             commands_list = ["BtoAC", "BtoA", "BtoC"]
 
-            if graphs_flags["Bcentered"]:  # B centered to A & C
-                ranked_gems = process_middle(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region, B)
-                output_file = create_plot_filename(dataset, id, "Bcentered", num_fragments_min, num_fragments_max, len(ranked_gems), frag_description)
-                ranked_gems_list.append(ranked_gems)
-                left_anchor_list.append(A)
-                right_anchor_list.append(C)
-                middle_anchor_list.append(B)
-                if histogram_options == "yes":
-                    generate_file(ranked_gems, output_file, out_dir)
-                write_to_csv_file(id, A, B, C, "BtoAC", len(ranked_gems), csv_file, out_dir, ranked_gems)
+            if graphs_flags["Bcentered"] or graphs_flags["BtoA"] or graphs_flags["BtoC"]:
+                if graphs_flags["Bcentered"]:  # B centered to A & C
+                    ranked_gems = process_middle(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, A, C, filter_region, B)
+                    output_file = create_plot_filename(dataset, id, "Bcentered", num_fragments_min, num_fragments_max, len(ranked_gems), frag_description)
+                    ranked_gems_list.append(ranked_gems)
+                    left_anchor_list.append(A)
+                    right_anchor_list.append(C)
+                    middle_anchor_list.append(B)
+                    if histogram_options == "yes":
+                        generate_file(ranked_gems, output_file, out_dir)
+                    write_to_csv_file(id, A, B, C, "BtoAC", len(ranked_gems), csv_file, out_dir, ranked_gems)
 
-            if graphs_flags["BtoA"]:
-                ranked_gems = process_right(ChIA_Drop_ab, num_fragments_min, num_fragments_max, A, B, filter_region)
-                output_file = create_plot_filename(dataset, id, "BtoA", num_fragments_min, num_fragments_max, len(ranked_gems), frag_description)
-                ranked_gems_list.append(ranked_gems)
-                left_anchor_list.append(A)
-                right_anchor_list.append(B)
-                middle_anchor_list.append(C)
-                if histogram_options == "yes":
-                    generate_file(ranked_gems, output_file, out_dir)
-                write_to_csv_file(id, A, B, C, "BtoA", len(ranked_gems), csv_file, out_dir, ranked_gems)
+                if graphs_flags["BtoA"]:
+                    ranked_gems = process_right(ChIA_Drop_ab, num_fragments_min, num_fragments_max, A, B, filter_region)
+                    output_file = create_plot_filename(dataset, id, "BtoA", num_fragments_min, num_fragments_max, len(ranked_gems), frag_description)
+                    ranked_gems_list.append(ranked_gems)
+                    left_anchor_list.append(A)
+                    right_anchor_list.append(B)
+                    middle_anchor_list.append(C)
+                    if histogram_options == "yes":
+                        generate_file(ranked_gems, output_file, out_dir)
+                    write_to_csv_file(id, A, B, C, "BtoA", len(ranked_gems), csv_file, out_dir, ranked_gems)
 
-            if graphs_flags["BtoC"]:
-                ranked_gems = process_left(ChIA_Drop_bc, num_fragments_min, num_fragments_max, B, C, filter_region)
-                output_file = create_plot_filename(dataset, id, "BtoC", num_fragments_min, num_fragments_max, len(ranked_gems), frag_description)
-                ranked_gems_list.append(ranked_gems)
-                left_anchor_list.append(B)
-                right_anchor_list.append(C)
-                middle_anchor_list.append(A)
-                if histogram_options == "yes":
-                    generate_file(ranked_gems, output_file, out_dir)
-                write_to_csv_file(id, A, B, C, "BtoC", len(ranked_gems), csv_file, out_dir, ranked_gems)
+                if graphs_flags["BtoC"]:
+                    ranked_gems = process_left(ChIA_Drop_bc, num_fragments_min, num_fragments_max, B, C, filter_region)
+                    output_file = create_plot_filename(dataset, id, "BtoC", num_fragments_min, num_fragments_max, len(ranked_gems), frag_description)
+                    ranked_gems_list.append(ranked_gems)
+                    left_anchor_list.append(B)
+                    right_anchor_list.append(C)
+                    middle_anchor_list.append(A)
+                    if histogram_options == "yes":
+                        generate_file(ranked_gems, output_file, out_dir)
+                    write_to_csv_file(id, A, B, C, "BtoC", len(ranked_gems), csv_file, out_dir, ranked_gems)
 
-            if graph_flag == "yes":
-                output_file = create_plot_filename(dataset, id, "jets", num_fragments_min, num_fragments_max,
-                                                   len(ranked_gems), frag_description)
-                plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
-                                            right_anchor_list, middle_anchor_list, out_dir,
-                                            colors_flags, anchor_options, id, dataset, commands_list, extension,
-                                            frag_height, line_width, plot_width, subplots_margins, frag_description)
+                if graph_flag == "yes":
+                    output_file = create_plot_filename(dataset, id, "jets", num_fragments_min, num_fragments_max,
+                                                    len(ranked_gems), frag_description)
+                    plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
+                                                right_anchor_list, middle_anchor_list, out_dir,
+                                                colors_flags, anchor_options, id, dataset, commands_list, extension,
+                                                frag_height, line_width, plot_width, subplots_margins, frag_description)
 
     elif processing_type == "AandBandC":
         filter_regions_filename = "filter_regions.bed"
