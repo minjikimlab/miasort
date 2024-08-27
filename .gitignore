@@ -49,3 +49,9 @@ miasort.egg-info
 build
 dist
 pairs2complexes
+test.py
+!gl_stripe_sorting_with_plots_GM12878_insitu-Hi-C_hg38.py
+!gl_stripe_sorting_with_plots_GM12878_CTCF-CHIA-Drop_hg38.py
+!gl_stripe_sorting_with_plots_GM12878_SPRITE_hg38.py
+!gl_stripe_sorting_with_plots_GM12878_Pore-C_hg38.py
+!gl_stripe_sorting_with_plots_GM12878_CTCF-ChIA-PET_hg38.py
