@@ -33,10 +33,13 @@ def start(path1, path2, processing_type, graphs,
     if out_dir != "/" and os.path.exists(out_dir):
         shutil.rmtree(out_dir)
 
+    os.makedirs(out_dir)
+
     if processing_type == "abc":
-        filter_regions_filename = "filter_regions.bed"
+        filter_regions_filename = os.path.join(out_dir, "filter_regions.bed")
         generate_filter_regions(path2, filter_regions_filename)
         filter_regions = BedTool(filter_regions_filename)
+        os.remove(filter_regions_filename)
 
         intersected = ChIA_Drop.intersect(filter_regions, wa=True, wb=True)
 
@@ -59,8 +62,6 @@ def start(path1, path2, processing_type, graphs,
 
         csv_file = create_csv_filename(dataset, path2, frag_description)
         if out_dir != "/":
-            if not os.path.exists(out_dir):
-                os.makedirs(out_dir)
             path = os.path.join(out_dir, csv_file)
         else:
             path = csv_file
