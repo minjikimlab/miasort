@@ -6,7 +6,7 @@ import miasort
 from memory_profiler import profile
 
 
-test_out_dir = "./cr527_profiling_tests/test10_memory/"
+test_out_dir = "./cr527_profiling_tests/test10_memory_cython/"
 
 @profile
 def main():

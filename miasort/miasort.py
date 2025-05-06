@@ -1,3 +1,5 @@
+# change depending on test
+# test_start is new indexing scheme
 #from .test_start import start
 from .start import start
 
@@ -5,7 +7,7 @@ def abc_sort(path1, path2, graphs, out_dir='/', plot=True, histogram=False, anch
              colors='red;green;#525252', num_frag_min=2, num_frag_max=1000, extension='6000',
              frag_height=0.6, line_width=2.0, plot_width=50, subplots_margins=(0.9, 0.05, 0.9)):
     """Sort Three Regions."""
-    print("abc_sort")
+    #print("abc_sort")
     dataset = path1.split("/")[-1].split(".region")[0]
 
     if plot:

@@ -89,3 +89,10 @@ memory_usage_plot.png
 interval_tree_explore.py
 temp_filter_regions.bed
 test_filter_regions.bed
+count_complexes.txt
+count_complexes_parallel.txt
+count_fragments.txt
+count_fragments_parallel.txt
+*.dat
+
+
