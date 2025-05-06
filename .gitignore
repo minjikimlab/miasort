@@ -51,3 +51,31 @@ dist
 pairs2complexes
 test.py
 !tests/**
+
+# Ignore profiling and debugging files
+*.lprof
+*.prof
+*.out
+*.err
+
+# Ignore Python bytecode
+*.pyc
+*.pyo
+__pycache__/
+
+# Ignore Cython compiled files
+*.c
+*.so
+*.cpp
+
+# Ignore temporary files
+*.swp
+*.swo
+*.bak
+*.tmp
+*.log
+.DS_Store
+
+# Ignore virtual environments
+venv/
+.env/
