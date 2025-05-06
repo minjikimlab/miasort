@@ -1,6 +1,7 @@
 import pybedtools
 from pybedtools import BedTool
 
+#@profile
 def process_left(ChIA_Drop, num_fragments_min, num_fragments_max, left_anchor, right_anchor, region):
     right_anchor_start = int(right_anchor.split('\t')[1])
     right_anchor_end = int(right_anchor.split('\t')[2])
@@ -119,7 +120,7 @@ def process_right(ChIA_Drop, num_fragments_min, num_fragments_max, left_anchor, 
 
     return valid_gems
 
-
+#@profile
 def process_middle(ChIA_Drop, num_fragments_min, num_fragments_max, left_anchor, right_anchor, region, middle_anchor):
     middle_anchor_chrom, middle_anchor_start, middle_anchor_end = middle_anchor.split('\t')
 
@@ -206,7 +207,7 @@ def process_middle(ChIA_Drop, num_fragments_min, num_fragments_max, left_anchor,
 
     return new_valid_gems
 
-
+#@profile
 def process_multiple(ChIA_Drop, num_fragments_min, num_fragments_max, yes_chroms, no_chroms):
     # reduce search space
     chr_id = yes_chroms[0][0]

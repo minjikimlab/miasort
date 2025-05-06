@@ -2,8 +2,8 @@
 
 import miasort
 
-miasort.abc_sort("../../DP-thymocyte_Hi-C_GSE199059.mm10.complexes",
-                 "../../DP-thymocyte-jets.bedte",
+miasort.abc_sort("../mia-sort_output/DP-thymocyte_Hi-C_GSE199059.mm10.complexes",
+                 "../mia-sort_output/DP-thymocyte-jets.bedte",
                  "Bcentered;BtoA;BtoC",
                  colors="red;#FF0000;#525252",
                  out_dir="../DP-thymocyte_Hi-C_GSE199059-DP-thymocyte-jets",

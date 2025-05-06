@@ -1,9 +1,12 @@
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.patches as patches
 from matplotlib.lines import Line2D
 from matplotlib.gridspec import GridSpec
 from .helper import figsize_height_scaler, kb_format, create_plot_title
 
+#@profile
 def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
                            right_anchor_list, middle_anchor_list, out_dir, colors_flags,
                            anchor_options, id, path1, commands_list, extension,
@@ -187,5 +190,5 @@ def plot_ranked_gems(ranked_gems_list, output_file, left_anchor_list,
         ax.xaxis.set_major_formatter(plt.FuncFormatter(kb_format))
 
     plt.subplots_adjust(top=subplots_margins[0], bottom=subplots_margins[1], hspace=subplots_margins[2])
-    plt.savefig(directory_str)
+    plt.savefig(directory_str, dpi=50)
     plt.close(fig)

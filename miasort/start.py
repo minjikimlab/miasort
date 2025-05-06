@@ -4,22 +4,84 @@ import os
 import shutil
 import csv
 
+
+from miasort.util import *
+import numpy as np
+
+from .indexes import *
 from .plot import plot_ranked_gems
 from .histogram import generate_file
 from .sort import *
+from .it_sort import it_process_multiple
 from .records import write_to_csv_file, write_to_csv_file_multiple
 from .helper import process_multiple_regions, process_graphs_arg, \
     create_plot_filename, process_color_arg, \
     create_csv_filename, generate_filter_regions
 
+# Add the following import at the top of the file for mem profiling
+'''
+try:
+    from memory_profiler import profile
+except ImportError:
+    def profile(func):
+        return func
+'''
+from line_profiler import LineProfiler
+
+
+@profile
 def start(path1, path2, processing_type, graphs,
          num_fragments_min, num_fragments_max, region, operation,
          dataset, out_dir, colors, anchor_options,
          graph_flag, extension, histogram_options, frag_height,
          line_width, plot_width, subplots_margins):
     pybedtools.helpers.cleanup()
+    print("start")
 
+
+    #original
     ChIA_Drop = BedTool(path1)
+    '''
+    # these are the valid bins to find the complexes in
+    region_bins = process_bed_file(path2)
+    region_chroms = set([tup[0] for tup in region_bins])
+    bins = set([tup[1] for tup in region_bins])
+    #print(region_bins)
+    print(f"region_bins (length: {len(region_bins)}):")
+    print(region_bins[:10])  # Print the first 10 elements for a preview
+    #print(np.unique(region_bins))  # Print first 10 elements for debugging
+    
+    
+    
+    
+    ids = get_match_ids(path1, region_bins, bin_size=1000000)
+    print(f"Number of complex matches found: {len(ids)}")
+    #print(total_complexes)
+    
+    filts = get_filtered_complexes_generator(path1, ids)
+
+    # Initialize an empty BedTool object
+    ChIA_Drop = None
+
+    # Iterate over the batches
+    for batch in filts:
+        # Convert the current batch to a BedTool object
+        batch_bedtool = BedTool("\n".join(batch), from_string=True)
+        #print(str(batch_bedtool))
+        # Combine the current batch with the existing BedTool object
+        if ChIA_Drop is None:
+            ChIA_Drop = batch_bedtool  # Initialize with the first batch
+            #print(len(ChIA_Drop))
+            #print(len(batch_bedtool))
+        else:
+            ChIA_Drop = ChIA_Drop.cat(batch_bedtool, postmerge=False) 
+            #print(len(ChIA_Drop))
+            #print(len(batch_bedtool))
+    print(f"Number of fragments: {len(ChIA_Drop)}")
+    #print(len(ChIA_Drop))
+    '''
+
+
 
     colors_flags = process_color_arg(colors)
 
@@ -35,13 +97,23 @@ def start(path1, path2, processing_type, graphs,
 
     os.makedirs(out_dir)
 
+
+    # reduce search space
+    #complex_bins = assign_bins(ChIA_Drop)
+    #print(complex_bins[0])
+    #exit()
+    
+    
+
     if processing_type == "abc":
         filter_regions_filename = os.path.join(out_dir, "filter_regions.bed")
         generate_filter_regions(path2, filter_regions_filename)
         filter_regions = BedTool(filter_regions_filename)
 
-        intersected = ChIA_Drop.intersect(filter_regions, wa=True, wb=True)
 
+        #intersected = filtered_chiadrop.intersect(filter_regions, wa=True, wb=True)
+        intersected = ChIA_Drop.intersect(filter_regions, wa=True, wb=True)
+        #print(len(intersected))
         # Dictionary to store the intersected regions for each line of b
         filtered_intersections = {}
 
@@ -75,7 +147,7 @@ def start(path1, path2, processing_type, graphs,
         for key, ChIA_Drop_anchor in filtered_intersections.items():
             anchors = key.split(" ")[3:]
             id = anchors[9]
-
+            #print(anchors)
             # Error check
             if int(anchors[1]) >= int(anchors[2]) or int(anchors[4]) >= int(anchors[5]) or int(anchors[7]) >= int(anchors[8]) \
             or int(anchors[2]) >= int(anchors[4]) or int(anchors[5]) >= int(anchors[7]):
@@ -199,7 +271,7 @@ def start(path1, path2, processing_type, graphs,
         os.remove(filter_regions_filename)
 
     elif processing_type == "AandBandC":
-        filter_regions_filename = "filter_regions.bed"
+        filter_regions_filename = "temp_filter_regions.bed"
         generate_filter_regions(path2, filter_regions_filename)
         filter_regions = BedTool(filter_regions_filename)
 
@@ -236,10 +308,10 @@ def start(path1, path2, processing_type, graphs,
         for key, ChIA_Drop_anchor in filtered_intersections.items():
             region = key.split(" ")[3:]
             id = region[9]
-
+            #print(region)
             # Error check
-            if region[1] >= region[2] or region[4] >= region[5] or region[7] >= region[8] \
-            or region[2] >= region[4] or region[5] >= region[7]:
+            if int(region[1]) >= int(region[2]) or int(region[4]) >= int(region[5]) or int(region[7]) >= int(region[8]) \
+            or int(region[2]) >= int(region[4]) or int(region[5]) >= int(region[7]):
                 print(f"Error for {id}: left is larger than right, please check the input file")
                 continue
 

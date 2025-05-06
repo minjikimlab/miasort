@@ -79,3 +79,13 @@ __pycache__/
 # Ignore virtual environments
 venv/
 .env/
+
+#ignore local test files
+#za
+test_complex_dict.sh
+bedtools_intersect_explore.py
+extra_functions.py
+memory_usage_plot.png
+interval_tree_explore.py
+temp_filter_regions.bed
+test_filter_regions.bed
