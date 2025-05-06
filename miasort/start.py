@@ -255,15 +255,15 @@ def start(path1, path2, processing_type, graphs,
 
             yes_chroms, no_chroms = process_multiple_regions(region, operation)
             ranked_gems = process_multiple(ChIA_Drop_anchor, num_fragments_min, num_fragments_max, yes_chroms, no_chroms)
-            if graph_flag == "yes":
-                output_file = create_plot_filename(dataset, id, "AandBandC", num_fragments_min,
+            output_file = create_plot_filename(dataset, id, "AandBandC", num_fragments_min,
                                                 num_fragments_max, len(ranked_gems), frag_description)
+            if graph_flag == "yes":
                 plot_ranked_gems([ranked_gems], output_file, [""], [""], [""], out_dir,
                                             colors_flags, anchor_options, id, dataset, ["multiple"],
                                             extension, frag_height, line_width, plot_width, subplots_margins, frag_description,
                                             flag="multiple_abc", regions=yes_chroms+no_chroms)
             if histogram_options == "yes":
-                generate_file(ranked_gems, "output_file", out_dir)  # TODO: revise file name
+                generate_file(ranked_gems, output_file, out_dir)  # TODO: revise file name
             write_to_csv_file_multiple(id, A, B, C, r, "AandBandC", len(ranked_gems), csv_file, out_dir, ranked_gems)
 
     else:
@@ -279,4 +279,4 @@ def start(path1, path2, processing_type, graphs,
                                         extension, frag_height, line_width, plot_width, subplots_margins, frag_description,
                                         flag="multiple", regions=yes_chroms+no_chroms)
         if histogram_options == "yes":
-            generate_file(ranked_gems, "output_file", out_dir)  # TODO: revise file name
+            generate_file(ranked_gems, output_file, out_dir)  # TODO: revise file name
